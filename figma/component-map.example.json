@@ -1,0 +1,21 @@
+{
+  "fileKey": "replace-with-figma-file-key",
+  "components": [
+    {
+      "componentName": "TripCard",
+      "source": "components/trip-card.tsx",
+      "nodeId": "replace-with-node-id"
+    },
+    {
+      "componentName": "ProtectedLoginForm",
+      "source": "app/login/page.tsx",
+      "nodeId": "replace-with-node-id"
+    },
+    {
+      "componentName": "ItineraryItemCard",
+      "source": "app/(protected)/trips/[id]/page.tsx",
+      "nodeId": "replace-with-node-id"
+    }
+  ]
+}
+
