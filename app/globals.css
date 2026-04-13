@@ -434,6 +434,39 @@ textarea {
   font-size: 0.96rem;
 }
 
+.form-dialog {
+  width: min(760px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.form-dialog::backdrop {
+  background: rgba(34, 34, 34, 0.32);
+  backdrop-filter: blur(6px);
+}
+
+.form-dialog__surface {
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+  border: 1px solid rgba(34, 34, 34, 0.08);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 28px 80px rgba(15, 15, 15, 0.18);
+}
+
+.form-dialog__header {
+  align-items: flex-start;
+}
+
+.form-dialog h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+
 .hero--dashboard {
   grid-template-columns: minmax(0, 1.3fr) 280px;
   align-items: start;
@@ -963,6 +996,16 @@ textarea {
   .detail-card__meta {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .form-dialog {
+    width: min(100vw - 20px, 760px);
+    max-height: calc(100vh - 20px);
+  }
+
+  .form-dialog__surface {
+    padding: 16px;
+    border-radius: 22px;
   }
 
   .item-time {

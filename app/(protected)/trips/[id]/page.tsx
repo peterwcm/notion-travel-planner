@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { FormDialog } from "@/components/form-dialog";
 import { SubmitButton } from "@/components/submit-button";
 import {
   createDayAction,
@@ -198,34 +199,33 @@ function OverviewTab({ detail }: { detail: TripDetail }) {
 function ItineraryTab({ detail }: { detail: TripDetail }) {
   return (
     <section className="page page--tight">
-      <section className="panel panel--feature stack">
-        <div className="header-actions">
-          <h3 className="section-title">新增 Day</h3>
-          <span className="panel-chip">Itinerary</span>
-        </div>
-        <form action={createDayAction} className="stack">
-          <input name="tripId" type="hidden" value={detail.trip.id} />
-          <div className="forms-grid">
-            <div className="field">
-              <label htmlFor="day-title">標題</label>
-              <input className="input" defaultValue={`Day ${detail.days.length + 1}`} id="day-title" name="title" required />
+      <div className="header-actions">
+        <h3 className="section-title">每日行程</h3>
+        <FormDialog description="新增一個新的 Day 區塊。" title="新增 Day" triggerLabel="新增 Day">
+          <form action={createDayAction} className="stack">
+            <input name="tripId" type="hidden" value={detail.trip.id} />
+            <div className="forms-grid">
+              <div className="field">
+                <label htmlFor="day-title">標題</label>
+                <input className="input" defaultValue={`Day ${detail.days.length + 1}`} id="day-title" name="title" required />
+              </div>
+              <div className="field">
+                <label htmlFor="day-date">日期</label>
+                <input className="input" id="day-date" name="date" type="date" />
+              </div>
+              <div className="field">
+                <label htmlFor="day-number">天次</label>
+                <input className="input" defaultValue={detail.days.length + 1} id="day-number" min={1} name="dayNumber" type="number" />
+              </div>
             </div>
             <div className="field">
-              <label htmlFor="day-date">日期</label>
-              <input className="input" id="day-date" name="date" type="date" />
+              <label htmlFor="summary">摘要</label>
+              <textarea className="textarea textarea--compact" id="summary" name="summary" placeholder="簡短摘要" />
             </div>
-            <div className="field">
-              <label htmlFor="day-number">天次</label>
-              <input className="input" defaultValue={detail.days.length + 1} id="day-number" min={1} name="dayNumber" type="number" />
-            </div>
-          </div>
-          <div className="field">
-            <label htmlFor="summary">摘要</label>
-            <textarea className="textarea textarea--compact" id="summary" name="summary" placeholder="簡短摘要" />
-          </div>
-          <SubmitButton>新增 Day</SubmitButton>
-        </form>
-      </section>
+            <SubmitButton>新增 Day</SubmitButton>
+          </form>
+        </FormDialog>
+      </div>
 
       <section className="timeline">
         {detail.days.length > 0 ? (
@@ -340,58 +340,60 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                 <div className="panel panel--side stack">
                   <div className="header-actions">
                     <h4>新增項目</h4>
+                    <FormDialog description="加入這一天的新安排。" title={`新增 ${day.title} 項目`} triggerLabel="新增項目">
+                      <form action={createItemAction} className="stack">
+                        <input name="tripId" type="hidden" value={detail.trip.id} />
+                        <input name="dayId" type="hidden" value={day.id} />
+                        <div className="forms-grid">
+                          <div className="field">
+                            <label>名稱</label>
+                            <input className="input" name="title" placeholder="淺草寺散步" required />
+                          </div>
+                          <div className="field">
+                            <label>類型</label>
+                            <select className="select" defaultValue="景點" name="type">
+                              <option value="景點">景點</option>
+                              <option value="交通">交通</option>
+                              <option value="住宿">住宿</option>
+                              <option value="餐廳">餐廳</option>
+                              <option value="購物">購物</option>
+                              <option value="提醒">提醒</option>
+                              <option value="其他">其他</option>
+                            </select>
+                          </div>
+                          <div className="field">
+                            <label>開始時間</label>
+                            <input className="input" name="startTime" placeholder="09:00" />
+                          </div>
+                          <div className="field">
+                            <label>結束時間</label>
+                            <input className="input" name="endTime" placeholder="11:00" />
+                          </div>
+                          <div className="field">
+                            <label>地點</label>
+                            <input className="input" name="location" placeholder="地點" />
+                          </div>
+                          <div className="field">
+                            <label>排序</label>
+                            <input className="input" defaultValue={day.items.length} min={0} name="order" type="number" />
+                          </div>
+                          <div className="field">
+                            <label>費用</label>
+                            <input className="input" min={0} name="cost" placeholder="0" type="number" />
+                          </div>
+                          <div className="field">
+                            <label>網址</label>
+                            <input className="input" name="url" placeholder="https://..." />
+                          </div>
+                        </div>
+                        <div className="field">
+                          <label>備註</label>
+                          <textarea className="textarea textarea--compact" name="notes" placeholder="補充資訊" />
+                        </div>
+                        <SubmitButton>新增項目</SubmitButton>
+                      </form>
+                    </FormDialog>
                   </div>
-                  <form action={createItemAction} className="stack">
-                    <input name="tripId" type="hidden" value={detail.trip.id} />
-                    <input name="dayId" type="hidden" value={day.id} />
-                    <div className="forms-grid">
-                      <div className="field">
-                        <label>名稱</label>
-                        <input className="input" name="title" placeholder="淺草寺散步" required />
-                      </div>
-                      <div className="field">
-                        <label>類型</label>
-                        <select className="select" defaultValue="景點" name="type">
-                          <option value="景點">景點</option>
-                          <option value="交通">交通</option>
-                          <option value="住宿">住宿</option>
-                          <option value="餐廳">餐廳</option>
-                          <option value="購物">購物</option>
-                          <option value="提醒">提醒</option>
-                          <option value="其他">其他</option>
-                        </select>
-                      </div>
-                      <div className="field">
-                        <label>開始時間</label>
-                        <input className="input" name="startTime" placeholder="09:00" />
-                      </div>
-                      <div className="field">
-                        <label>結束時間</label>
-                        <input className="input" name="endTime" placeholder="11:00" />
-                      </div>
-                      <div className="field">
-                        <label>地點</label>
-                        <input className="input" name="location" placeholder="地點" />
-                      </div>
-                      <div className="field">
-                        <label>排序</label>
-                        <input className="input" defaultValue={day.items.length} min={0} name="order" type="number" />
-                      </div>
-                      <div className="field">
-                        <label>費用</label>
-                        <input className="input" min={0} name="cost" placeholder="0" type="number" />
-                      </div>
-                      <div className="field">
-                        <label>網址</label>
-                        <input className="input" name="url" placeholder="https://..." />
-                      </div>
-                    </div>
-                    <div className="field">
-                      <label>備註</label>
-                      <textarea className="textarea textarea--compact" name="notes" placeholder="補充資訊" />
-                    </div>
-                    <SubmitButton>新增項目</SubmitButton>
-                  </form>
                 </div>
               </div>
             </article>
@@ -406,29 +408,28 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
 
 function FlightsTab({ detail }: { detail: TripDetail }) {
   return (
-    <section className="detail-section-grid">
-      <section className="panel panel--side stack">
-        <div className="header-actions">
-          <h3 className="section-title">新增航班</h3>
-        </div>
-        <form action={createFlightAction} className="stack">
-          <input name="tripId" type="hidden" value={detail.trip.id} />
-          <div className="forms-grid">
-            <LabeledInput label="標題" name="title" placeholder="去程航班" required />
-            <LabeledInput label="航空公司" name="airline" placeholder="EVA Air" />
-            <LabeledInput label="航班號碼" name="flightNumber" placeholder="BR67" />
-            <LabeledInput label="出發機場" name="departureAirport" placeholder="TPE" />
-            <LabeledInput label="抵達機場" name="arrivalAirport" placeholder="NRT" />
-            <LabeledInput label="出發時間" name="departureAt" type="datetime-local" />
-            <LabeledInput label="抵達時間" name="arrivalAt" type="datetime-local" />
-            <LabeledInput label="航廈" name="terminal" placeholder="T2" />
-            <LabeledInput label="登機門" name="gate" placeholder="C4" />
-          </div>
-          <LabeledTextarea label="備註" name="notes" placeholder="補充資訊" />
-          <SubmitButton>新增航班</SubmitButton>
-        </form>
-      </section>
-
+    <section className="section-block">
+      <div className="header-actions">
+        <h3 className="section-title">航班</h3>
+        <FormDialog description="加入去程或回程航班。" title="新增航班" triggerLabel="新增航班">
+          <form action={createFlightAction} className="stack">
+            <input name="tripId" type="hidden" value={detail.trip.id} />
+            <div className="forms-grid">
+              <LabeledInput label="標題" name="title" placeholder="去程航班" required />
+              <LabeledInput label="航空公司" name="airline" placeholder="EVA Air" />
+              <LabeledInput label="航班號碼" name="flightNumber" placeholder="BR67" />
+              <LabeledInput label="出發機場" name="departureAirport" placeholder="TPE" />
+              <LabeledInput label="抵達機場" name="arrivalAirport" placeholder="NRT" />
+              <LabeledInput label="出發時間" name="departureAt" type="datetime-local" />
+              <LabeledInput label="抵達時間" name="arrivalAt" type="datetime-local" />
+              <LabeledInput label="航廈" name="terminal" placeholder="T2" />
+              <LabeledInput label="登機門" name="gate" placeholder="C4" />
+            </div>
+            <LabeledTextarea label="備註" name="notes" placeholder="補充資訊" />
+            <SubmitButton>新增航班</SubmitButton>
+          </form>
+        </FormDialog>
+      </div>
       <section className="stack">
         {detail.flights.length > 0 ? (
           detail.flights.map((flight) => (
@@ -488,22 +489,24 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
 
 function StaysTab({ detail }: { detail: TripDetail }) {
   return (
-    <section className="detail-section-grid">
-      <section className="panel panel--side stack">
-        <h3 className="section-title">新增住宿</h3>
-        <form action={createStayAction} className="stack">
-          <input name="tripId" type="hidden" value={detail.trip.id} />
-          <div className="forms-grid">
-            <LabeledInput label="住宿名稱" name="title" placeholder="Shinjuku Granbell" required />
-            <LabeledInput label="入住日期" name="checkInDate" type="date" />
-            <LabeledInput label="退房日期" name="checkOutDate" type="date" />
-            <LabeledInput label="訂房代碼" name="bookingReference" placeholder="ABCD1234" />
-          </div>
-          <LabeledTextarea label="地址" name="address" placeholder="地址" />
-          <LabeledTextarea label="備註" name="notes" placeholder="補充資訊" />
-          <SubmitButton>新增住宿</SubmitButton>
-        </form>
-      </section>
+    <section className="section-block">
+      <div className="header-actions">
+        <h3 className="section-title">住宿</h3>
+        <FormDialog description="記錄飯店、民宿或公寓。" title="新增住宿" triggerLabel="新增住宿">
+          <form action={createStayAction} className="stack">
+            <input name="tripId" type="hidden" value={detail.trip.id} />
+            <div className="forms-grid">
+              <LabeledInput label="住宿名稱" name="title" placeholder="Shinjuku Granbell" required />
+              <LabeledInput label="入住日期" name="checkInDate" type="date" />
+              <LabeledInput label="退房日期" name="checkOutDate" type="date" />
+              <LabeledInput label="訂房代碼" name="bookingReference" placeholder="ABCD1234" />
+            </div>
+            <LabeledTextarea label="地址" name="address" placeholder="地址" />
+            <LabeledTextarea label="備註" name="notes" placeholder="補充資訊" />
+            <SubmitButton>新增住宿</SubmitButton>
+          </form>
+        </FormDialog>
+      </div>
       <section className="stack">
         {detail.stays.length > 0 ? (
           detail.stays.map((stay) => (
@@ -557,23 +560,25 @@ function StaysTab({ detail }: { detail: TripDetail }) {
 
 function PickupsTab({ detail }: { detail: TripDetail }) {
   return (
-    <section className="detail-section-grid">
-      <section className="panel panel--side stack">
-        <h3 className="section-title">新增接送</h3>
-        <form action={createPickupAction} className="stack">
-          <input name="tripId" type="hidden" value={detail.trip.id} />
-          <div className="forms-grid">
-            <LabeledInput label="標題" name="title" placeholder="機場接送" required />
-            <LabeledInput label="接送時間" name="pickupAt" type="datetime-local" />
-            <LabeledInput label="服務商" name="provider" placeholder="Uber / KKday" />
-            <LabeledInput label="聯絡方式" name="contact" placeholder="電話或備註" />
-          </div>
-          <LabeledTextarea label="上車地點" name="pickupLocation" placeholder="上車地點" />
-          <LabeledTextarea label="下車地點" name="dropoffLocation" placeholder="下車地點" />
-          <LabeledTextarea label="備註" name="notes" placeholder="補充資訊" />
-          <SubmitButton>新增接送</SubmitButton>
-        </form>
-      </section>
+    <section className="section-block">
+      <div className="header-actions">
+        <h3 className="section-title">接送</h3>
+        <FormDialog description="加入機場接送或市區移動安排。" title="新增接送" triggerLabel="新增接送">
+          <form action={createPickupAction} className="stack">
+            <input name="tripId" type="hidden" value={detail.trip.id} />
+            <div className="forms-grid">
+              <LabeledInput label="標題" name="title" placeholder="機場接送" required />
+              <LabeledInput label="接送時間" name="pickupAt" type="datetime-local" />
+              <LabeledInput label="服務商" name="provider" placeholder="Uber / KKday" />
+              <LabeledInput label="聯絡方式" name="contact" placeholder="電話或備註" />
+            </div>
+            <LabeledTextarea label="上車地點" name="pickupLocation" placeholder="上車地點" />
+            <LabeledTextarea label="下車地點" name="dropoffLocation" placeholder="下車地點" />
+            <LabeledTextarea label="備註" name="notes" placeholder="補充資訊" />
+            <SubmitButton>新增接送</SubmitButton>
+          </form>
+        </FormDialog>
+      </div>
       <section className="stack">
         {detail.pickups.length > 0 ? (
           detail.pickups.map((pickup) => (
@@ -624,21 +629,23 @@ function PickupsTab({ detail }: { detail: TripDetail }) {
 
 function RemindersTab({ detail }: { detail: TripDetail }) {
   return (
-    <section className="detail-section-grid">
-      <section className="panel panel--side stack">
-        <h3 className="section-title">新增提醒</h3>
-        <form action={createReminderAction} className="stack">
-          <input name="tripId" type="hidden" value={detail.trip.id} />
-          <div className="forms-grid">
-            <LabeledInput label="標題" name="title" placeholder="提早 3 小時出門" required />
-            <LabeledInput label="提醒時間" name="remindAt" type="datetime-local" />
-            <LabeledInput label="網址" name="url" placeholder="https://..." />
-          </div>
-          <LabeledTextarea label="地點" name="location" placeholder="地點" />
-          <LabeledTextarea label="備註" name="notes" placeholder="補充資訊" />
-          <SubmitButton>新增提醒</SubmitButton>
-        </form>
-      </section>
+    <section className="section-block">
+      <div className="header-actions">
+        <h3 className="section-title">提醒</h3>
+        <FormDialog description="放進重要時間點與待辦。" title="新增提醒" triggerLabel="新增提醒">
+          <form action={createReminderAction} className="stack">
+            <input name="tripId" type="hidden" value={detail.trip.id} />
+            <div className="forms-grid">
+              <LabeledInput label="標題" name="title" placeholder="提早 3 小時出門" required />
+              <LabeledInput label="提醒時間" name="remindAt" type="datetime-local" />
+              <LabeledInput label="網址" name="url" placeholder="https://..." />
+            </div>
+            <LabeledTextarea label="地點" name="location" placeholder="地點" />
+            <LabeledTextarea label="備註" name="notes" placeholder="補充資訊" />
+            <SubmitButton>新增提醒</SubmitButton>
+          </form>
+        </FormDialog>
+      </div>
       <section className="stack">
         {detail.reminders.length > 0 ? (
           detail.reminders.map((reminder) => (
