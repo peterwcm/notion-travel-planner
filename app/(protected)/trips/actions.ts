@@ -17,6 +17,7 @@ import {
   updatePickup,
   updateReminder,
   updateStay,
+  updateTrip,
 } from "@/lib/notion";
 import { daySchema, flightSchema, itemSchema, pickupSchema, reminderSchema, staySchema, tripSchema } from "@/lib/validators";
 
@@ -49,6 +50,32 @@ export async function createTripAction(formData: FormData) {
   });
 
   revalidatePath("/trips");
+}
+
+export async function updateTripAction(formData: FormData) {
+  assertConfigured();
+
+  const tripId = String(formData.get("tripId") ?? "");
+  const parsed = tripSchema.parse({
+    title: formData.get("title"),
+    destination: formData.get("destination"),
+    startDate: formData.get("startDate"),
+    endDate: formData.get("endDate"),
+    status: formData.get("status"),
+    cover: formData.get("cover"),
+    notes: formData.get("notes"),
+  });
+
+  await updateTrip(tripId, {
+    ...parsed,
+    cover: parsed.cover ?? "",
+    notes: parsed.notes ?? "",
+    startDate: parsed.startDate ?? "",
+    endDate: parsed.endDate ?? "",
+  });
+
+  revalidatePath("/trips");
+  revalidatePath(`/trips/${tripId}`);
 }
 
 export async function createDayAction(formData: FormData) {

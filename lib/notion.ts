@@ -329,6 +329,38 @@ export async function createTrip(input: {
   } as CreatePageParameters);
 }
 
+export async function updateTrip(
+  tripId: string,
+  input: {
+    title: string;
+    destination: string;
+    startDate: string;
+    endDate: string;
+    status: TripStatus;
+    cover: string;
+    notes: string;
+  },
+) {
+  const client = getClient();
+
+  await client.pages.update({
+    page_id: tripId,
+    properties: {
+      [TRIP_PROPS.title]: titleProperty(input.title),
+      [TRIP_PROPS.destination]: richTextProperty(input.destination),
+      [TRIP_PROPS.startDate]: dateProperty(input.startDate),
+      [TRIP_PROPS.endDate]: dateProperty(input.endDate),
+      [TRIP_PROPS.status]: {
+        select: { name: input.status },
+      },
+      [TRIP_PROPS.cover]: {
+        url: input.cover || null,
+      },
+      [TRIP_PROPS.notes]: richTextProperty(input.notes),
+    },
+  } as any);
+}
+
 export async function createDay(input: {
   tripId: string;
   title: string;

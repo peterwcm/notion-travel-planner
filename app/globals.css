@@ -886,6 +886,14 @@ textarea {
   gap: 12px;
 }
 
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+
 .detail-card h4 {
   margin: 6px 0 0;
   font-size: 1.02rem;
@@ -993,7 +1001,8 @@ textarea {
   .header-actions,
   .row,
   .item-meta,
-  .detail-card__meta {
+  .detail-card__meta,
+  .card-actions {
     flex-direction: column;
     align-items: flex-start;
   }

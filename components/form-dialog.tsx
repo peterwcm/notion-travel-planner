@@ -8,15 +8,22 @@ interface FormDialogProps {
   title: string;
   description?: string;
   children: ReactNode;
+  triggerClassName?: string;
 }
 
-export function FormDialog({ triggerLabel, title, description, children }: FormDialogProps) {
+export function FormDialog({
+  triggerLabel,
+  title,
+  description,
+  children,
+  triggerClassName = "button",
+}: FormDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
   return (
     <>
-      <button className="button" onClick={() => dialogRef.current?.showModal()} type="button">
+      <button className={triggerClassName} onClick={() => dialogRef.current?.showModal()} type="button">
         {triggerLabel}
       </button>
 
