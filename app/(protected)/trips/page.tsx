@@ -6,7 +6,16 @@ import { getNotionStatus, listTrips } from "@/lib/notion";
 export const dynamic = "force-dynamic";
 
 export default async function TripsPage() {
-  const [trips, setupStatus] = await Promise.all([listTrips(), Promise.resolve(getNotionStatus())]);
+  const setupStatus = getNotionStatus();
+  let trips = [] as Awaited<ReturnType<typeof listTrips>>;
+  let hasLoadError = false;
+
+  try {
+    trips = await listTrips();
+  } catch {
+    hasLoadError = true;
+  }
+
   const activeTrips = trips.filter((trip) => trip.status !== "已完成").length;
 
   return (
@@ -24,10 +33,10 @@ export default async function TripsPage() {
         </div>
       </section>
 
-      {!setupStatus.configured ? (
+      {!setupStatus.configured || hasLoadError ? (
         <div className="notice">
-          <strong>目前無法顯示完整旅程資料</strong>
-          <p className="muted">請先完成設定後再繼續使用。</p>
+          <strong>目前暫時無法讀取旅程資料</strong>
+          <p className="muted">請檢查設定後重新整理頁面。</p>
         </div>
       ) : null}
 
@@ -70,7 +79,7 @@ export default async function TripsPage() {
           </div>
           <div className="field">
             <label htmlFor="notes">摘要</label>
-            <textarea className="textarea" id="notes" name="notes" placeholder="這趟旅程的短摘要" />
+            <textarea className="textarea textarea--compact" id="notes" name="notes" placeholder="這趟旅程的短摘要" />
           </div>
           <SubmitButton>建立旅程</SubmitButton>
         </form>

@@ -48,17 +48,22 @@ function getTab(tab?: string): TripSectionTab {
 }
 
 export default async function TripDetailPage({ params, searchParams }: TripDetailPageProps) {
-  const [detail, setupStatus] = await Promise.all([
-    getTripDetail(params.id),
-    Promise.resolve(getNotionStatus()),
-  ]);
+  const setupStatus = getNotionStatus();
+  let detail: TripDetail | null = null;
+  let hasLoadError = false;
 
-  if (!setupStatus.configured) {
+  try {
+    detail = await getTripDetail(params.id);
+  } catch {
+    hasLoadError = true;
+  }
+
+  if (!setupStatus.configured || hasLoadError) {
     return (
       <div className="page">
         <div className="notice">
-          <strong>目前無法顯示完整旅程資料</strong>
-          <p className="muted">請先完成設定後再繼續使用。</p>
+          <strong>目前暫時無法讀取旅程資料</strong>
+          <p className="muted">請檢查設定後重新整理頁面。</p>
         </div>
       </div>
     );
