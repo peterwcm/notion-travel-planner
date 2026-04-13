@@ -9,6 +9,8 @@ export type ItemType =
   | "提醒"
   | "其他";
 
+export type TripSectionTab = "overview" | "itinerary" | "flights" | "stays" | "pickups" | "reminders";
+
 export interface Trip {
   id: string;
   title: string;
@@ -43,6 +45,54 @@ export interface TripItem {
   order: number;
 }
 
+export interface TripFlight {
+  id: string;
+  tripId: string;
+  title: string;
+  airline: string;
+  flightNumber: string;
+  departureAirport: string;
+  arrivalAirport: string;
+  departureAt: string | null;
+  arrivalAt: string | null;
+  terminal: string;
+  gate: string;
+  notes: string;
+}
+
+export interface TripStay {
+  id: string;
+  tripId: string;
+  title: string;
+  checkInDate: string | null;
+  checkOutDate: string | null;
+  address: string;
+  bookingReference: string;
+  notes: string;
+}
+
+export interface TripPickup {
+  id: string;
+  tripId: string;
+  title: string;
+  pickupAt: string | null;
+  pickupLocation: string;
+  dropoffLocation: string;
+  provider: string;
+  contact: string;
+  notes: string;
+}
+
+export interface TripReminder {
+  id: string;
+  tripId: string;
+  title: string;
+  remindAt: string | null;
+  location: string;
+  url: string;
+  notes: string;
+}
+
 export interface TripDetail {
   trip: Trip;
   days: Array<
@@ -50,10 +100,13 @@ export interface TripDetail {
       items: TripItem[];
     }
   >;
+  flights: TripFlight[];
+  stays: TripStay[];
+  pickups: TripPickup[];
+  reminders: TripReminder[];
 }
 
 export interface SetupStatus {
   configured: boolean;
   missing: string[];
 }
-

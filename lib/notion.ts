@@ -2,7 +2,19 @@ import { Client } from "@notionhq/client";
 import type { CreatePageParameters } from "@notionhq/client/build/src/api-endpoints";
 
 import { getRequiredEnv, getSetupStatus } from "@/lib/env";
-import type { ItemType, SetupStatus, Trip, TripDay, TripDetail, TripItem, TripStatus } from "@/lib/types";
+import type {
+  ItemType,
+  SetupStatus,
+  Trip,
+  TripDay,
+  TripDetail,
+  TripFlight,
+  TripItem,
+  TripPickup,
+  TripReminder,
+  TripStay,
+  TripStatus,
+} from "@/lib/types";
 import { sum } from "@/lib/utils";
 
 const TRIP_PROPS = {
@@ -36,12 +48,72 @@ const ITEM_PROPS = {
   order: "排序",
 } as const;
 
+const FLIGHT_PROPS = {
+  title: "名稱",
+  trip: "旅程",
+  airline: "航空公司",
+  flightNumber: "航班號碼",
+  departureAirport: "出發機場",
+  arrivalAirport: "抵達機場",
+  departureAt: "出發時間",
+  arrivalAt: "抵達時間",
+  terminal: "航廈",
+  gate: "登機門",
+  notes: "備註",
+} as const;
+
+const STAY_PROPS = {
+  title: "名稱",
+  trip: "旅程",
+  checkInDate: "入住日期",
+  checkOutDate: "退房日期",
+  address: "地址",
+  bookingReference: "訂房代碼",
+  notes: "備註",
+} as const;
+
+const PICKUP_PROPS = {
+  title: "名稱",
+  trip: "旅程",
+  pickupAt: "接送時間",
+  pickupLocation: "上車地點",
+  dropoffLocation: "下車地點",
+  provider: "服務商",
+  contact: "聯絡方式",
+  notes: "備註",
+} as const;
+
+const REMINDER_PROPS = {
+  title: "名稱",
+  trip: "旅程",
+  remindAt: "提醒時間",
+  location: "地點",
+  url: "網址",
+  notes: "備註",
+} as const;
+
 function getClient() {
   return new Client({ auth: getRequiredEnv("NOTION_TOKEN") });
 }
 
 function richText(content: string) {
   return [{ type: "text" as const, text: { content } }];
+}
+
+function richTextProperty(content?: string) {
+  return { rich_text: content ? richText(content) : [] };
+}
+
+function titleProperty(content: string) {
+  return { title: richText(content) };
+}
+
+function dateProperty(value?: string) {
+  return value ? { date: { start: value } } : { date: null };
+}
+
+function relationProperty(id: string) {
+  return { relation: [{ id }] };
 }
 
 function getTitle(properties: Record<string, any>, name: string) {
@@ -107,7 +179,7 @@ function getRelation(properties: Record<string, any>, name: string) {
   return property.relation.map((entry: any) => entry.id);
 }
 
-async function queryAllDatabasePages(args: Record<string, any>) {
+async function queryAllDataSourcePages(args: Record<string, any>) {
   const client = getClient();
   const results: any[] = [];
   let cursor: string | undefined;
@@ -124,6 +196,19 @@ async function queryAllDatabasePages(args: Record<string, any>) {
   return results;
 }
 
+async function queryTripScopedPages(dataSourceId: string, tripId: string, relationName: string, sorts?: any[]) {
+  return queryAllDataSourcePages({
+    data_source_id: dataSourceId,
+    filter: {
+      property: relationName,
+      relation: {
+        contains: tripId,
+      },
+    },
+    sorts,
+  });
+}
+
 export function getNotionStatus(): SetupStatus {
   return getSetupStatus();
 }
@@ -134,7 +219,7 @@ export async function listTrips() {
     return [];
   }
 
-  const results = await queryAllDatabasePages({
+  const results = await queryAllDataSourcePages({
     data_source_id: getRequiredEnv("NOTION_TRIPS_DB_ID"),
     sorts: [{ timestamp: "last_edited_time", direction: "descending" }],
   });
@@ -152,26 +237,16 @@ export async function getTripDetail(tripId: string): Promise<TripDetail | null> 
   const tripPage = (await client.pages.retrieve({ page_id: tripId })) as any;
   const trip = mapTrip(tripPage.properties, tripPage.id);
 
-  const dayResults = await queryAllDatabasePages({
-    data_source_id: getRequiredEnv("NOTION_DAYS_DB_ID"),
-    filter: {
-      property: DAY_PROPS.trip,
-      relation: {
-        contains: tripId,
-      },
-    },
-    sorts: [
-      { property: DAY_PROPS.date, direction: "ascending" },
-      { property: DAY_PROPS.dayNumber, direction: "ascending" },
-    ],
-  });
-
+  const dayResults = await queryTripScopedPages(getRequiredEnv("NOTION_DAYS_DB_ID"), tripId, DAY_PROPS.trip, [
+    { property: DAY_PROPS.date, direction: "ascending" },
+    { property: DAY_PROPS.dayNumber, direction: "ascending" },
+  ]);
   const days = dayResults.map((page) => mapDay(page.properties, page.id));
   const dayIds = days.map((day) => day.id);
 
   let itemResults: any[] = [];
   if (dayIds.length > 0) {
-    itemResults = await queryAllDatabasePages({
+    itemResults = await queryAllDataSourcePages({
       data_source_id: getRequiredEnv("NOTION_ITEMS_DB_ID"),
       filter: {
         or: dayIds.map((dayId) => ({
@@ -188,6 +263,21 @@ export async function getTripDetail(tripId: string): Promise<TripDetail | null> 
     });
   }
 
+  const [flightResults, stayResults, pickupResults, reminderResults] = await Promise.all([
+    queryTripScopedPages(getRequiredEnv("NOTION_FLIGHTS_DB_ID"), tripId, FLIGHT_PROPS.trip, [
+      { property: FLIGHT_PROPS.departureAt, direction: "ascending" },
+    ]),
+    queryTripScopedPages(getRequiredEnv("NOTION_STAYS_DB_ID"), tripId, STAY_PROPS.trip, [
+      { property: STAY_PROPS.checkInDate, direction: "ascending" },
+    ]),
+    queryTripScopedPages(getRequiredEnv("NOTION_PICKUPS_DB_ID"), tripId, PICKUP_PROPS.trip, [
+      { property: PICKUP_PROPS.pickupAt, direction: "ascending" },
+    ]),
+    queryTripScopedPages(getRequiredEnv("NOTION_REMINDERS_DB_ID"), tripId, REMINDER_PROPS.trip, [
+      { property: REMINDER_PROPS.remindAt, direction: "ascending" },
+    ]),
+  ]);
+
   const items = itemResults.map((page) => mapItem(page.properties, page.id));
   const itemsByDay = new Map<string, TripItem[]>();
 
@@ -203,6 +293,10 @@ export async function getTripDetail(tripId: string): Promise<TripDetail | null> 
       ...day,
       items: itemsByDay.get(day.id) ?? [],
     })),
+    flights: flightResults.map((page) => mapFlight(page.properties, page.id)),
+    stays: stayResults.map((page) => mapStay(page.properties, page.id)),
+    pickups: pickupResults.map((page) => mapPickup(page.properties, page.id)),
+    reminders: reminderResults.map((page) => mapReminder(page.properties, page.id)),
   };
 }
 
@@ -220,27 +314,17 @@ export async function createTrip(input: {
   await client.pages.create({
     parent: { data_source_id: getRequiredEnv("NOTION_TRIPS_DB_ID") },
     properties: {
-      [TRIP_PROPS.title]: {
-        title: richText(input.title),
-      },
-      [TRIP_PROPS.destination]: {
-        rich_text: richText(input.destination),
-      },
-      [TRIP_PROPS.startDate]: input.startDate
-        ? { date: { start: input.startDate } }
-        : { date: null },
-      [TRIP_PROPS.endDate]: input.endDate
-        ? { date: { start: input.endDate } }
-        : { date: null },
+      [TRIP_PROPS.title]: titleProperty(input.title),
+      [TRIP_PROPS.destination]: richTextProperty(input.destination),
+      [TRIP_PROPS.startDate]: dateProperty(input.startDate),
+      [TRIP_PROPS.endDate]: dateProperty(input.endDate),
       [TRIP_PROPS.status]: {
         select: { name: input.status },
       },
       [TRIP_PROPS.cover]: {
         url: input.cover || null,
       },
-      [TRIP_PROPS.notes]: {
-        rich_text: input.notes ? richText(input.notes) : [],
-      },
+      [TRIP_PROPS.notes]: richTextProperty(input.notes),
     },
   } as CreatePageParameters);
 }
@@ -257,19 +341,13 @@ export async function createDay(input: {
   await client.pages.create({
     parent: { data_source_id: getRequiredEnv("NOTION_DAYS_DB_ID") },
     properties: {
-      [DAY_PROPS.title]: {
-        title: richText(input.title),
-      },
-      [DAY_PROPS.trip]: {
-        relation: [{ id: input.tripId }],
-      },
-      [DAY_PROPS.date]: input.date ? { date: { start: input.date } } : { date: null },
+      [DAY_PROPS.title]: titleProperty(input.title),
+      [DAY_PROPS.trip]: relationProperty(input.tripId),
+      [DAY_PROPS.date]: dateProperty(input.date),
       [DAY_PROPS.dayNumber]: {
         number: input.dayNumber,
       },
-      [DAY_PROPS.summary]: {
-        rich_text: input.summary ? richText(input.summary) : [],
-      },
+      [DAY_PROPS.summary]: richTextProperty(input.summary),
     },
   } as CreatePageParameters);
 }
@@ -291,33 +369,21 @@ export async function createItem(input: {
   await client.pages.create({
     parent: { data_source_id: getRequiredEnv("NOTION_ITEMS_DB_ID") },
     properties: {
-      [ITEM_PROPS.title]: {
-        title: richText(input.title),
-      },
-      [ITEM_PROPS.day]: {
-        relation: [{ id: input.dayId }],
-      },
-      [ITEM_PROPS.startTime]: {
-        rich_text: input.startTime ? richText(input.startTime) : [],
-      },
-      [ITEM_PROPS.endTime]: {
-        rich_text: input.endTime ? richText(input.endTime) : [],
-      },
+      [ITEM_PROPS.title]: titleProperty(input.title),
+      [ITEM_PROPS.day]: relationProperty(input.dayId),
+      [ITEM_PROPS.startTime]: richTextProperty(input.startTime),
+      [ITEM_PROPS.endTime]: richTextProperty(input.endTime),
       [ITEM_PROPS.type]: {
         select: { name: input.type },
       },
-      [ITEM_PROPS.location]: {
-        rich_text: input.location ? richText(input.location) : [],
-      },
+      [ITEM_PROPS.location]: richTextProperty(input.location),
       [ITEM_PROPS.cost]: {
         number: input.cost,
       },
       [ITEM_PROPS.url]: {
         url: input.url || null,
       },
-      [ITEM_PROPS.notes]: {
-        rich_text: input.notes ? richText(input.notes) : [],
-      },
+      [ITEM_PROPS.notes]: richTextProperty(input.notes),
       [ITEM_PROPS.order]: {
         number: input.order,
       },
@@ -344,33 +410,167 @@ export async function updateItem(
   await client.pages.update({
     page_id: itemId,
     properties: {
-      [ITEM_PROPS.title]: {
-        title: richText(input.title),
-      },
-      [ITEM_PROPS.startTime]: {
-        rich_text: input.startTime ? richText(input.startTime) : [],
-      },
-      [ITEM_PROPS.endTime]: {
-        rich_text: input.endTime ? richText(input.endTime) : [],
-      },
+      [ITEM_PROPS.title]: titleProperty(input.title),
+      [ITEM_PROPS.startTime]: richTextProperty(input.startTime),
+      [ITEM_PROPS.endTime]: richTextProperty(input.endTime),
       [ITEM_PROPS.type]: {
         select: { name: input.type },
       },
-      [ITEM_PROPS.location]: {
-        rich_text: input.location ? richText(input.location) : [],
-      },
+      [ITEM_PROPS.location]: richTextProperty(input.location),
       [ITEM_PROPS.cost]: {
         number: input.cost,
       },
       [ITEM_PROPS.url]: {
         url: input.url || null,
       },
-      [ITEM_PROPS.notes]: {
-        rich_text: input.notes ? richText(input.notes) : [],
-      },
+      [ITEM_PROPS.notes]: richTextProperty(input.notes),
       [ITEM_PROPS.order]: {
         number: input.order,
       },
+    },
+  } as any);
+}
+
+export async function createFlight(input: Omit<TripFlight, "id">) {
+  const client = getClient();
+
+  await client.pages.create({
+    parent: { data_source_id: getRequiredEnv("NOTION_FLIGHTS_DB_ID") },
+    properties: {
+      [FLIGHT_PROPS.title]: titleProperty(input.title),
+      [FLIGHT_PROPS.trip]: relationProperty(input.tripId),
+      [FLIGHT_PROPS.airline]: richTextProperty(input.airline),
+      [FLIGHT_PROPS.flightNumber]: richTextProperty(input.flightNumber),
+      [FLIGHT_PROPS.departureAirport]: richTextProperty(input.departureAirport),
+      [FLIGHT_PROPS.arrivalAirport]: richTextProperty(input.arrivalAirport),
+      [FLIGHT_PROPS.departureAt]: dateProperty(input.departureAt ?? ""),
+      [FLIGHT_PROPS.arrivalAt]: dateProperty(input.arrivalAt ?? ""),
+      [FLIGHT_PROPS.terminal]: richTextProperty(input.terminal),
+      [FLIGHT_PROPS.gate]: richTextProperty(input.gate),
+      [FLIGHT_PROPS.notes]: richTextProperty(input.notes),
+    },
+  } as CreatePageParameters);
+}
+
+export async function updateFlight(flightId: string, input: Omit<TripFlight, "id" | "tripId">) {
+  const client = getClient();
+
+  await client.pages.update({
+    page_id: flightId,
+    properties: {
+      [FLIGHT_PROPS.title]: titleProperty(input.title),
+      [FLIGHT_PROPS.airline]: richTextProperty(input.airline),
+      [FLIGHT_PROPS.flightNumber]: richTextProperty(input.flightNumber),
+      [FLIGHT_PROPS.departureAirport]: richTextProperty(input.departureAirport),
+      [FLIGHT_PROPS.arrivalAirport]: richTextProperty(input.arrivalAirport),
+      [FLIGHT_PROPS.departureAt]: dateProperty(input.departureAt ?? ""),
+      [FLIGHT_PROPS.arrivalAt]: dateProperty(input.arrivalAt ?? ""),
+      [FLIGHT_PROPS.terminal]: richTextProperty(input.terminal),
+      [FLIGHT_PROPS.gate]: richTextProperty(input.gate),
+      [FLIGHT_PROPS.notes]: richTextProperty(input.notes),
+    },
+  } as any);
+}
+
+export async function createStay(input: Omit<TripStay, "id">) {
+  const client = getClient();
+
+  await client.pages.create({
+    parent: { data_source_id: getRequiredEnv("NOTION_STAYS_DB_ID") },
+    properties: {
+      [STAY_PROPS.title]: titleProperty(input.title),
+      [STAY_PROPS.trip]: relationProperty(input.tripId),
+      [STAY_PROPS.checkInDate]: dateProperty(input.checkInDate ?? ""),
+      [STAY_PROPS.checkOutDate]: dateProperty(input.checkOutDate ?? ""),
+      [STAY_PROPS.address]: richTextProperty(input.address),
+      [STAY_PROPS.bookingReference]: richTextProperty(input.bookingReference),
+      [STAY_PROPS.notes]: richTextProperty(input.notes),
+    },
+  } as CreatePageParameters);
+}
+
+export async function updateStay(stayId: string, input: Omit<TripStay, "id" | "tripId">) {
+  const client = getClient();
+
+  await client.pages.update({
+    page_id: stayId,
+    properties: {
+      [STAY_PROPS.title]: titleProperty(input.title),
+      [STAY_PROPS.checkInDate]: dateProperty(input.checkInDate ?? ""),
+      [STAY_PROPS.checkOutDate]: dateProperty(input.checkOutDate ?? ""),
+      [STAY_PROPS.address]: richTextProperty(input.address),
+      [STAY_PROPS.bookingReference]: richTextProperty(input.bookingReference),
+      [STAY_PROPS.notes]: richTextProperty(input.notes),
+    },
+  } as any);
+}
+
+export async function createPickup(input: Omit<TripPickup, "id">) {
+  const client = getClient();
+
+  await client.pages.create({
+    parent: { data_source_id: getRequiredEnv("NOTION_PICKUPS_DB_ID") },
+    properties: {
+      [PICKUP_PROPS.title]: titleProperty(input.title),
+      [PICKUP_PROPS.trip]: relationProperty(input.tripId),
+      [PICKUP_PROPS.pickupAt]: dateProperty(input.pickupAt ?? ""),
+      [PICKUP_PROPS.pickupLocation]: richTextProperty(input.pickupLocation),
+      [PICKUP_PROPS.dropoffLocation]: richTextProperty(input.dropoffLocation),
+      [PICKUP_PROPS.provider]: richTextProperty(input.provider),
+      [PICKUP_PROPS.contact]: richTextProperty(input.contact),
+      [PICKUP_PROPS.notes]: richTextProperty(input.notes),
+    },
+  } as CreatePageParameters);
+}
+
+export async function updatePickup(pickupId: string, input: Omit<TripPickup, "id" | "tripId">) {
+  const client = getClient();
+
+  await client.pages.update({
+    page_id: pickupId,
+    properties: {
+      [PICKUP_PROPS.title]: titleProperty(input.title),
+      [PICKUP_PROPS.pickupAt]: dateProperty(input.pickupAt ?? ""),
+      [PICKUP_PROPS.pickupLocation]: richTextProperty(input.pickupLocation),
+      [PICKUP_PROPS.dropoffLocation]: richTextProperty(input.dropoffLocation),
+      [PICKUP_PROPS.provider]: richTextProperty(input.provider),
+      [PICKUP_PROPS.contact]: richTextProperty(input.contact),
+      [PICKUP_PROPS.notes]: richTextProperty(input.notes),
+    },
+  } as any);
+}
+
+export async function createReminder(input: Omit<TripReminder, "id">) {
+  const client = getClient();
+
+  await client.pages.create({
+    parent: { data_source_id: getRequiredEnv("NOTION_REMINDERS_DB_ID") },
+    properties: {
+      [REMINDER_PROPS.title]: titleProperty(input.title),
+      [REMINDER_PROPS.trip]: relationProperty(input.tripId),
+      [REMINDER_PROPS.remindAt]: dateProperty(input.remindAt ?? ""),
+      [REMINDER_PROPS.location]: richTextProperty(input.location),
+      [REMINDER_PROPS.url]: {
+        url: input.url || null,
+      },
+      [REMINDER_PROPS.notes]: richTextProperty(input.notes),
+    },
+  } as CreatePageParameters);
+}
+
+export async function updateReminder(reminderId: string, input: Omit<TripReminder, "id" | "tripId">) {
+  const client = getClient();
+
+  await client.pages.update({
+    page_id: reminderId,
+    properties: {
+      [REMINDER_PROPS.title]: titleProperty(input.title),
+      [REMINDER_PROPS.remindAt]: dateProperty(input.remindAt ?? ""),
+      [REMINDER_PROPS.location]: richTextProperty(input.location),
+      [REMINDER_PROPS.url]: {
+        url: input.url || null,
+      },
+      [REMINDER_PROPS.notes]: richTextProperty(input.notes),
     },
   } as any);
 }
@@ -387,6 +587,10 @@ export function getTripStats(detail: TripDetail) {
   return {
     days: detail.days.length,
     items: detail.days.flatMap((day) => day.items).length,
+    flights: detail.flights.length,
+    stays: detail.stays.length,
+    pickups: detail.pickups.length,
+    reminders: detail.reminders.length,
     budget: sum(detail.days.flatMap((day) => day.items.map((item) => item.cost))),
   };
 }
@@ -432,5 +636,69 @@ function mapItem(properties: Record<string, any>, id: string): TripItem {
     url: getUrl(properties, ITEM_PROPS.url),
     notes: getRichText(properties, ITEM_PROPS.notes),
     order: getNumber(properties, ITEM_PROPS.order) ?? 0,
+  };
+}
+
+function mapFlight(properties: Record<string, any>, id: string): TripFlight {
+  const [tripId] = getRelation(properties, FLIGHT_PROPS.trip);
+
+  return {
+    id,
+    tripId: tripId ?? "",
+    title: getTitle(properties, FLIGHT_PROPS.title),
+    airline: getRichText(properties, FLIGHT_PROPS.airline),
+    flightNumber: getRichText(properties, FLIGHT_PROPS.flightNumber),
+    departureAirport: getRichText(properties, FLIGHT_PROPS.departureAirport),
+    arrivalAirport: getRichText(properties, FLIGHT_PROPS.arrivalAirport),
+    departureAt: getDate(properties, FLIGHT_PROPS.departureAt),
+    arrivalAt: getDate(properties, FLIGHT_PROPS.arrivalAt),
+    terminal: getRichText(properties, FLIGHT_PROPS.terminal),
+    gate: getRichText(properties, FLIGHT_PROPS.gate),
+    notes: getRichText(properties, FLIGHT_PROPS.notes),
+  };
+}
+
+function mapStay(properties: Record<string, any>, id: string): TripStay {
+  const [tripId] = getRelation(properties, STAY_PROPS.trip);
+
+  return {
+    id,
+    tripId: tripId ?? "",
+    title: getTitle(properties, STAY_PROPS.title),
+    checkInDate: getDate(properties, STAY_PROPS.checkInDate),
+    checkOutDate: getDate(properties, STAY_PROPS.checkOutDate),
+    address: getRichText(properties, STAY_PROPS.address),
+    bookingReference: getRichText(properties, STAY_PROPS.bookingReference),
+    notes: getRichText(properties, STAY_PROPS.notes),
+  };
+}
+
+function mapPickup(properties: Record<string, any>, id: string): TripPickup {
+  const [tripId] = getRelation(properties, PICKUP_PROPS.trip);
+
+  return {
+    id,
+    tripId: tripId ?? "",
+    title: getTitle(properties, PICKUP_PROPS.title),
+    pickupAt: getDate(properties, PICKUP_PROPS.pickupAt),
+    pickupLocation: getRichText(properties, PICKUP_PROPS.pickupLocation),
+    dropoffLocation: getRichText(properties, PICKUP_PROPS.dropoffLocation),
+    provider: getRichText(properties, PICKUP_PROPS.provider),
+    contact: getRichText(properties, PICKUP_PROPS.contact),
+    notes: getRichText(properties, PICKUP_PROPS.notes),
+  };
+}
+
+function mapReminder(properties: Record<string, any>, id: string): TripReminder {
+  const [tripId] = getRelation(properties, REMINDER_PROPS.trip);
+
+  return {
+    id,
+    tripId: tripId ?? "",
+    title: getTitle(properties, REMINDER_PROPS.title),
+    remindAt: getDate(properties, REMINDER_PROPS.remindAt),
+    location: getRichText(properties, REMINDER_PROPS.location),
+    url: getUrl(properties, REMINDER_PROPS.url),
+    notes: getRichText(properties, REMINDER_PROPS.notes),
   };
 }

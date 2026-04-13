@@ -38,3 +38,46 @@ export const itemSchema = z.object({
   order: z.coerce.number().int().min(0),
 });
 
+export const flightSchema = z.object({
+  tripId: z.string().min(1),
+  title: z.string().min(1, "請輸入航班標題"),
+  airline: z.string().optional(),
+  flightNumber: z.string().optional(),
+  departureAirport: z.string().optional(),
+  arrivalAirport: z.string().optional(),
+  departureAt: z.string().optional(),
+  arrivalAt: z.string().optional(),
+  terminal: z.string().optional(),
+  gate: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export const staySchema = z.object({
+  tripId: z.string().min(1),
+  title: z.string().min(1, "請輸入住宿名稱"),
+  checkInDate: z.string().optional(),
+  checkOutDate: z.string().optional(),
+  address: z.string().optional(),
+  bookingReference: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export const pickupSchema = z.object({
+  tripId: z.string().min(1),
+  title: z.string().min(1, "請輸入接送標題"),
+  pickupAt: z.string().optional(),
+  pickupLocation: z.string().optional(),
+  dropoffLocation: z.string().optional(),
+  provider: z.string().optional(),
+  contact: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export const reminderSchema = z.object({
+  tripId: z.string().min(1),
+  title: z.string().min(1, "請輸入提醒標題"),
+  remindAt: z.string().optional(),
+  location: z.string().optional(),
+  url: z.string().optional(),
+  notes: z.string().optional(),
+});

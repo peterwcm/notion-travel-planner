@@ -20,7 +20,6 @@ export function TripCard({ trip }: TripCardProps) {
       <div className="trip-card__content">
         <div className="trip-card__header">
           <div className="stack trip-card__intro">
-            <span className="trip-card__eyebrow">私人旅程檔案</span>
             <h3>{trip.title}</h3>
           </div>
           <span className="pill">{trip.status}</span>
@@ -28,9 +27,9 @@ export function TripCard({ trip }: TripCardProps) {
         <p className="trip-card__dates">
           {formatDate(trip.startDate)} - {formatDate(trip.endDate)}
         </p>
-        <p className="trip-card__notes">{trip.notes || "還沒有補充備註。"} </p>
+        <p className="trip-card__notes">{trip.notes || "尚未填寫摘要。"} </p>
         <div className="trip-card__footer">
-          <span>打開旅程</span>
+          <span>查看</span>
           <span aria-hidden="true">→</span>
         </div>
       </div>

@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "旅行規劃筆記",
-  description: "以 Notion 為資料來源的個人旅行規劃工具",
+  description: "個人旅行規劃工具",
 };
 
 export default function RootLayout({

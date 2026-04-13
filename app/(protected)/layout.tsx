@@ -29,16 +29,14 @@ export default async function ProtectedLayout({
         <aside className="shell-sidebar">
           <div className="shell-brand">
             <span className="tag">Travel Planner</span>
-            <h1>旅程規劃筆記</h1>
-            <p>
-              用更簡潔的方式整理旅程，不讓 Notion 原始資料表直接壓到閱讀體驗。
-            </p>
+            <h1>旅程規劃</h1>
+            <p>更安靜、更好讀的旅行工作台。</p>
           </div>
 
           <div className="shell-note">
-            <span className="shell-note__label">Sync status</span>
-            <strong>Notion 為主資料源</strong>
-            <p>所有新增與編輯都直接寫回 Notion，這裡專注在更乾淨的視覺與操作流程。</p>
+            <span className="shell-note__label">Sections</span>
+            <strong>行程與旅行細節</strong>
+            <p>旅程、每日安排、航班、住宿、接送與提醒。</p>
           </div>
 
           <div className="shell-actions">

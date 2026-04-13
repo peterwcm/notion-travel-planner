@@ -1,25 +1,53 @@
+import type { ReactNode } from "react";
+
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { SubmitButton } from "@/components/submit-button";
 import {
   createDayAction,
+  createFlightAction,
   createItemAction,
+  createPickupAction,
+  createReminderAction,
+  createStayAction,
+  deleteEntityAction,
   deleteItemAction,
+  updateFlightAction,
   updateItemAction,
+  updatePickupAction,
+  updateReminderAction,
+  updateStayAction,
 } from "@/app/(protected)/trips/actions";
-import { currency, formatDate } from "@/lib/utils";
 import { getNotionStatus, getTripDetail, getTripStats } from "@/lib/notion";
+import type { TripDetail, TripSectionTab } from "@/lib/types";
+import { currency, formatDate, formatDateTime } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+
+const tabs: Array<{ id: TripSectionTab; label: string }> = [
+  { id: "overview", label: "總覽" },
+  { id: "itinerary", label: "行程" },
+  { id: "flights", label: "航班" },
+  { id: "stays", label: "住宿" },
+  { id: "pickups", label: "接送" },
+  { id: "reminders", label: "提醒" },
+];
 
 interface TripDetailPageProps {
   params: {
     id: string;
   };
+  searchParams?: {
+    tab?: string;
+  };
 }
 
-export default async function TripDetailPage({ params }: TripDetailPageProps) {
+function getTab(tab?: string): TripSectionTab {
+  return tabs.some((item) => item.id === tab) ? (tab as TripSectionTab) : "overview";
+}
+
+export default async function TripDetailPage({ params, searchParams }: TripDetailPageProps) {
   const [detail, setupStatus] = await Promise.all([
     getTripDetail(params.id),
     Promise.resolve(getNotionStatus()),
@@ -29,8 +57,8 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
     return (
       <div className="page">
         <div className="notice">
-          <strong>尚未完成 Notion 設定</strong>
-          <p className="muted">缺少：{setupStatus.missing.join(", ")}。補齊後即可查看旅程詳細內容。</p>
+          <strong>目前無法顯示完整旅程資料</strong>
+          <p className="muted">請先完成設定後再繼續使用。</p>
         </div>
       </div>
     );
@@ -40,6 +68,7 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
     notFound();
   }
 
+  const activeTab = getTab(searchParams?.tab);
   const stats = getTripStats(detail);
 
   return (
@@ -48,13 +77,21 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
         回旅程列表
       </Link>
 
-      <section className="hero summary-hero">
+      <section className="hero summary-hero summary-hero--compact">
         <div className="stack summary-copy">
-          <span className="tag">{detail.trip.status}</span>
-          <p className="hero-kicker">Trip overview</p>
-          <h2>{detail.trip.title}</h2>
-          <p className="muted summary-destination">{detail.trip.destination}</p>
-          <div className="hero-grid hero-grid--detail">
+          <div className="header-actions">
+            <div className="stack compact-headline">
+              <span className="tag">{detail.trip.status}</span>
+              <h2>{detail.trip.title}</h2>
+              <p className="muted summary-destination">{detail.trip.destination}</p>
+            </div>
+            <div className="stats-inline">
+              <span>{detail.days.length} 天</span>
+              <span>{stats.items} 個行程</span>
+            </div>
+          </div>
+
+          <div className="metrics metrics--summary">
             <div className="metric">
               <span className="metric__label">日期</span>
               <strong>
@@ -62,34 +99,104 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
               </strong>
             </div>
             <div className="metric">
-              <span className="metric__label">天數</span>
-              <strong>{stats.days}</strong>
+              <span className="metric__label">細節</span>
+              <strong>{stats.flights + stats.stays + stats.pickups + stats.reminders}</strong>
             </div>
             <div className="metric">
               <span className="metric__label">預估費用</span>
               <strong>{currency(stats.budget)}</strong>
             </div>
           </div>
-          <p className="summary-notes">{detail.trip.notes || "尚未填寫旅程備註。可以在 Notion 或這個介面補充。"} </p>
+
+          {detail.trip.notes ? <p className="summary-notes">{detail.trip.notes}</p> : null}
         </div>
 
         <div className="summary-cover">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           {detail.trip.cover ? <img alt={detail.trip.title} src={detail.trip.cover} /> : null}
           <div className="summary-cover__meta">
-            <span>{stats.items} 個行程節點</span>
-            <span>{detail.days.length} 天節奏</span>
+            <span>{stats.flights} 航班</span>
+            <span>{stats.stays} 住宿</span>
           </div>
         </div>
       </section>
 
+      <nav className="tab-nav" aria-label="旅程詳細區塊">
+        {tabs.map((tab) => (
+          <Link
+            key={tab.id}
+            className={tab.id === activeTab ? "tab-link tab-link--active" : "tab-link"}
+            href={`/trips/${detail.trip.id}?tab=${tab.id}`}
+          >
+            {tab.label}
+          </Link>
+        ))}
+      </nav>
+
+      {activeTab === "overview" ? <OverviewTab detail={detail} /> : null}
+      {activeTab === "itinerary" ? <ItineraryTab detail={detail} /> : null}
+      {activeTab === "flights" ? <FlightsTab detail={detail} /> : null}
+      {activeTab === "stays" ? <StaysTab detail={detail} /> : null}
+      {activeTab === "pickups" ? <PickupsTab detail={detail} /> : null}
+      {activeTab === "reminders" ? <RemindersTab detail={detail} /> : null}
+    </div>
+  );
+}
+
+function OverviewTab({ detail }: { detail: TripDetail }) {
+  const stats = getTripStats(detail);
+
+  return (
+    <section className="page page--tight">
+      <div className="overview-grid">
+        <div className="panel stack">
+          <div className="header-actions">
+            <h3 className="section-title">旅程摘要</h3>
+            <span className="panel-chip">Overview</span>
+          </div>
+          <div className="list-table">
+            <div className="list-table__row">
+              <span>航班</span>
+              <strong>{stats.flights}</strong>
+            </div>
+            <div className="list-table__row">
+              <span>住宿</span>
+              <strong>{stats.stays}</strong>
+            </div>
+            <div className="list-table__row">
+              <span>接送</span>
+              <strong>{stats.pickups}</strong>
+            </div>
+            <div className="list-table__row">
+              <span>提醒</span>
+              <strong>{stats.reminders}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div className="panel stack">
+          <div className="header-actions">
+            <h3 className="section-title">快速預覽</h3>
+          </div>
+          <div className="mini-cards">
+            <MiniCard title="下一個航班" value={detail.flights[0]?.title || "尚未新增"} meta={detail.flights[0] ? formatDateTime(detail.flights[0].departureAt) : undefined} />
+            <MiniCard title="下一筆住宿" value={detail.stays[0]?.title || "尚未新增"} meta={detail.stays[0] ? formatDate(detail.stays[0].checkInDate) : undefined} />
+            <MiniCard title="下一筆接送" value={detail.pickups[0]?.title || "尚未新增"} meta={detail.pickups[0] ? formatDateTime(detail.pickups[0].pickupAt) : undefined} />
+            <MiniCard title="最近提醒" value={detail.reminders[0]?.title || "尚未新增"} meta={detail.reminders[0] ? formatDateTime(detail.reminders[0].remindAt) : undefined} />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ItineraryTab({ detail }: { detail: TripDetail }) {
+  return (
+    <section className="page page--tight">
       <section className="panel panel--feature stack">
         <div className="header-actions">
-          <div>
-            <h3 className="section-title">新增每日行程</h3>
-            <p className="muted">先建立 Day，再把每段移動、用餐、景點或提醒補進去。</p>
-          </div>
-          <span className="panel-chip">Day Builder</span>
+          <h3 className="section-title">新增 Day</h3>
+          <span className="panel-chip">Itinerary</span>
         </div>
         <form action={createDayAction} className="stack">
           <input name="tripId" type="hidden" value={detail.trip.id} />
@@ -109,7 +216,7 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
           </div>
           <div className="field">
             <label htmlFor="summary">摘要</label>
-            <textarea className="textarea" id="summary" name="summary" placeholder="例如：淺草、上野、晴空塔動線安排" />
+            <textarea className="textarea textarea--compact" id="summary" name="summary" placeholder="簡短摘要" />
           </div>
           <SubmitButton>新增 Day</SubmitButton>
         </form>
@@ -127,7 +234,7 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
                     {formatDate(day.date)} {day.summary ? `・${day.summary}` : ""}
                   </p>
                 </div>
-                <span className="pill">{day.items.length} 個項目</span>
+                <span className="pill">{day.items.length} 項</span>
               </div>
 
               <div className="day-grid">
@@ -156,7 +263,7 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
                         {item.notes ? <p>{item.notes}</p> : null}
 
                         <details>
-                          <summary>編輯項目</summary>
+                          <summary>編輯</summary>
                           <form action={updateItemAction} className="stack">
                             <input name="tripId" type="hidden" value={detail.trip.id} />
                             <input name="itemId" type="hidden" value={item.id} />
@@ -205,32 +312,29 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
                             </div>
                             <div className="field">
                               <label>備註</label>
-                              <textarea className="textarea" defaultValue={item.notes} name="notes" />
+                              <textarea className="textarea textarea--compact" defaultValue={item.notes} name="notes" />
                             </div>
-                            <div className="row">
-                              <SubmitButton>儲存變更</SubmitButton>
-                            </div>
+                            <SubmitButton>儲存</SubmitButton>
                           </form>
 
                           <form action={deleteItemAction}>
                             <input name="tripId" type="hidden" value={detail.trip.id} />
                             <input name="itemId" type="hidden" value={item.id} />
                             <button className="ghost-button" type="submit">
-                              刪除項目
+                              刪除
                             </button>
                           </form>
                         </details>
                       </div>
                     ))
                   ) : (
-                    <div className="empty">這一天還沒有安排項目。先從右側表單新增第一筆。</div>
+                    <div className="empty">這一天還沒有安排項目。</div>
                   )}
                 </div>
 
                 <div className="panel panel--side stack">
-                  <div>
-                    <h4>新增行程項目</h4>
-                    <p className="muted">項目會直接寫入 Notion 的 `Items` database，適合旅途中快速補資料。</p>
+                  <div className="header-actions">
+                    <h4>新增項目</h4>
                   </div>
                   <form action={createItemAction} className="stack">
                     <input name="tripId" type="hidden" value={detail.trip.id} />
@@ -238,7 +342,7 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
                     <div className="forms-grid">
                       <div className="field">
                         <label>名稱</label>
-                        <input className="input" name="title" placeholder="例如：淺草寺散步" required />
+                        <input className="input" name="title" placeholder="淺草寺散步" required />
                       </div>
                       <div className="field">
                         <label>類型</label>
@@ -262,7 +366,7 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
                       </div>
                       <div className="field">
                         <label>地點</label>
-                        <input className="input" name="location" placeholder="台東區淺草二丁目..." />
+                        <input className="input" name="location" placeholder="地點" />
                       </div>
                       <div className="field">
                         <label>排序</label>
@@ -270,7 +374,7 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
                       </div>
                       <div className="field">
                         <label>費用</label>
-                        <input className="input" min={0} name="cost" placeholder="1200" type="number" />
+                        <input className="input" min={0} name="cost" placeholder="0" type="number" />
                       </div>
                       <div className="field">
                         <label>網址</label>
@@ -279,7 +383,7 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
                     </div>
                     <div className="field">
                       <label>備註</label>
-                      <textarea className="textarea" name="notes" placeholder="票券、交通提醒、預約資訊..." />
+                      <textarea className="textarea textarea--compact" name="notes" placeholder="補充資訊" />
                     </div>
                     <SubmitButton>新增項目</SubmitButton>
                   </form>
@@ -288,9 +392,394 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
             </article>
           ))
         ) : (
-          <div className="empty">尚未建立任何 Day。先用上方表單加入第一天的行程架構。</div>
+          <div className="empty">尚未建立任何 Day。</div>
         )}
       </section>
+    </section>
+  );
+}
+
+function FlightsTab({ detail }: { detail: TripDetail }) {
+  return (
+    <section className="detail-section-grid">
+      <section className="panel panel--side stack">
+        <div className="header-actions">
+          <h3 className="section-title">新增航班</h3>
+        </div>
+        <form action={createFlightAction} className="stack">
+          <input name="tripId" type="hidden" value={detail.trip.id} />
+          <div className="forms-grid">
+            <LabeledInput label="標題" name="title" placeholder="去程航班" required />
+            <LabeledInput label="航空公司" name="airline" placeholder="EVA Air" />
+            <LabeledInput label="航班號碼" name="flightNumber" placeholder="BR67" />
+            <LabeledInput label="出發機場" name="departureAirport" placeholder="TPE" />
+            <LabeledInput label="抵達機場" name="arrivalAirport" placeholder="NRT" />
+            <LabeledInput label="出發時間" name="departureAt" type="datetime-local" />
+            <LabeledInput label="抵達時間" name="arrivalAt" type="datetime-local" />
+            <LabeledInput label="航廈" name="terminal" placeholder="T2" />
+            <LabeledInput label="登機門" name="gate" placeholder="C4" />
+          </div>
+          <LabeledTextarea label="備註" name="notes" placeholder="補充資訊" />
+          <SubmitButton>新增航班</SubmitButton>
+        </form>
+      </section>
+
+      <section className="stack">
+        {detail.flights.length > 0 ? (
+          detail.flights.map((flight) => (
+            <div className="detail-card" key={flight.id}>
+              <div className="header-actions">
+                <div>
+                  <span className="tag">航班</span>
+                  <h4>{flight.title}</h4>
+                </div>
+                <span className="pill">{flight.flightNumber || "未填編號"}</span>
+              </div>
+              <div className="detail-card__meta">
+                <span>{flight.airline || "未填航空公司"}</span>
+                <span>{flight.departureAirport || "--"} → {flight.arrivalAirport || "--"}</span>
+              </div>
+              <div className="list-table">
+                <div className="list-table__row">
+                  <span>出發</span>
+                  <strong>{formatDateTime(flight.departureAt)}</strong>
+                </div>
+                <div className="list-table__row">
+                  <span>抵達</span>
+                  <strong>{formatDateTime(flight.arrivalAt)}</strong>
+                </div>
+              </div>
+              {flight.notes ? <p className="muted">{flight.notes}</p> : null}
+              <details>
+                <summary>編輯</summary>
+                <form action={updateFlightAction} className="stack">
+                  <input name="tripId" type="hidden" value={detail.trip.id} />
+                  <input name="flightId" type="hidden" value={flight.id} />
+                  <div className="forms-grid">
+                    <LabeledInput label="標題" name="title" defaultValue={flight.title} required />
+                    <LabeledInput label="航空公司" name="airline" defaultValue={flight.airline} />
+                    <LabeledInput label="航班號碼" name="flightNumber" defaultValue={flight.flightNumber} />
+                    <LabeledInput label="出發機場" name="departureAirport" defaultValue={flight.departureAirport} />
+                    <LabeledInput label="抵達機場" name="arrivalAirport" defaultValue={flight.arrivalAirport} />
+                    <LabeledInput label="出發時間" name="departureAt" type="datetime-local" defaultValue={toDateTimeInputValue(flight.departureAt)} />
+                    <LabeledInput label="抵達時間" name="arrivalAt" type="datetime-local" defaultValue={toDateTimeInputValue(flight.arrivalAt)} />
+                    <LabeledInput label="航廈" name="terminal" defaultValue={flight.terminal} />
+                    <LabeledInput label="登機門" name="gate" defaultValue={flight.gate} />
+                  </div>
+                  <LabeledTextarea label="備註" name="notes" defaultValue={flight.notes} />
+                  <SubmitButton>儲存</SubmitButton>
+                </form>
+                <DeleteForm tripId={detail.trip.id} entityId={flight.id} />
+              </details>
+            </div>
+          ))
+        ) : (
+          <div className="empty">尚未新增航班。</div>
+        )}
+      </section>
+    </section>
+  );
+}
+
+function StaysTab({ detail }: { detail: TripDetail }) {
+  return (
+    <section className="detail-section-grid">
+      <section className="panel panel--side stack">
+        <h3 className="section-title">新增住宿</h3>
+        <form action={createStayAction} className="stack">
+          <input name="tripId" type="hidden" value={detail.trip.id} />
+          <div className="forms-grid">
+            <LabeledInput label="住宿名稱" name="title" placeholder="Shinjuku Granbell" required />
+            <LabeledInput label="入住日期" name="checkInDate" type="date" />
+            <LabeledInput label="退房日期" name="checkOutDate" type="date" />
+            <LabeledInput label="訂房代碼" name="bookingReference" placeholder="ABCD1234" />
+          </div>
+          <LabeledTextarea label="地址" name="address" placeholder="地址" />
+          <LabeledTextarea label="備註" name="notes" placeholder="補充資訊" />
+          <SubmitButton>新增住宿</SubmitButton>
+        </form>
+      </section>
+      <section className="stack">
+        {detail.stays.length > 0 ? (
+          detail.stays.map((stay) => (
+            <StructuredCard
+              key={stay.id}
+              title={stay.title}
+              label="住宿"
+              meta={`${formatDate(stay.checkInDate)} - ${formatDate(stay.checkOutDate)}`}
+              body={stay.address || "未填地址"}
+            >
+              <div className="list-table">
+                <div className="list-table__row">
+                  <span>入住</span>
+                  <strong>{formatDate(stay.checkInDate)}</strong>
+                </div>
+                <div className="list-table__row">
+                  <span>退房</span>
+                  <strong>{formatDate(stay.checkOutDate)}</strong>
+                </div>
+                <div className="list-table__row">
+                  <span>訂房代碼</span>
+                  <strong>{stay.bookingReference || "未填"}</strong>
+                </div>
+              </div>
+              <details>
+                <summary>編輯</summary>
+                <form action={updateStayAction} className="stack">
+                  <input name="tripId" type="hidden" value={detail.trip.id} />
+                  <input name="stayId" type="hidden" value={stay.id} />
+                  <div className="forms-grid">
+                    <LabeledInput label="住宿名稱" name="title" defaultValue={stay.title} required />
+                    <LabeledInput label="入住日期" name="checkInDate" type="date" defaultValue={toDateInputValue(stay.checkInDate)} />
+                    <LabeledInput label="退房日期" name="checkOutDate" type="date" defaultValue={toDateInputValue(stay.checkOutDate)} />
+                    <LabeledInput label="訂房代碼" name="bookingReference" defaultValue={stay.bookingReference} />
+                  </div>
+                  <LabeledTextarea label="地址" name="address" defaultValue={stay.address} />
+                  <LabeledTextarea label="備註" name="notes" defaultValue={stay.notes} />
+                  <SubmitButton>儲存</SubmitButton>
+                </form>
+                <DeleteForm tripId={detail.trip.id} entityId={stay.id} />
+              </details>
+            </StructuredCard>
+          ))
+        ) : (
+          <div className="empty">尚未新增住宿。</div>
+        )}
+      </section>
+    </section>
+  );
+}
+
+function PickupsTab({ detail }: { detail: TripDetail }) {
+  return (
+    <section className="detail-section-grid">
+      <section className="panel panel--side stack">
+        <h3 className="section-title">新增接送</h3>
+        <form action={createPickupAction} className="stack">
+          <input name="tripId" type="hidden" value={detail.trip.id} />
+          <div className="forms-grid">
+            <LabeledInput label="標題" name="title" placeholder="機場接送" required />
+            <LabeledInput label="接送時間" name="pickupAt" type="datetime-local" />
+            <LabeledInput label="服務商" name="provider" placeholder="Uber / KKday" />
+            <LabeledInput label="聯絡方式" name="contact" placeholder="電話或備註" />
+          </div>
+          <LabeledTextarea label="上車地點" name="pickupLocation" placeholder="上車地點" />
+          <LabeledTextarea label="下車地點" name="dropoffLocation" placeholder="下車地點" />
+          <LabeledTextarea label="備註" name="notes" placeholder="補充資訊" />
+          <SubmitButton>新增接送</SubmitButton>
+        </form>
+      </section>
+      <section className="stack">
+        {detail.pickups.length > 0 ? (
+          detail.pickups.map((pickup) => (
+            <StructuredCard
+              key={pickup.id}
+              title={pickup.title}
+              label="接送"
+              meta={formatDateTime(pickup.pickupAt)}
+              body={`${pickup.pickupLocation || "未填上車地點"} → ${pickup.dropoffLocation || "未填下車地點"}`}
+            >
+              <div className="list-table">
+                <div className="list-table__row">
+                  <span>服務商</span>
+                  <strong>{pickup.provider || "未填"}</strong>
+                </div>
+                <div className="list-table__row">
+                  <span>聯絡方式</span>
+                  <strong>{pickup.contact || "未填"}</strong>
+                </div>
+              </div>
+              <details>
+                <summary>編輯</summary>
+                <form action={updatePickupAction} className="stack">
+                  <input name="tripId" type="hidden" value={detail.trip.id} />
+                  <input name="pickupId" type="hidden" value={pickup.id} />
+                  <div className="forms-grid">
+                    <LabeledInput label="標題" name="title" defaultValue={pickup.title} required />
+                    <LabeledInput label="接送時間" name="pickupAt" type="datetime-local" defaultValue={toDateTimeInputValue(pickup.pickupAt)} />
+                    <LabeledInput label="服務商" name="provider" defaultValue={pickup.provider} />
+                    <LabeledInput label="聯絡方式" name="contact" defaultValue={pickup.contact} />
+                  </div>
+                  <LabeledTextarea label="上車地點" name="pickupLocation" defaultValue={pickup.pickupLocation} />
+                  <LabeledTextarea label="下車地點" name="dropoffLocation" defaultValue={pickup.dropoffLocation} />
+                  <LabeledTextarea label="備註" name="notes" defaultValue={pickup.notes} />
+                  <SubmitButton>儲存</SubmitButton>
+                </form>
+                <DeleteForm tripId={detail.trip.id} entityId={pickup.id} />
+              </details>
+            </StructuredCard>
+          ))
+        ) : (
+          <div className="empty">尚未新增接送。</div>
+        )}
+      </section>
+    </section>
+  );
+}
+
+function RemindersTab({ detail }: { detail: TripDetail }) {
+  return (
+    <section className="detail-section-grid">
+      <section className="panel panel--side stack">
+        <h3 className="section-title">新增提醒</h3>
+        <form action={createReminderAction} className="stack">
+          <input name="tripId" type="hidden" value={detail.trip.id} />
+          <div className="forms-grid">
+            <LabeledInput label="標題" name="title" placeholder="提早 3 小時出門" required />
+            <LabeledInput label="提醒時間" name="remindAt" type="datetime-local" />
+            <LabeledInput label="網址" name="url" placeholder="https://..." />
+          </div>
+          <LabeledTextarea label="地點" name="location" placeholder="地點" />
+          <LabeledTextarea label="備註" name="notes" placeholder="補充資訊" />
+          <SubmitButton>新增提醒</SubmitButton>
+        </form>
+      </section>
+      <section className="stack">
+        {detail.reminders.length > 0 ? (
+          detail.reminders.map((reminder) => (
+            <StructuredCard
+              key={reminder.id}
+              title={reminder.title}
+              label="提醒"
+              meta={formatDateTime(reminder.remindAt)}
+              body={reminder.location || "未填地點"}
+            >
+              {reminder.url ? (
+                <a className="muted" href={reminder.url} rel="noreferrer" target="_blank">
+                  {reminder.url}
+                </a>
+              ) : null}
+              {reminder.notes ? <p className="muted">{reminder.notes}</p> : null}
+              <details>
+                <summary>編輯</summary>
+                <form action={updateReminderAction} className="stack">
+                  <input name="tripId" type="hidden" value={detail.trip.id} />
+                  <input name="reminderId" type="hidden" value={reminder.id} />
+                  <div className="forms-grid">
+                    <LabeledInput label="標題" name="title" defaultValue={reminder.title} required />
+                    <LabeledInput label="提醒時間" name="remindAt" type="datetime-local" defaultValue={toDateTimeInputValue(reminder.remindAt)} />
+                    <LabeledInput label="網址" name="url" defaultValue={reminder.url} />
+                  </div>
+                  <LabeledTextarea label="地點" name="location" defaultValue={reminder.location} />
+                  <LabeledTextarea label="備註" name="notes" defaultValue={reminder.notes} />
+                  <SubmitButton>儲存</SubmitButton>
+                </form>
+                <DeleteForm tripId={detail.trip.id} entityId={reminder.id} />
+              </details>
+            </StructuredCard>
+          ))
+        ) : (
+          <div className="empty">尚未新增提醒。</div>
+        )}
+      </section>
+    </section>
+  );
+}
+
+function MiniCard({ title, value, meta }: { title: string; value: string; meta?: string }) {
+  return (
+    <div className="mini-card">
+      <span>{title}</span>
+      <strong>{value}</strong>
+      {meta ? <p>{meta}</p> : null}
     </div>
   );
+}
+
+function StructuredCard({
+  label,
+  title,
+  meta,
+  body,
+  children,
+}: {
+  label: string;
+  title: string;
+  meta: string;
+  body: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="detail-card">
+      <div className="header-actions">
+        <div>
+          <span className="tag">{label}</span>
+          <h4>{title}</h4>
+        </div>
+        <span className="pill">{meta}</span>
+      </div>
+      <p className="muted">{body}</p>
+      {children}
+    </div>
+  );
+}
+
+function DeleteForm({ tripId, entityId }: { tripId: string; entityId: string }) {
+  return (
+    <form action={deleteEntityAction}>
+      <input name="tripId" type="hidden" value={tripId} />
+      <input name="entityId" type="hidden" value={entityId} />
+      <button className="ghost-button" type="submit">
+        刪除
+      </button>
+    </form>
+  );
+}
+
+function LabeledInput({
+  label,
+  name,
+  type = "text",
+  placeholder,
+  defaultValue,
+  required,
+}: {
+  label: string;
+  name: string;
+  type?: string;
+  placeholder?: string;
+  defaultValue?: string;
+  required?: boolean;
+}) {
+  return (
+    <div className="field">
+      <label>{label}</label>
+      <input className="input" defaultValue={defaultValue} name={name} placeholder={placeholder} required={required} type={type} />
+    </div>
+  );
+}
+
+function LabeledTextarea({
+  label,
+  name,
+  placeholder,
+  defaultValue,
+}: {
+  label: string;
+  name: string;
+  placeholder?: string;
+  defaultValue?: string;
+}) {
+  return (
+    <div className="field">
+      <label>{label}</label>
+      <textarea className="textarea textarea--compact" defaultValue={defaultValue} name={name} placeholder={placeholder} />
+    </div>
+  );
+}
+
+function toDateTimeInputValue(value?: string | null) {
+  if (!value) {
+    return "";
+  }
+
+  return value.slice(0, 16);
+}
+
+function toDateInputValue(value?: string | null) {
+  if (!value) {
+    return "";
+  }
+
+  return value.slice(0, 10);
 }
