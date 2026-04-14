@@ -61,6 +61,7 @@ export interface TripFlight {
   arrivalAt: string | null;
   aircraft: string;
   baggageInfo: string;
+  cost: number | null;
   passengers: TripFlightPassenger[];
   notes: string;
 }
@@ -73,6 +74,7 @@ export interface TripStay {
   checkOutDate: string | null;
   checkInTime: string;
   checkOutTime: string;
+  cost: number | null;
   address: string;
   bookingReference: string;
   notes: string;

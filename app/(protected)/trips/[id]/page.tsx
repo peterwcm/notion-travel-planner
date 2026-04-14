@@ -155,8 +155,8 @@ export default async function TripDetailPage({ params, searchParams }: TripDetai
               <strong>{stats.flights + stats.stays}</strong>
             </div>
             <div className="metric">
-              <span className="metric__label">預估費用</span>
-              <strong>{currency(stats.budget)}</strong>
+              <span className="metric__label">Total cost</span>
+              <strong>{currency(stats.totalCost)}</strong>
             </div>
           </div>
 
@@ -448,6 +448,7 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
               <LabeledInput label="抵達時間" name="arrivalAt" type="datetime-local" required />
               <LabeledInput label="機型" name="aircraft" placeholder="Boeing 787-10" />
               <LabeledInput label="行李資訊" name="baggageInfo" placeholder="23kg x 2 + 7kg 手提" />
+              <LabeledInput label="費用" name="cost" type="number" min={0} placeholder="0" />
             </div>
             <FlightPassengersField />
             <LabeledTextarea label="備註" name="notes" placeholder="補充資訊" />
@@ -481,6 +482,7 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
                       <LabeledInput label="抵達時間" name="arrivalAt" type="datetime-local" defaultValue={toDateTimeInputValue(flight.arrivalAt)} required />
                       <LabeledInput label="機型" name="aircraft" defaultValue={flight.aircraft} />
                       <LabeledInput label="行李資訊" name="baggageInfo" defaultValue={flight.baggageInfo} />
+                      <LabeledInput label="費用" name="cost" type="number" min={0} defaultValue={flight.cost ?? ""} />
                     </div>
                     <FlightPassengersField defaultValue={flight.passengers} />
                     <LabeledTextarea label="備註" name="notes" defaultValue={flight.notes} />
@@ -526,6 +528,12 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
                     <div className="flight-card__fact">
                       <span>行李資訊</span>
                       <strong>{flight.baggageInfo}</strong>
+                    </div>
+                  ) : null}
+                  {typeof flight.cost === "number" ? (
+                    <div className="flight-card__fact">
+                      <span>費用</span>
+                      <strong>{currency(flight.cost)}</strong>
                     </div>
                   ) : null}
                   <div className="flight-card__fact">
@@ -591,6 +599,7 @@ function StaysTab({ detail }: { detail: TripDetail }) {
               <LabeledInput label="退房日期" name="checkOutDate" type="date" required />
               <LabeledInput label="入住時間" name="checkInTime" type="time" />
               <LabeledInput label="退房時間" name="checkOutTime" type="time" />
+              <LabeledInput label="費用" name="cost" type="number" min={0} placeholder="0" />
               <LabeledInput label="訂房代碼" name="bookingReference" placeholder="ABCD1234" />
             </div>
             <LabeledTextarea label="地址" name="address" placeholder="地址" />
@@ -621,6 +630,7 @@ function StaysTab({ detail }: { detail: TripDetail }) {
                       <LabeledInput label="退房日期" name="checkOutDate" type="date" defaultValue={toDateInputValue(stay.checkOutDate)} required />
                       <LabeledInput label="入住時間" name="checkInTime" type="time" defaultValue={stay.checkInTime} />
                       <LabeledInput label="退房時間" name="checkOutTime" type="time" defaultValue={stay.checkOutTime} />
+                      <LabeledInput label="費用" name="cost" type="number" min={0} defaultValue={stay.cost ?? ""} />
                       <LabeledInput label="訂房代碼" name="bookingReference" defaultValue={stay.bookingReference} />
                     </div>
                     <LabeledTextarea label="地址" name="address" defaultValue={stay.address} />
@@ -659,6 +669,12 @@ function StaysTab({ detail }: { detail: TripDetail }) {
                   <div className="stay-card__fact">
                     <span>訂房代碼</span>
                     <strong>{stay.bookingReference}</strong>
+                  </div>
+                ) : null}
+                {typeof stay.cost === "number" ? (
+                  <div className="stay-card__fact">
+                    <span>費用</span>
+                    <strong>{currency(stay.cost)}</strong>
                   </div>
                 ) : null}
                 {hasText(stay.address) ? (
@@ -740,18 +756,20 @@ function LabeledInput({
   placeholder,
   defaultValue,
   required,
+  min,
 }: {
   label: string;
   name: string;
   type?: string;
   placeholder?: string;
-  defaultValue?: string;
+  defaultValue?: string | number;
   required?: boolean;
+  min?: number;
 }) {
   return (
     <div className="field">
       <label className={required ? "field-label field-label--required" : "field-label"}>{label}</label>
-      <input className="input" defaultValue={defaultValue} name={name} placeholder={placeholder} required={required} type={type} />
+      <input className="input" defaultValue={defaultValue} min={min} name={name} placeholder={placeholder} required={required} type={type} />
     </div>
   );
 }
@@ -860,17 +878,21 @@ function getOverviewItems(detail: TripDetail): OverviewItem[] {
     body: flight.notes || undefined,
     preserveBodyNewlines: Boolean(flight.notes),
     children: (
-      <div className="list-table">
-        <div className="list-table__row">
-          <span>起飛</span>
-          <strong><LocalDateTime value={flight.departureAt} /></strong>
+        <div className="list-table">
+          <div className="list-table__row">
+            <span>起飛</span>
+            <strong><LocalDateTime value={flight.departureAt} /></strong>
+          </div>
+          <div className="list-table__row">
+            <span>降落</span>
+            <strong><LocalDateTime value={flight.arrivalAt} /></strong>
+          </div>
+          <div className="list-table__row">
+            <span>費用</span>
+            <strong>{currency(flight.cost)}</strong>
+          </div>
         </div>
-        <div className="list-table__row">
-          <span>降落</span>
-          <strong><LocalDateTime value={flight.arrivalAt} /></strong>
-        </div>
-      </div>
-    ),
+      ),
     sortValue: getDateSortValue(flight.departureAt, index),
   }));
 
@@ -894,6 +916,10 @@ function getOverviewItems(detail: TripDetail): OverviewItem[] {
         <div className="list-table__row">
           <span>地址</span>
           <strong>{stay.address || "未填寫"}</strong>
+        </div>
+        <div className="list-table__row">
+          <span>費用</span>
+          <strong>{currency(stay.cost)}</strong>
         </div>
       </div>
     ),

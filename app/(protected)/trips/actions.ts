@@ -182,6 +182,7 @@ export async function createFlightAction(formData: FormData) {
     arrivalAt: formData.get("arrivalAt"),
     aircraft: formData.get("aircraft"),
     baggageInfo: formData.get("baggageInfo"),
+    cost: formData.get("cost"),
     passengers: formData.get("passengers"),
     notes: formData.get("notes"),
   });
@@ -196,6 +197,7 @@ export async function createFlightAction(formData: FormData) {
     arrivalAt: parsed.arrivalAt,
     aircraft: parsed.aircraft ?? "",
     baggageInfo: parsed.baggageInfo ?? "",
+    cost: parsed.cost,
     passengers: normalizeFlightPassengers(parsed.passengers),
     notes: parsed.notes ?? "",
   }, timeZone || null);
@@ -219,6 +221,7 @@ export async function updateFlightAction(formData: FormData) {
     arrivalAt: formData.get("arrivalAt"),
     aircraft: formData.get("aircraft"),
     baggageInfo: formData.get("baggageInfo"),
+    cost: formData.get("cost"),
     passengers: formData.get("passengers"),
     notes: formData.get("notes"),
   });
@@ -232,6 +235,7 @@ export async function updateFlightAction(formData: FormData) {
     arrivalAt: parsed.arrivalAt,
     aircraft: parsed.aircraft ?? "",
     baggageInfo: parsed.baggageInfo ?? "",
+    cost: parsed.cost,
     passengers: normalizeFlightPassengers(parsed.passengers),
     notes: parsed.notes ?? "",
   }, timeZone || null);
@@ -250,6 +254,7 @@ export async function createStayAction(formData: FormData) {
     checkOutDate: formData.get("checkOutDate"),
     checkInTime: formData.get("checkInTime"),
     checkOutTime: formData.get("checkOutTime"),
+    cost: formData.get("cost"),
     address: formData.get("address"),
     bookingReference: formData.get("bookingReference"),
     notes: formData.get("notes"),
@@ -262,6 +267,7 @@ export async function createStayAction(formData: FormData) {
     checkOutDate: parsed.checkOutDate ?? null,
     checkInTime: parsed.checkInTime ?? "",
     checkOutTime: parsed.checkOutTime ?? "",
+    cost: parsed.cost,
     address: parsed.address ?? "",
     bookingReference: parsed.bookingReference ?? "",
     notes: parsed.notes ?? "",
@@ -282,6 +288,7 @@ export async function updateStayAction(formData: FormData) {
     checkOutDate: formData.get("checkOutDate"),
     checkInTime: formData.get("checkInTime"),
     checkOutTime: formData.get("checkOutTime"),
+    cost: formData.get("cost"),
     address: formData.get("address"),
     bookingReference: formData.get("bookingReference"),
     notes: formData.get("notes"),
@@ -293,6 +300,7 @@ export async function updateStayAction(formData: FormData) {
     checkOutDate: parsed.checkOutDate ?? null,
     checkInTime: parsed.checkInTime ?? "",
     checkOutTime: parsed.checkOutTime ?? "",
+    cost: parsed.cost,
     address: parsed.address ?? "",
     bookingReference: parsed.bookingReference ?? "",
     notes: parsed.notes ?? "",

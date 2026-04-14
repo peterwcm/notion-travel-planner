@@ -54,6 +54,10 @@ export const flightSchema = z.object({
   arrivalAt: z.string().min(1, "請輸入抵達時間"),
   aircraft: z.string().optional(),
   baggageInfo: z.string().optional(),
+  cost: z
+    .string()
+    .optional()
+    .transform((value) => (value ? Number(value) : null)),
   passengers: z
     .string()
     .optional()
@@ -75,6 +79,10 @@ export const staySchema = z.object({
   checkOutDate: z.string().min(1, "請輸入退房日期"),
   checkInTime: z.string().optional(),
   checkOutTime: z.string().optional(),
+  cost: z
+    .string()
+    .optional()
+    .transform((value) => (value ? Number(value) : null)),
   address: z.string().optional(),
   bookingReference: z.string().optional(),
   notes: z.string().optional(),

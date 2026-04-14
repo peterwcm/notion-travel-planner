@@ -58,6 +58,7 @@ const FLIGHT_PROPS = {
   arrivalAt: "抵達時間",
   aircraft: "機型",
   baggageInfo: "行李資訊",
+  cost: "費用",
   passengers: "乘客資訊",
   notes: "備註",
 } as const;
@@ -69,6 +70,7 @@ const STAY_PROPS = {
   checkOutDate: "退房日期",
   checkInTime: "入住時間",
   checkOutTime: "退房時間",
+  cost: "費用",
   address: "地址",
   bookingReference: "訂房代碼",
   notes: "備註",
@@ -533,6 +535,9 @@ export async function createFlight(input: Omit<TripFlight, "id">, timeZone?: str
       [FLIGHT_PROPS.arrivalAt]: dateProperty(input.arrivalAt, timeZone),
       [FLIGHT_PROPS.aircraft]: richTextProperty(input.aircraft),
       [FLIGHT_PROPS.baggageInfo]: richTextProperty(input.baggageInfo),
+      [FLIGHT_PROPS.cost]: {
+        number: input.cost,
+      },
       [FLIGHT_PROPS.passengers]: richTextProperty(serializeFlightPassengers(input.passengers)),
       [FLIGHT_PROPS.notes]: richTextProperty(input.notes),
     },
@@ -554,6 +559,9 @@ export async function updateFlight(flightId: string, input: Omit<TripFlight, "id
       [FLIGHT_PROPS.arrivalAt]: dateProperty(input.arrivalAt, timeZone),
       [FLIGHT_PROPS.aircraft]: richTextProperty(input.aircraft),
       [FLIGHT_PROPS.baggageInfo]: richTextProperty(input.baggageInfo),
+      [FLIGHT_PROPS.cost]: {
+        number: input.cost,
+      },
       [FLIGHT_PROPS.passengers]: richTextProperty(serializeFlightPassengers(input.passengers)),
       [FLIGHT_PROPS.notes]: richTextProperty(input.notes),
     },
@@ -572,6 +580,9 @@ export async function createStay(input: Omit<TripStay, "id">) {
       [STAY_PROPS.checkOutDate]: dateProperty(input.checkOutDate ?? ""),
       [STAY_PROPS.checkInTime]: richTextProperty(input.checkInTime),
       [STAY_PROPS.checkOutTime]: richTextProperty(input.checkOutTime),
+      [STAY_PROPS.cost]: {
+        number: input.cost,
+      },
       [STAY_PROPS.address]: richTextProperty(input.address),
       [STAY_PROPS.bookingReference]: richTextProperty(input.bookingReference),
       [STAY_PROPS.notes]: richTextProperty(input.notes),
@@ -596,6 +607,9 @@ export async function updateStay(stayId: string, input: Omit<TripStay, "id" | "t
       [STAY_PROPS.checkOutDate]: dateProperty(input.checkOutDate ?? ""),
       [STAY_PROPS.checkInTime]: richTextProperty(input.checkInTime),
       [STAY_PROPS.checkOutTime]: richTextProperty(input.checkOutTime),
+      [STAY_PROPS.cost]: {
+        number: input.cost,
+      },
       [STAY_PROPS.address]: richTextProperty(input.address),
       [STAY_PROPS.bookingReference]: richTextProperty(input.bookingReference),
       [STAY_PROPS.notes]: richTextProperty(input.notes),
@@ -623,7 +637,11 @@ export function getTripStats(detail: TripDetail) {
     items: detail.days.flatMap((day) => day.items).length,
     flights: detail.flights.length,
     stays: detail.stays.length,
-    budget: sum(detail.days.flatMap((day) => day.items.map((item) => item.cost))),
+    totalCost: sum([
+      ...detail.days.flatMap((day) => day.items.map((item) => item.cost)),
+      ...detail.flights.map((flight) => flight.cost),
+      ...detail.stays.map((stay) => stay.cost),
+    ]),
   };
 }
 
@@ -685,6 +703,7 @@ function mapFlight(properties: Record<string, any>, id: string): TripFlight {
     arrivalAt: getDate(properties, FLIGHT_PROPS.arrivalAt),
     aircraft: getRichText(properties, FLIGHT_PROPS.aircraft),
     baggageInfo: getRichText(properties, FLIGHT_PROPS.baggageInfo),
+    cost: getNumber(properties, FLIGHT_PROPS.cost),
     passengers: parseFlightPassengers(getRichText(properties, FLIGHT_PROPS.passengers)),
     notes: getRichText(properties, FLIGHT_PROPS.notes),
   };
@@ -701,6 +720,7 @@ function mapStay(properties: Record<string, any>, id: string): TripStay {
     checkOutDate: getDate(properties, STAY_PROPS.checkOutDate),
     checkInTime: getRichText(properties, STAY_PROPS.checkInTime),
     checkOutTime: getRichText(properties, STAY_PROPS.checkOutTime),
+    cost: getNumber(properties, STAY_PROPS.cost),
     address: getRichText(properties, STAY_PROPS.address),
     bookingReference: getRichText(properties, STAY_PROPS.bookingReference),
     notes: getRichText(properties, STAY_PROPS.notes),

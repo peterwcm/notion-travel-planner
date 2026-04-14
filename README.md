@@ -103,6 +103,35 @@ npm run build
 - `備註` Rich text
 - `排序` Number
 
+### Flights
+
+- `名稱` Title
+- `旅程` Relation -> Trips
+- `航空公司` Rich text
+- `航班號碼` Rich text
+- `出發機場` Rich text
+- `抵達機場` Rich text
+- `出發時間` Date
+- `抵達時間` Date
+- `機型` Rich text
+- `行李資訊` Rich text
+- `費用` Number
+- `乘客資訊` Rich text
+- `備註` Rich text
+
+### Stays
+
+- `名稱` Title
+- `旅程` Relation -> Trips
+- `入住日期` Date
+- `退房日期` Date
+- `入住時間` Rich text
+- `退房時間` Rich text
+- `費用` Number
+- `地址` Rich text
+- `訂房代碼` Rich text
+- `備註` Rich text
+
 ## Project Structure
 
 ```text
