@@ -8,19 +8,15 @@ import {
   createDay,
   createFlight,
   createItem,
-  createPickup,
-  createReminder,
   createStay,
   createTrip,
   getNotionStatus,
   updateFlight,
   updateItem,
-  updatePickup,
-  updateReminder,
   updateStay,
   updateTrip,
 } from "@/lib/notion";
-import { daySchema, flightSchema, itemSchema, pickupSchema, reminderSchema, staySchema, tripSchema } from "@/lib/validators";
+import { daySchema, flightSchema, itemSchema, staySchema, tripSchema } from "@/lib/validators";
 
 function assertConfigured() {
   const status = getNotionStatus();
@@ -301,118 +297,6 @@ export async function updateStayAction(formData: FormData) {
     bookingReference: parsed.bookingReference ?? "",
     notes: parsed.notes ?? "",
   });
-
-  revalidatePath(`/trips/${tripId}`);
-}
-
-export async function createPickupAction(formData: FormData) {
-  assertConfigured();
-
-  const tripId = String(formData.get("tripId") ?? "");
-  const timeZone = String(formData.get("timeZone") ?? "");
-  const parsed = pickupSchema.parse({
-    tripId,
-    title: formData.get("title"),
-    pickupAt: formData.get("pickupAt"),
-    pickupLocation: formData.get("pickupLocation"),
-    dropoffLocation: formData.get("dropoffLocation"),
-    provider: formData.get("provider"),
-    contact: formData.get("contact"),
-    notes: formData.get("notes"),
-  });
-
-  await createPickup({
-    tripId: parsed.tripId,
-    title: parsed.title,
-    pickupAt: parsed.pickupAt ?? null,
-    pickupLocation: parsed.pickupLocation ?? "",
-    dropoffLocation: parsed.dropoffLocation ?? "",
-    provider: parsed.provider ?? "",
-    contact: parsed.contact ?? "",
-    notes: parsed.notes ?? "",
-  }, timeZone || null);
-
-  revalidatePath(`/trips/${tripId}`);
-}
-
-export async function updatePickupAction(formData: FormData) {
-  assertConfigured();
-
-  const tripId = String(formData.get("tripId") ?? "");
-  const pickupId = String(formData.get("pickupId") ?? "");
-  const timeZone = String(formData.get("timeZone") ?? "");
-  const parsed = pickupSchema.parse({
-    tripId,
-    title: formData.get("title"),
-    pickupAt: formData.get("pickupAt"),
-    pickupLocation: formData.get("pickupLocation"),
-    dropoffLocation: formData.get("dropoffLocation"),
-    provider: formData.get("provider"),
-    contact: formData.get("contact"),
-    notes: formData.get("notes"),
-  });
-
-  await updatePickup(pickupId, {
-    title: parsed.title,
-    pickupAt: parsed.pickupAt ?? null,
-    pickupLocation: parsed.pickupLocation ?? "",
-    dropoffLocation: parsed.dropoffLocation ?? "",
-    provider: parsed.provider ?? "",
-    contact: parsed.contact ?? "",
-    notes: parsed.notes ?? "",
-  }, timeZone || null);
-
-  revalidatePath(`/trips/${tripId}`);
-}
-
-export async function createReminderAction(formData: FormData) {
-  assertConfigured();
-
-  const tripId = String(formData.get("tripId") ?? "");
-  const timeZone = String(formData.get("timeZone") ?? "");
-  const parsed = reminderSchema.parse({
-    tripId,
-    title: formData.get("title"),
-    remindAt: formData.get("remindAt"),
-    location: formData.get("location"),
-    url: formData.get("url"),
-    notes: formData.get("notes"),
-  });
-
-  await createReminder({
-    tripId: parsed.tripId,
-    title: parsed.title,
-    remindAt: parsed.remindAt ?? null,
-    location: parsed.location ?? "",
-    url: parsed.url ?? "",
-    notes: parsed.notes ?? "",
-  }, timeZone || null);
-
-  revalidatePath(`/trips/${tripId}`);
-}
-
-export async function updateReminderAction(formData: FormData) {
-  assertConfigured();
-
-  const tripId = String(formData.get("tripId") ?? "");
-  const reminderId = String(formData.get("reminderId") ?? "");
-  const timeZone = String(formData.get("timeZone") ?? "");
-  const parsed = reminderSchema.parse({
-    tripId,
-    title: formData.get("title"),
-    remindAt: formData.get("remindAt"),
-    location: formData.get("location"),
-    url: formData.get("url"),
-    notes: formData.get("notes"),
-  });
-
-  await updateReminder(reminderId, {
-    title: parsed.title,
-    remindAt: parsed.remindAt ?? null,
-    location: parsed.location ?? "",
-    url: parsed.url ?? "",
-    notes: parsed.notes ?? "",
-  }, timeZone || null);
 
   revalidatePath(`/trips/${tripId}`);
 }

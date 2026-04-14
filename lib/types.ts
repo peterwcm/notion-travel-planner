@@ -6,10 +6,9 @@ export type ItemType =
   | "住宿"
   | "餐廳"
   | "購物"
-  | "提醒"
   | "其他";
 
-export type TripSectionTab = "overview" | "itinerary" | "flights" | "stays" | "pickups" | "reminders";
+export type TripSectionTab = "overview" | "itinerary" | "flights" | "stays";
 
 export interface Trip {
   id: string;
@@ -79,28 +78,6 @@ export interface TripStay {
   notes: string;
 }
 
-export interface TripPickup {
-  id: string;
-  tripId: string;
-  title: string;
-  pickupAt: string | null;
-  pickupLocation: string;
-  dropoffLocation: string;
-  provider: string;
-  contact: string;
-  notes: string;
-}
-
-export interface TripReminder {
-  id: string;
-  tripId: string;
-  title: string;
-  remindAt: string | null;
-  location: string;
-  url: string;
-  notes: string;
-}
-
 export interface TripDetail {
   trip: Trip;
   days: Array<
@@ -110,8 +87,6 @@ export interface TripDetail {
   >;
   flights: TripFlight[];
   stays: TripStay[];
-  pickups: TripPickup[];
-  reminders: TripReminder[];
 }
 
 export interface SetupStatus {

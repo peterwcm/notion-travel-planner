@@ -31,7 +31,7 @@ export default async function LoginPage() {
             </div>
             <div className="auth-highlight">
               <strong>旅行細節</strong>
-              <p>航班、住宿、接送、提醒分區管理。</p>
+              <p>航班、住宿與每日行程分區管理。</p>
             </div>
           </div>
         </section>

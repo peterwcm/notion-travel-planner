@@ -19,9 +19,9 @@ Airbnb 風格的個人旅行規劃 App。介面採繁體中文，使用 `Next.js
 - `/trips`
   旅程列表、統計區塊、建立新旅程表單
 - `/trips/[id]`
-  單一旅程總覽、建立 Day、建立/編輯/刪除行程項目
+  單一旅程總覽、建立 Day、建立/編輯/刪除行程項目、航班與住宿
 - `Notion` integration
-  `Trips`、`Days`、`Items` 三個 data sources 作為唯一資料來源
+  `Trips`、`Days`、`Items`、`Flights`、`Stays` 五個 data sources 作為唯一資料來源
 - `Figma` scaffold
   預留 component mapping 與設計同步結構
 
@@ -49,6 +49,8 @@ NOTION_TOKEN=
 NOTION_TRIPS_DB_ID=
 NOTION_DAYS_DB_ID=
 NOTION_ITEMS_DB_ID=
+NOTION_FLIGHTS_DB_ID=
+NOTION_STAYS_DB_ID=
 APP_PASSWORD=
 SESSION_SECRET=
 ```
@@ -94,7 +96,7 @@ npm run build
 - `Day` Relation -> Days
 - `開始時間` Rich text
 - `結束時間` Rich text
-- `類型` Select: `景點`, `交通`, `住宿`, `餐廳`, `購物`, `提醒`, `其他`
+- `類型` Select: `景點`, `交通`, `住宿`, `餐廳`, `購物`, `其他`
 - `地點` Rich text
 - `費用` Number
 - `網址` URL

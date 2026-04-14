@@ -12,15 +12,11 @@ import {
   createDayAction,
   createFlightAction,
   createItemAction,
-  createPickupAction,
-  createReminderAction,
   createStayAction,
   deleteEntityAction,
   deleteItemAction,
   updateFlightAction,
   updateItemAction,
-  updatePickupAction,
-  updateReminderAction,
   updateStayAction,
   updateTripAction,
 } from "@/app/(protected)/trips/actions";
@@ -36,8 +32,6 @@ const tabs: Array<{ id: TripSectionTab; label: string }> = [
   { id: "itinerary", label: "行程" },
   { id: "flights", label: "航班" },
   { id: "stays", label: "住宿" },
-  { id: "pickups", label: "接送" },
-  { id: "reminders", label: "提醒" },
 ];
 
 interface TripDetailPageProps {
@@ -157,7 +151,7 @@ export default async function TripDetailPage({ params, searchParams }: TripDetai
             </div>
             <div className="metric">
               <span className="metric__label">細節</span>
-              <strong>{stats.flights + stats.stays + stats.pickups + stats.reminders}</strong>
+              <strong>{stats.flights + stats.stays}</strong>
             </div>
             <div className="metric">
               <span className="metric__label">預估費用</span>
@@ -194,8 +188,6 @@ export default async function TripDetailPage({ params, searchParams }: TripDetai
       {activeTab === "itinerary" ? <ItineraryTab detail={detail} /> : null}
       {activeTab === "flights" ? <FlightsTab detail={detail} /> : null}
       {activeTab === "stays" ? <StaysTab detail={detail} /> : null}
-      {activeTab === "pickups" ? <PickupsTab detail={detail} /> : null}
-      {activeTab === "reminders" ? <RemindersTab detail={detail} /> : null}
     </div>
   );
 }
@@ -304,7 +296,6 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                                     <option value="住宿">住宿</option>
                                     <option value="餐廳">餐廳</option>
                                     <option value="購物">購物</option>
-                                    <option value="提醒">提醒</option>
                                     <option value="其他">其他</option>
                                   </select>
                                 </div>
@@ -390,7 +381,6 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                               <option value="住宿">住宿</option>
                               <option value="餐廳">餐廳</option>
                               <option value="購物">購物</option>
-                              <option value="提醒">提醒</option>
                               <option value="其他">其他</option>
                             </select>
                           </div>
@@ -695,166 +685,6 @@ function StaysTab({ detail }: { detail: TripDetail }) {
   );
 }
 
-function PickupsTab({ detail }: { detail: TripDetail }) {
-  return (
-    <section className="section-block">
-      <div className="header-actions">
-        <h3 className="section-title">接送</h3>
-        <FormDialog description="加入機場接送或市區移動安排。" title="新增接送" triggerLabel="新增接送">
-          <form action={createPickupAction} className="stack">
-            <input name="tripId" type="hidden" value={detail.trip.id} />
-            <BrowserTimeZoneField />
-            <div className="forms-grid">
-              <LabeledInput label="標題" name="title" placeholder="機場接送" required />
-              <LabeledInput label="接送時間" name="pickupAt" type="datetime-local" />
-              <LabeledInput label="服務商" name="provider" placeholder="Uber / KKday" />
-              <LabeledInput label="聯絡方式" name="contact" placeholder="電話或備註" />
-            </div>
-            <LabeledTextarea label="上車地點" name="pickupLocation" placeholder="上車地點" />
-            <LabeledTextarea label="下車地點" name="dropoffLocation" placeholder="下車地點" />
-            <LabeledTextarea label="備註" name="notes" placeholder="補充資訊" />
-            <SubmitButton>新增接送</SubmitButton>
-          </form>
-        </FormDialog>
-      </div>
-      <section className="stack">
-        {detail.pickups.length > 0 ? (
-          detail.pickups.map((pickup) => (
-            <StructuredCard
-              key={pickup.id}
-              title={pickup.title}
-              label="接送"
-              meta={pickup.pickupAt ? formatDateTime(pickup.pickupAt) : undefined}
-              body={getPickupRouteLabel(pickup.pickupLocation, pickup.dropoffLocation)}
-              actions={
-                <>
-                  <FormDialog
-                    description="更新接送時間與聯絡資訊。"
-                    title={`編輯 ${pickup.title}`}
-                    triggerAriaLabel="編輯接送"
-                    triggerClassName="icon-button"
-                    triggerContent={<EditIcon />}
-                    triggerLabel="編輯"
-                  >
-                    <form action={updatePickupAction} className="stack">
-                      <input name="tripId" type="hidden" value={detail.trip.id} />
-                      <input name="pickupId" type="hidden" value={pickup.id} />
-                      <BrowserTimeZoneField />
-                      <div className="forms-grid">
-                        <LabeledInput label="標題" name="title" defaultValue={pickup.title} required />
-                        <LabeledInput label="接送時間" name="pickupAt" type="datetime-local" defaultValue={toDateTimeInputValue(pickup.pickupAt)} />
-                        <LabeledInput label="服務商" name="provider" defaultValue={pickup.provider} />
-                        <LabeledInput label="聯絡方式" name="contact" defaultValue={pickup.contact} />
-                      </div>
-                      <LabeledTextarea label="上車地點" name="pickupLocation" defaultValue={pickup.pickupLocation} />
-                      <LabeledTextarea label="下車地點" name="dropoffLocation" defaultValue={pickup.dropoffLocation} />
-                      <LabeledTextarea label="備註" name="notes" defaultValue={pickup.notes} />
-                      <SubmitButton>儲存</SubmitButton>
-                    </form>
-                  </FormDialog>
-                  <DeleteForm icon tripId={detail.trip.id} entityId={pickup.id} />
-                </>
-              }
-            >
-              {hasText(pickup.provider) || hasText(pickup.contact) ? (
-                <div className="list-table">
-                  {hasText(pickup.provider) ? (
-                    <div className="list-table__row">
-                      <span>服務商</span>
-                      <strong>{pickup.provider}</strong>
-                    </div>
-                  ) : null}
-                  {hasText(pickup.contact) ? (
-                    <div className="list-table__row">
-                      <span>聯絡方式</span>
-                      <strong>{pickup.contact}</strong>
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
-            </StructuredCard>
-          ))
-        ) : (
-          <div className="empty">尚未新增接送。</div>
-        )}
-      </section>
-    </section>
-  );
-}
-
-function RemindersTab({ detail }: { detail: TripDetail }) {
-  return (
-    <section className="section-block">
-      <div className="header-actions">
-        <h3 className="section-title">提醒</h3>
-        <FormDialog description="放進重要時間點與待辦。" title="新增提醒" triggerLabel="新增提醒">
-          <form action={createReminderAction} className="stack">
-            <input name="tripId" type="hidden" value={detail.trip.id} />
-            <BrowserTimeZoneField />
-            <div className="forms-grid">
-              <LabeledInput label="標題" name="title" placeholder="提早 3 小時出門" required />
-              <LabeledInput label="提醒時間" name="remindAt" type="datetime-local" />
-              <LabeledInput label="網址" name="url" placeholder="https://..." />
-            </div>
-            <LabeledTextarea label="地點" name="location" placeholder="地點" />
-            <LabeledTextarea label="備註" name="notes" placeholder="補充資訊" />
-            <SubmitButton>新增提醒</SubmitButton>
-          </form>
-        </FormDialog>
-      </div>
-      <section className="stack">
-        {detail.reminders.length > 0 ? (
-          detail.reminders.map((reminder) => (
-            <StructuredCard
-              key={reminder.id}
-              title={reminder.title}
-              label="提醒"
-              meta={reminder.remindAt ? formatDateTime(reminder.remindAt) : undefined}
-              body={hasText(reminder.location) ? reminder.location : undefined}
-              actions={
-                <>
-                  <FormDialog
-                    description="更新提醒時間與補充資訊。"
-                    title={`編輯 ${reminder.title}`}
-                    triggerAriaLabel="編輯提醒"
-                    triggerClassName="icon-button"
-                    triggerContent={<EditIcon />}
-                    triggerLabel="編輯"
-                  >
-                    <form action={updateReminderAction} className="stack">
-                      <input name="tripId" type="hidden" value={detail.trip.id} />
-                      <input name="reminderId" type="hidden" value={reminder.id} />
-                      <BrowserTimeZoneField />
-                      <div className="forms-grid">
-                        <LabeledInput label="標題" name="title" defaultValue={reminder.title} required />
-                        <LabeledInput label="提醒時間" name="remindAt" type="datetime-local" defaultValue={toDateTimeInputValue(reminder.remindAt)} />
-                        <LabeledInput label="網址" name="url" defaultValue={reminder.url} />
-                      </div>
-                      <LabeledTextarea label="地點" name="location" defaultValue={reminder.location} />
-                      <LabeledTextarea label="備註" name="notes" defaultValue={reminder.notes} />
-                      <SubmitButton>儲存</SubmitButton>
-                    </form>
-                  </FormDialog>
-                  <DeleteForm icon tripId={detail.trip.id} entityId={reminder.id} />
-                </>
-              }
-            >
-              {reminder.url ? (
-                <a className="muted" href={reminder.url} rel="noreferrer" target="_blank">
-                  {reminder.url}
-                </a>
-              ) : null}
-              {reminder.notes ? <p className="muted">{reminder.notes}</p> : null}
-            </StructuredCard>
-          ))
-        ) : (
-          <div className="empty">尚未新增提醒。</div>
-        )}
-      </section>
-    </section>
-  );
-}
-
 function StructuredCard({
   label,
   title,
@@ -1069,58 +899,7 @@ function getOverviewItems(detail: TripDetail): OverviewItem[] {
     sortValue: getDateAndTimeSortValue(stay.checkInDate, stay.checkInTime, index),
   }));
 
-  const pickupItems = detail.pickups.map<OverviewItem>((pickup, index) => ({
-    id: `pickup-${pickup.id}`,
-    label: "接送",
-    title: pickup.title,
-    meta: pickup.pickupAt ? formatDateTime(pickup.pickupAt) : "未設定",
-    body: pickup.notes || undefined,
-    preserveBodyNewlines: Boolean(pickup.notes),
-    children: (
-      <div className="list-table">
-        <div className="list-table__row">
-          <span>上車</span>
-          <strong>{pickup.pickupLocation || "未填寫"}</strong>
-        </div>
-        <div className="list-table__row">
-          <span>下車</span>
-          <strong>{pickup.dropoffLocation || "未填寫"}</strong>
-        </div>
-        <div className="list-table__row">
-          <span>供應商</span>
-          <strong>{pickup.provider || "未填寫"}</strong>
-        </div>
-      </div>
-    ),
-    sortValue: getDateSortValue(pickup.pickupAt, index),
-  }));
-
-  const reminderItems = detail.reminders.map<OverviewItem>((reminder, index) => ({
-    id: `reminder-${reminder.id}`,
-    label: "提醒",
-    title: reminder.title,
-    meta: reminder.remindAt ? formatDateTime(reminder.remindAt) : "未設定",
-    body: reminder.notes || undefined,
-    preserveBodyNewlines: Boolean(reminder.notes),
-    children: (
-      <>
-        <div className="list-table">
-          <div className="list-table__row">
-            <span>地點</span>
-            <strong>{reminder.location || "未填寫"}</strong>
-          </div>
-        </div>
-        {reminder.url ? (
-          <a className="muted" href={reminder.url} rel="noreferrer" target="_blank">
-            {reminder.url}
-          </a>
-        ) : null}
-      </>
-    ),
-    sortValue: getDateSortValue(reminder.remindAt, index),
-  }));
-
-  return [...dayItems, ...flightItems, ...stayItems, ...pickupItems, ...reminderItems].sort((a, b) => a.sortValue - b.sortValue);
+  return [...dayItems, ...flightItems, ...stayItems].sort((a, b) => a.sortValue - b.sortValue);
 }
 
 function getDateSortValue(value?: string | null, index = 0) {
@@ -1173,22 +952,6 @@ function getItemTimeLabel(startTime?: string, endTime?: string) {
 
   if (hasText(endTime)) {
     return endTime;
-  }
-
-  return "";
-}
-
-function getPickupRouteLabel(pickupLocation?: string, dropoffLocation?: string) {
-  if (hasText(pickupLocation) && hasText(dropoffLocation)) {
-    return `${pickupLocation} → ${dropoffLocation}`;
-  }
-
-  if (hasText(pickupLocation)) {
-    return pickupLocation ?? "";
-  }
-
-  if (hasText(dropoffLocation)) {
-    return dropoffLocation ?? "";
   }
 
   return "";
