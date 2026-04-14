@@ -18,8 +18,11 @@
   --radius-lg: 22px;
   --radius-md: 16px;
   --radius-sm: 12px;
-  --font-sans: "Circular", "Avenir Next", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
-  --font-display: "Circular", "Avenir Next", "Noto Sans TC", "PingFang TC", sans-serif;
+  --font-sans:
+    "Circular", "Avenir Next", "Noto Sans TC", "PingFang TC",
+    "Microsoft JhengHei", sans-serif;
+  --font-display:
+    "Circular", "Avenir Next", "Noto Sans TC", "PingFang TC", sans-serif;
 }
 
 * {
@@ -35,7 +38,11 @@ body {
   min-height: 100vh;
   background:
     radial-gradient(circle at 0% 0%, rgba(255, 56, 92, 0.04), transparent 20%),
-    radial-gradient(circle at 100% 10%, rgba(0, 166, 153, 0.04), transparent 16%),
+    radial-gradient(
+      circle at 100% 10%,
+      rgba(0, 166, 153, 0.04),
+      transparent 16%
+    ),
     linear-gradient(180deg, #ffffff 0%, #fbfbfb 58%, #f7f7f7 100%);
   color: var(--text);
   font-family: var(--font-sans);
@@ -142,7 +149,10 @@ textarea {
   padding: 0 14px;
   border-radius: 999px;
   font-weight: 700;
-  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
 }
 
 .topbar__link {
@@ -208,7 +218,11 @@ textarea {
   gap: 24px;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 250, 250, 0.94));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.98),
+    rgba(250, 250, 250, 0.94)
+  );
 }
 
 .hero h2,
@@ -274,7 +288,10 @@ textarea {
 .trip-card {
   overflow: hidden;
   position: relative;
-  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
   background: rgba(255, 255, 255, 0.96);
 }
 
@@ -287,8 +304,7 @@ textarea {
 .trip-card__cover {
   position: relative;
   height: 184px;
-  background:
-    linear-gradient(135deg, #ffcad5 0%, #ffd4c6 45%, #f6f6f6 100%);
+  background: linear-gradient(135deg, #ffcad5 0%, #ffd4c6 45%, #f6f6f6 100%);
   display: grid;
   place-items: center;
   font-family: var(--font-display);
@@ -425,7 +441,10 @@ textarea {
   padding: 11px 13px;
   color: var(--text);
   font-size: 0.94rem;
-  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
 }
 
 .input:focus,
@@ -485,7 +504,11 @@ textarea {
   gap: 12px;
   padding: 16px;
   border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 247, 247, 0.96));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.96),
+    rgba(247, 247, 247, 0.96)
+  );
   border: 1px solid rgba(34, 34, 34, 0.06);
 }
 
@@ -523,7 +546,12 @@ textarea {
 .flight-card__route-line span {
   width: 100%;
   height: 1px;
-  background: linear-gradient(90deg, rgba(34, 34, 34, 0.1), rgba(227, 28, 95, 0.25), rgba(34, 34, 34, 0.1));
+  background: linear-gradient(
+    90deg,
+    rgba(34, 34, 34, 0.1),
+    rgba(227, 28, 95, 0.25),
+    rgba(34, 34, 34, 0.1)
+  );
 }
 
 .flight-card__route-line small {
@@ -626,7 +654,11 @@ textarea {
   gap: 12px;
   padding: 16px;
   border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 247, 247, 0.96));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.96),
+    rgba(247, 247, 247, 0.96)
+  );
   border: 1px solid rgba(34, 34, 34, 0.06);
 }
 
@@ -658,7 +690,12 @@ textarea {
   width: 44px;
   align-self: center;
   height: 1px;
-  background: linear-gradient(90deg, rgba(34, 34, 34, 0.1), rgba(227, 28, 95, 0.25), rgba(34, 34, 34, 0.1));
+  background: linear-gradient(
+    90deg,
+    rgba(34, 34, 34, 0.1),
+    rgba(227, 28, 95, 0.25),
+    rgba(34, 34, 34, 0.1)
+  );
 }
 
 .stay-card__facts {
@@ -711,7 +748,10 @@ textarea {
   border-radius: 999px;
   border: 0;
   cursor: pointer;
-  transition: transform 160ms ease, opacity 160ms ease, background 160ms ease;
+  transition:
+    transform 160ms ease,
+    opacity 160ms ease,
+    background 160ms ease;
 }
 
 .button {
@@ -909,7 +949,11 @@ textarea {
 .timeline-day {
   display: grid;
   gap: 16px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(250, 250, 250, 0.88));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.96),
+    rgba(250, 250, 250, 0.88)
+  );
 }
 
 .day-grid {
@@ -932,16 +976,6 @@ textarea {
 .item-card details {
   border-top: 1px solid var(--border);
   padding-top: 12px;
-}
-
-.summary-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) 300px;
-  gap: 20px;
-}
-
-.summary-hero--compact {
-  align-items: start;
 }
 
 .summary-cover {
@@ -1011,9 +1045,21 @@ textarea {
   padding: 28px;
   align-content: space-between;
   background:
-    radial-gradient(circle at top right, rgba(255, 56, 92, 0.09), transparent 24%),
-    radial-gradient(circle at bottom left, rgba(0, 166, 153, 0.05), transparent 18%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(249, 249, 249, 0.95));
+    radial-gradient(
+      circle at top right,
+      rgba(255, 56, 92, 0.09),
+      transparent 24%
+    ),
+    radial-gradient(
+      circle at bottom left,
+      rgba(0, 166, 153, 0.05),
+      transparent 18%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.99),
+      rgba(249, 249, 249, 0.95)
+    );
 }
 
 .auth-panel--form {
@@ -1105,7 +1151,11 @@ textarea {
 
 .panel--feature,
 .panel--side {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(252, 252, 252, 0.95));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.98),
+    rgba(252, 252, 252, 0.95)
+  );
 }
 
 .panel-chip {
@@ -1222,7 +1272,11 @@ textarea {
   background: rgba(255, 255, 255, 0.96);
   color: var(--text);
   cursor: pointer;
-  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
 }
 
 .icon-button:hover {
@@ -1283,7 +1337,10 @@ textarea {
   color: var(--muted);
   font-size: 0.9rem;
   font-weight: 700;
-  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
 }
 
 .tab-link--active {

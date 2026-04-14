@@ -102,8 +102,6 @@ export default async function TripDetailPage({
               </p>
             </div>
             <div className="stats-inline">
-              <span>{detail.days.length} 天</span>
-              <span>{stats.items} 個行程</span>
               <FormDialog
                 description="修改旅程名稱、日期與封面。"
                 title="編輯旅程"
