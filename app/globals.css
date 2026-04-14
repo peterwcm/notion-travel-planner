@@ -462,6 +462,152 @@ textarea {
   gap: 12px;
 }
 
+.flight-card {
+  gap: 16px;
+  padding: 18px;
+}
+
+.flight-card__top {
+  display: grid;
+  gap: 16px;
+}
+
+.flight-card__headline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.flight-card__route {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 247, 247, 0.96));
+  border: 1px solid rgba(34, 34, 34, 0.06);
+}
+
+.flight-card__stop {
+  display: grid;
+  gap: 4px;
+}
+
+.flight-card__stop strong {
+  font-size: 0.96rem;
+  line-height: 1.35;
+}
+
+.flight-card__stop span:last-child {
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.flight-card__code {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.flight-card__route-line {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  min-width: 72px;
+}
+
+.flight-card__route-line span {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(34, 34, 34, 0.1), rgba(227, 28, 95, 0.25), rgba(34, 34, 34, 0.1));
+}
+
+.flight-card__route-line small {
+  color: var(--muted);
+  font-size: 0.76rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.flight-card__facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.flight-card__fact {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(247, 247, 247, 0.96);
+}
+
+.flight-card__fact span,
+.flight-passenger-card__grid span,
+.flight-card__notes span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.flight-card__fact strong {
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.flight-card__passengers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.flight-passenger-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(247, 247, 247, 0.9);
+  border: 1px solid rgba(34, 34, 34, 0.05);
+}
+
+.flight-passenger-card .tag {
+  align-self: start;
+}
+
+.flight-passenger-card__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.flight-passenger-card__grid div {
+  display: grid;
+  gap: 4px;
+}
+
+.flight-passenger-card__grid strong {
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+
+.flight-card__notes {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(247, 247, 247, 0.72);
+}
+
+.flight-card__notes p {
+  margin: 0;
+  line-height: 1.55;
+}
+
 .button,
 .ghost-button {
   display: inline-flex;

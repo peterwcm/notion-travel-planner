@@ -489,57 +489,77 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
       <section className="stack">
         {detail.flights.length > 0 ? (
           detail.flights.map((flight) => (
-            <div className="detail-card" key={flight.id}>
-              <div className="header-actions">
-                <div>
-                  <span className="tag">航班</span>
-                  <h4>{getFlightDisplayLabel(flight)}</h4>
+            <div className="detail-card flight-card" key={flight.id}>
+              <div className="flight-card__top">
+                <div className="flight-card__headline">
+                  <div>
+                    <span className="tag">航班</span>
+                    <h4>{getFlightDisplayLabel(flight)}</h4>
+                  </div>
+                  <span className="pill">{flight.airline}</span>
                 </div>
-                <span className="pill">{flight.flightNumber || "未填編號"}</span>
+
+                <div className="flight-card__route">
+                  <div className="flight-card__stop">
+                    <span className="flight-card__code">{flight.departureAirport}</span>
+                    <strong>{formatDateTime(flight.departureAt)}</strong>
+                    <span>出發</span>
+                  </div>
+                  <div className="flight-card__route-line">
+                    <span />
+                    <small>{flight.flightNumber}</small>
+                  </div>
+                  <div className="flight-card__stop">
+                    <span className="flight-card__code">{flight.arrivalAirport}</span>
+                    <strong>{formatDateTime(flight.arrivalAt)}</strong>
+                    <span>抵達</span>
+                  </div>
+                </div>
+
+                <div className="flight-card__facts">
+                  <div className="flight-card__fact">
+                    <span>機型</span>
+                    <strong>{flight.aircraft || "未填"}</strong>
+                  </div>
+                  <div className="flight-card__fact">
+                    <span>行李資訊</span>
+                    <strong>{flight.baggageInfo || "未填"}</strong>
+                  </div>
+                  <div className="flight-card__fact">
+                    <span>乘客數</span>
+                    <strong>{flight.passengers.length || 0}</strong>
+                  </div>
+                </div>
               </div>
-              <div className="detail-card__meta">
-                <span>{flight.airline || "未填航空公司"}</span>
-                <span>{flight.departureAirport || "--"} → {flight.arrivalAirport || "--"}</span>
-              </div>
-              <div className="list-table">
-                <div className="list-table__row">
-                  <span>出發</span>
-                  <strong>{formatDateTime(flight.departureAt)}</strong>
-                </div>
-                <div className="list-table__row">
-                  <span>抵達</span>
-                  <strong>{formatDateTime(flight.arrivalAt)}</strong>
-                </div>
-                <div className="list-table__row">
-                  <span>機型</span>
-                  <strong>{flight.aircraft || "未填"}</strong>
-                </div>
-                <div className="list-table__row">
-                  <span>行李資訊</span>
-                  <strong>{flight.baggageInfo || "未填"}</strong>
-                </div>
-              </div>
+
               {flight.passengers.length > 0 ? (
-                <div className="stack compact-list">
+                <div className="stack compact-list flight-card__passengers">
                   {flight.passengers.map((passenger, index) => (
-                    <div className="list-table" key={getPassengerKey(passenger, index)}>
-                      <div className="list-table__row">
-                        <span>乘客 {index + 1}</span>
+                    <div className="flight-passenger-card" key={getPassengerKey(passenger, index)}>
+                      <div className="header-actions">
+                        <span className="tag">乘客 {index + 1}</span>
                         <strong>{passenger.fullName || "未填姓名"}</strong>
                       </div>
-                      <div className="list-table__row">
-                        <span>訂位代號</span>
-                        <strong>{passenger.bookingReference || "未填"}</strong>
-                      </div>
-                      <div className="list-table__row">
-                        <span>機票號碼</span>
-                        <strong>{passenger.ticketNumber || "未填"}</strong>
+                      <div className="flight-passenger-card__grid">
+                        <div>
+                          <span>訂位代號</span>
+                          <strong>{passenger.bookingReference || "未填"}</strong>
+                        </div>
+                        <div>
+                          <span>機票號碼</span>
+                          <strong>{passenger.ticketNumber || "未填"}</strong>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : null}
-              {flight.notes ? <p className="muted">{flight.notes}</p> : null}
+              {flight.notes ? (
+                <div className="flight-card__notes">
+                  <span>備註</span>
+                  <p className="muted">{flight.notes}</p>
+                </div>
+              ) : null}
               <div className="card-actions">
                 <FormDialog
                   description="更新航班時間與資訊。"
