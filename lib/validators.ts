@@ -38,17 +38,33 @@ export const itemSchema = z.object({
   order: z.coerce.number().int().min(0),
 });
 
+const flightPassengerSchema = z.object({
+  fullName: z.string().optional().transform((value) => value ?? ""),
+  bookingReference: z.string().optional().transform((value) => value ?? ""),
+  ticketNumber: z.string().optional().transform((value) => value ?? ""),
+});
+
 export const flightSchema = z.object({
   tripId: z.string().min(1),
-  title: z.string().min(1, "請輸入航班標題"),
-  airline: z.string().optional(),
-  flightNumber: z.string().optional(),
-  departureAirport: z.string().optional(),
-  arrivalAirport: z.string().optional(),
-  departureAt: z.string().optional(),
-  arrivalAt: z.string().optional(),
-  terminal: z.string().optional(),
-  gate: z.string().optional(),
+  airline: z.string().min(1, "請輸入航空公司"),
+  flightNumber: z.string().min(1, "請輸入航班號碼"),
+  departureAirport: z.string().min(1, "請輸入出發機場"),
+  arrivalAirport: z.string().min(1, "請輸入抵達機場"),
+  departureAt: z.string().min(1, "請輸入出發時間"),
+  arrivalAt: z.string().min(1, "請輸入抵達時間"),
+  aircraft: z.string().optional(),
+  baggageInfo: z.string().optional(),
+  passengers: z
+    .string()
+    .optional()
+    .transform((value) => {
+      if (!value) {
+        return [];
+      }
+
+      const parsed = JSON.parse(value);
+      return z.array(flightPassengerSchema).parse(parsed);
+    }),
   notes: z.string().optional(),
 });
 

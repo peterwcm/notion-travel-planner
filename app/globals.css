@@ -454,6 +454,14 @@ textarea {
   white-space: pre-line;
 }
 
+.detail-card--compact {
+  padding: 16px;
+}
+
+.compact-list {
+  gap: 12px;
+}
+
 .button,
 .ghost-button {
   display: inline-flex;

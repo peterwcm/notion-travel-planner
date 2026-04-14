@@ -2,6 +2,7 @@ import { Client } from "@notionhq/client";
 import type { CreatePageParameters } from "@notionhq/client/build/src/api-endpoints";
 
 import { getRequiredEnv, getSetupStatus } from "@/lib/env";
+import { getFlightDisplayLabel, parseFlightPassengers, serializeFlightPassengers } from "@/lib/flight-passengers";
 import type {
   ItemType,
   SetupStatus,
@@ -57,8 +58,9 @@ const FLIGHT_PROPS = {
   arrivalAirport: "抵達機場",
   departureAt: "出發時間",
   arrivalAt: "抵達時間",
-  terminal: "航廈",
-  gate: "登機門",
+  aircraft: "機型",
+  baggageInfo: "行李資訊",
+  passengers: "乘客資訊",
   notes: "備註",
 } as const;
 
@@ -483,7 +485,7 @@ export async function createFlight(input: Omit<TripFlight, "id">) {
   await client.pages.create({
     parent: { data_source_id: getRequiredEnv("NOTION_FLIGHTS_DB_ID") },
     properties: {
-      [FLIGHT_PROPS.title]: titleProperty(input.title),
+      [FLIGHT_PROPS.title]: titleProperty(getFlightDisplayLabel(input)),
       [FLIGHT_PROPS.trip]: relationProperty(input.tripId),
       [FLIGHT_PROPS.airline]: richTextProperty(input.airline),
       [FLIGHT_PROPS.flightNumber]: richTextProperty(input.flightNumber),
@@ -491,8 +493,9 @@ export async function createFlight(input: Omit<TripFlight, "id">) {
       [FLIGHT_PROPS.arrivalAirport]: richTextProperty(input.arrivalAirport),
       [FLIGHT_PROPS.departureAt]: dateProperty(input.departureAt ?? ""),
       [FLIGHT_PROPS.arrivalAt]: dateProperty(input.arrivalAt ?? ""),
-      [FLIGHT_PROPS.terminal]: richTextProperty(input.terminal),
-      [FLIGHT_PROPS.gate]: richTextProperty(input.gate),
+      [FLIGHT_PROPS.aircraft]: richTextProperty(input.aircraft),
+      [FLIGHT_PROPS.baggageInfo]: richTextProperty(input.baggageInfo),
+      [FLIGHT_PROPS.passengers]: richTextProperty(serializeFlightPassengers(input.passengers)),
       [FLIGHT_PROPS.notes]: richTextProperty(input.notes),
     },
   } as CreatePageParameters);
@@ -504,15 +507,16 @@ export async function updateFlight(flightId: string, input: Omit<TripFlight, "id
   await client.pages.update({
     page_id: flightId,
     properties: {
-      [FLIGHT_PROPS.title]: titleProperty(input.title),
+      [FLIGHT_PROPS.title]: titleProperty(getFlightDisplayLabel(input)),
       [FLIGHT_PROPS.airline]: richTextProperty(input.airline),
       [FLIGHT_PROPS.flightNumber]: richTextProperty(input.flightNumber),
       [FLIGHT_PROPS.departureAirport]: richTextProperty(input.departureAirport),
       [FLIGHT_PROPS.arrivalAirport]: richTextProperty(input.arrivalAirport),
       [FLIGHT_PROPS.departureAt]: dateProperty(input.departureAt ?? ""),
       [FLIGHT_PROPS.arrivalAt]: dateProperty(input.arrivalAt ?? ""),
-      [FLIGHT_PROPS.terminal]: richTextProperty(input.terminal),
-      [FLIGHT_PROPS.gate]: richTextProperty(input.gate),
+      [FLIGHT_PROPS.aircraft]: richTextProperty(input.aircraft),
+      [FLIGHT_PROPS.baggageInfo]: richTextProperty(input.baggageInfo),
+      [FLIGHT_PROPS.passengers]: richTextProperty(serializeFlightPassengers(input.passengers)),
       [FLIGHT_PROPS.notes]: richTextProperty(input.notes),
     },
   } as any);
@@ -707,15 +711,15 @@ function mapFlight(properties: Record<string, any>, id: string): TripFlight {
   return {
     id,
     tripId: tripId ?? "",
-    title: getTitle(properties, FLIGHT_PROPS.title),
     airline: getRichText(properties, FLIGHT_PROPS.airline),
     flightNumber: getRichText(properties, FLIGHT_PROPS.flightNumber),
     departureAirport: getRichText(properties, FLIGHT_PROPS.departureAirport),
     arrivalAirport: getRichText(properties, FLIGHT_PROPS.arrivalAirport),
     departureAt: getDate(properties, FLIGHT_PROPS.departureAt),
     arrivalAt: getDate(properties, FLIGHT_PROPS.arrivalAt),
-    terminal: getRichText(properties, FLIGHT_PROPS.terminal),
-    gate: getRichText(properties, FLIGHT_PROPS.gate),
+    aircraft: getRichText(properties, FLIGHT_PROPS.aircraft),
+    baggageInfo: getRichText(properties, FLIGHT_PROPS.baggageInfo),
+    passengers: parseFlightPassengers(getRichText(properties, FLIGHT_PROPS.passengers)),
     notes: getRichText(properties, FLIGHT_PROPS.notes),
   };
 }

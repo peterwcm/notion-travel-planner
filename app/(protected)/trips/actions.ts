@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { normalizeFlightPassengers } from "@/lib/flight-passengers";
 import {
   archivePage,
   createDay,
@@ -176,29 +177,29 @@ export async function createFlightAction(formData: FormData) {
   const tripId = String(formData.get("tripId") ?? "");
   const parsed = flightSchema.parse({
     tripId,
-    title: formData.get("title"),
     airline: formData.get("airline"),
     flightNumber: formData.get("flightNumber"),
     departureAirport: formData.get("departureAirport"),
     arrivalAirport: formData.get("arrivalAirport"),
     departureAt: formData.get("departureAt"),
     arrivalAt: formData.get("arrivalAt"),
-    terminal: formData.get("terminal"),
-    gate: formData.get("gate"),
+    aircraft: formData.get("aircraft"),
+    baggageInfo: formData.get("baggageInfo"),
+    passengers: formData.get("passengers"),
     notes: formData.get("notes"),
   });
 
   await createFlight({
     tripId: parsed.tripId,
-    title: parsed.title,
-    airline: parsed.airline ?? "",
-    flightNumber: parsed.flightNumber ?? "",
-    departureAirport: parsed.departureAirport ?? "",
-    arrivalAirport: parsed.arrivalAirport ?? "",
-    departureAt: parsed.departureAt ?? null,
-    arrivalAt: parsed.arrivalAt ?? null,
-    terminal: parsed.terminal ?? "",
-    gate: parsed.gate ?? "",
+    airline: parsed.airline,
+    flightNumber: parsed.flightNumber,
+    departureAirport: parsed.departureAirport,
+    arrivalAirport: parsed.arrivalAirport,
+    departureAt: parsed.departureAt,
+    arrivalAt: parsed.arrivalAt,
+    aircraft: parsed.aircraft ?? "",
+    baggageInfo: parsed.baggageInfo ?? "",
+    passengers: normalizeFlightPassengers(parsed.passengers),
     notes: parsed.notes ?? "",
   });
 
@@ -212,28 +213,28 @@ export async function updateFlightAction(formData: FormData) {
   const flightId = String(formData.get("flightId") ?? "");
   const parsed = flightSchema.parse({
     tripId,
-    title: formData.get("title"),
     airline: formData.get("airline"),
     flightNumber: formData.get("flightNumber"),
     departureAirport: formData.get("departureAirport"),
     arrivalAirport: formData.get("arrivalAirport"),
     departureAt: formData.get("departureAt"),
     arrivalAt: formData.get("arrivalAt"),
-    terminal: formData.get("terminal"),
-    gate: formData.get("gate"),
+    aircraft: formData.get("aircraft"),
+    baggageInfo: formData.get("baggageInfo"),
+    passengers: formData.get("passengers"),
     notes: formData.get("notes"),
   });
 
   await updateFlight(flightId, {
-    title: parsed.title,
-    airline: parsed.airline ?? "",
-    flightNumber: parsed.flightNumber ?? "",
-    departureAirport: parsed.departureAirport ?? "",
-    arrivalAirport: parsed.arrivalAirport ?? "",
-    departureAt: parsed.departureAt ?? null,
-    arrivalAt: parsed.arrivalAt ?? null,
-    terminal: parsed.terminal ?? "",
-    gate: parsed.gate ?? "",
+    airline: parsed.airline,
+    flightNumber: parsed.flightNumber,
+    departureAirport: parsed.departureAirport,
+    arrivalAirport: parsed.arrivalAirport,
+    departureAt: parsed.departureAt,
+    arrivalAt: parsed.arrivalAt,
+    aircraft: parsed.aircraft ?? "",
+    baggageInfo: parsed.baggageInfo ?? "",
+    passengers: normalizeFlightPassengers(parsed.passengers),
     notes: parsed.notes ?? "",
   });
 

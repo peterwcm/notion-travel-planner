@@ -45,18 +45,24 @@ export interface TripItem {
   order: number;
 }
 
+export interface TripFlightPassenger {
+  fullName: string;
+  bookingReference: string;
+  ticketNumber: string;
+}
+
 export interface TripFlight {
   id: string;
   tripId: string;
-  title: string;
   airline: string;
   flightNumber: string;
   departureAirport: string;
   arrivalAirport: string;
   departureAt: string | null;
   arrivalAt: string | null;
-  terminal: string;
-  gate: string;
+  aircraft: string;
+  baggageInfo: string;
+  passengers: TripFlightPassenger[];
   notes: string;
 }
 

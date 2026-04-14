@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { FlightPassengersField } from "@/components/flight-passengers-field";
 import { FormDialog } from "@/components/form-dialog";
 import { SubmitButton } from "@/components/submit-button";
 import {
@@ -21,8 +22,9 @@ import {
   updateStayAction,
   updateTripAction,
 } from "@/app/(protected)/trips/actions";
+import { getFlightDisplayLabel } from "@/lib/flight-passengers";
 import { getNotionStatus, getTripDetail, getTripStats } from "@/lib/notion";
-import type { TripDetail, TripSectionTab } from "@/lib/types";
+import type { TripDetail, TripFlightPassenger, TripSectionTab } from "@/lib/types";
 import { currency, formatDate, formatDateTime } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -232,7 +234,7 @@ function OverviewTab({ detail }: { detail: TripDetail }) {
             <h3 className="section-title">快速預覽</h3>
           </div>
           <div className="mini-cards">
-            <MiniCard title="下一個航班" value={detail.flights[0]?.title || "尚未新增"} meta={detail.flights[0] ? formatDateTime(detail.flights[0].departureAt) : undefined} />
+            <MiniCard title="下一個航班" value={detail.flights[0] ? getFlightDisplayLabel(detail.flights[0]) : "尚未新增"} meta={detail.flights[0] ? formatDateTime(detail.flights[0].departureAt) : undefined} />
             <MiniCard title="下一筆住宿" value={detail.stays[0]?.title || "尚未新增"} meta={detail.stays[0] ? formatDate(detail.stays[0].checkInDate) : undefined} />
             <MiniCard title="下一筆接送" value={detail.pickups[0]?.title || "尚未新增"} meta={detail.pickups[0] ? formatDateTime(detail.pickups[0].pickupAt) : undefined} />
             <MiniCard title="最近提醒" value={detail.reminders[0]?.title || "尚未新增"} meta={detail.reminders[0] ? formatDateTime(detail.reminders[0].remindAt) : undefined} />
@@ -467,16 +469,16 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
           <form action={createFlightAction} className="stack">
             <input name="tripId" type="hidden" value={detail.trip.id} />
             <div className="forms-grid">
-              <LabeledInput label="標題" name="title" placeholder="去程航班" required />
-              <LabeledInput label="航空公司" name="airline" placeholder="EVA Air" />
-              <LabeledInput label="航班號碼" name="flightNumber" placeholder="BR67" />
-              <LabeledInput label="出發機場" name="departureAirport" placeholder="TPE" />
-              <LabeledInput label="抵達機場" name="arrivalAirport" placeholder="NRT" />
-              <LabeledInput label="出發時間" name="departureAt" type="datetime-local" />
-              <LabeledInput label="抵達時間" name="arrivalAt" type="datetime-local" />
-              <LabeledInput label="航廈" name="terminal" placeholder="T2" />
-              <LabeledInput label="登機門" name="gate" placeholder="C4" />
+              <LabeledInput label="航空公司" name="airline" placeholder="EVA Air" required />
+              <LabeledInput label="航班號碼" name="flightNumber" placeholder="BR67" required />
+              <LabeledInput label="出發機場" name="departureAirport" placeholder="TPE" required />
+              <LabeledInput label="抵達機場" name="arrivalAirport" placeholder="NRT" required />
+              <LabeledInput label="出發時間" name="departureAt" type="datetime-local" required />
+              <LabeledInput label="抵達時間" name="arrivalAt" type="datetime-local" required />
+              <LabeledInput label="機型" name="aircraft" placeholder="Boeing 787-10" />
+              <LabeledInput label="行李資訊" name="baggageInfo" placeholder="23kg x 2 + 7kg 手提" />
             </div>
+            <FlightPassengersField />
             <LabeledTextarea label="備註" name="notes" placeholder="補充資訊" />
             <SubmitButton>新增航班</SubmitButton>
           </form>
@@ -489,7 +491,7 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
               <div className="header-actions">
                 <div>
                   <span className="tag">航班</span>
-                  <h4>{flight.title}</h4>
+                  <h4>{getFlightDisplayLabel(flight)}</h4>
                 </div>
                 <span className="pill">{flight.flightNumber || "未填編號"}</span>
               </div>
@@ -506,12 +508,40 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
                   <span>抵達</span>
                   <strong>{formatDateTime(flight.arrivalAt)}</strong>
                 </div>
+                <div className="list-table__row">
+                  <span>機型</span>
+                  <strong>{flight.aircraft || "未填"}</strong>
+                </div>
+                <div className="list-table__row">
+                  <span>行李資訊</span>
+                  <strong>{flight.baggageInfo || "未填"}</strong>
+                </div>
               </div>
+              {flight.passengers.length > 0 ? (
+                <div className="stack compact-list">
+                  {flight.passengers.map((passenger, index) => (
+                    <div className="list-table" key={getPassengerKey(passenger, index)}>
+                      <div className="list-table__row">
+                        <span>乘客 {index + 1}</span>
+                        <strong>{passenger.fullName || "未填姓名"}</strong>
+                      </div>
+                      <div className="list-table__row">
+                        <span>訂位代號</span>
+                        <strong>{passenger.bookingReference || "未填"}</strong>
+                      </div>
+                      <div className="list-table__row">
+                        <span>機票號碼</span>
+                        <strong>{passenger.ticketNumber || "未填"}</strong>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
               {flight.notes ? <p className="muted">{flight.notes}</p> : null}
               <div className="card-actions">
                 <FormDialog
                   description="更新航班時間與資訊。"
-                  title={`編輯 ${flight.title}`}
+                  title={`編輯 ${getFlightDisplayLabel(flight)}`}
                   triggerClassName="ghost-button"
                   triggerLabel="編輯"
                 >
@@ -519,16 +549,16 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
                     <input name="tripId" type="hidden" value={detail.trip.id} />
                     <input name="flightId" type="hidden" value={flight.id} />
                     <div className="forms-grid">
-                      <LabeledInput label="標題" name="title" defaultValue={flight.title} required />
-                      <LabeledInput label="航空公司" name="airline" defaultValue={flight.airline} />
-                      <LabeledInput label="航班號碼" name="flightNumber" defaultValue={flight.flightNumber} />
-                      <LabeledInput label="出發機場" name="departureAirport" defaultValue={flight.departureAirport} />
-                      <LabeledInput label="抵達機場" name="arrivalAirport" defaultValue={flight.arrivalAirport} />
-                      <LabeledInput label="出發時間" name="departureAt" type="datetime-local" defaultValue={toDateTimeInputValue(flight.departureAt)} />
-                      <LabeledInput label="抵達時間" name="arrivalAt" type="datetime-local" defaultValue={toDateTimeInputValue(flight.arrivalAt)} />
-                      <LabeledInput label="航廈" name="terminal" defaultValue={flight.terminal} />
-                      <LabeledInput label="登機門" name="gate" defaultValue={flight.gate} />
+                      <LabeledInput label="航空公司" name="airline" defaultValue={flight.airline} required />
+                      <LabeledInput label="航班號碼" name="flightNumber" defaultValue={flight.flightNumber} required />
+                      <LabeledInput label="出發機場" name="departureAirport" defaultValue={flight.departureAirport} required />
+                      <LabeledInput label="抵達機場" name="arrivalAirport" defaultValue={flight.arrivalAirport} required />
+                      <LabeledInput label="出發時間" name="departureAt" type="datetime-local" defaultValue={toDateTimeInputValue(flight.departureAt)} required />
+                      <LabeledInput label="抵達時間" name="arrivalAt" type="datetime-local" defaultValue={toDateTimeInputValue(flight.arrivalAt)} required />
+                      <LabeledInput label="機型" name="aircraft" defaultValue={flight.aircraft} />
+                      <LabeledInput label="行李資訊" name="baggageInfo" defaultValue={flight.baggageInfo} />
                     </div>
+                    <FlightPassengersField defaultValue={flight.passengers} />
                     <LabeledTextarea label="備註" name="notes" defaultValue={flight.notes} />
                     <SubmitButton>儲存</SubmitButton>
                   </form>
@@ -899,4 +929,8 @@ function toDateInputValue(value?: string | null) {
   }
 
   return value.slice(0, 10);
+}
+
+function getPassengerKey(passenger: TripFlightPassenger, index: number) {
+  return `${passenger.fullName}-${passenger.bookingReference}-${passenger.ticketNumber}-${index}`;
 }
