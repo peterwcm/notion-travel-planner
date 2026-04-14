@@ -105,23 +105,23 @@ export default async function TripDetailPage({ params, searchParams }: TripDetai
                   <input name="tripId" type="hidden" value={detail.trip.id} />
                   <div className="forms-grid">
                     <div className="field">
-                      <label htmlFor="trip-title">旅程名稱</label>
+                      <label className="field-label field-label--required" htmlFor="trip-title">旅程名稱</label>
                       <input className="input" defaultValue={detail.trip.title} id="trip-title" name="title" required />
                     </div>
                     <div className="field">
-                      <label htmlFor="trip-destination">目的地</label>
+                      <label className="field-label field-label--required" htmlFor="trip-destination">目的地</label>
                       <input className="input" defaultValue={detail.trip.destination} id="trip-destination" name="destination" required />
                     </div>
                     <div className="field">
-                      <label htmlFor="trip-startDate">開始日期</label>
+                      <label className="field-label" htmlFor="trip-startDate">開始日期</label>
                       <input className="input" defaultValue={toDateInputValue(detail.trip.startDate)} id="trip-startDate" name="startDate" type="date" />
                     </div>
                     <div className="field">
-                      <label htmlFor="trip-endDate">結束日期</label>
+                      <label className="field-label" htmlFor="trip-endDate">結束日期</label>
                       <input className="input" defaultValue={toDateInputValue(detail.trip.endDate)} id="trip-endDate" name="endDate" type="date" />
                     </div>
                     <div className="field">
-                      <label htmlFor="trip-status">狀態</label>
+                      <label className="field-label" htmlFor="trip-status">狀態</label>
                       <select className="select" defaultValue={detail.trip.status} id="trip-status" name="status">
                         <option value="規劃中">規劃中</option>
                         <option value="已預訂">已預訂</option>
@@ -130,12 +130,12 @@ export default async function TripDetailPage({ params, searchParams }: TripDetai
                       </select>
                     </div>
                     <div className="field">
-                      <label htmlFor="trip-cover">封面圖片網址</label>
+                      <label className="field-label" htmlFor="trip-cover">封面圖片網址</label>
                       <input className="input" defaultValue={detail.trip.cover} id="trip-cover" name="cover" placeholder="https://..." />
                     </div>
                   </div>
                   <div className="field">
-                    <label htmlFor="trip-notes">摘要</label>
+                    <label className="field-label" htmlFor="trip-notes">摘要</label>
                     <textarea className="textarea textarea--compact" defaultValue={detail.trip.notes} id="trip-notes" name="notes" placeholder="這趟旅程的短摘要" />
                   </div>
                   <SubmitButton>儲存旅程</SubmitButton>
@@ -253,20 +253,20 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
             <input name="tripId" type="hidden" value={detail.trip.id} />
             <div className="forms-grid">
               <div className="field">
-                <label htmlFor="day-title">標題</label>
+                <label className="field-label field-label--required" htmlFor="day-title">標題</label>
                 <input className="input" defaultValue={`Day ${detail.days.length + 1}`} id="day-title" name="title" required />
               </div>
               <div className="field">
-                <label htmlFor="day-date">日期</label>
+                <label className="field-label" htmlFor="day-date">日期</label>
                 <input className="input" id="day-date" name="date" type="date" />
               </div>
               <div className="field">
-                <label htmlFor="day-number">天次</label>
+                <label className="field-label" htmlFor="day-number">天次</label>
                 <input className="input" defaultValue={detail.days.length + 1} id="day-number" min={1} name="dayNumber" type="number" />
               </div>
             </div>
             <div className="field">
-              <label htmlFor="summary">摘要</label>
+              <label className="field-label" htmlFor="summary">摘要</label>
               <textarea className="textarea textarea--compact" id="summary" name="summary" placeholder="簡短摘要" />
             </div>
             <SubmitButton>新增 Day</SubmitButton>
@@ -326,11 +326,11 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                               <input name="dayId" type="hidden" value={day.id} />
                               <div className="forms-grid">
                                 <div className="field">
-                                  <label>名稱</label>
+                                  <label className="field-label field-label--required">名稱</label>
                                   <input className="input" defaultValue={item.title} name="title" required />
                                 </div>
                                 <div className="field">
-                                  <label>類型</label>
+                                  <label className="field-label">類型</label>
                                   <select className="select" defaultValue={item.type} name="type">
                                     <option value="景點">景點</option>
                                     <option value="交通">交通</option>
@@ -342,32 +342,32 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                                   </select>
                                 </div>
                                 <div className="field">
-                                  <label>開始時間</label>
+                                  <label className="field-label">開始時間</label>
                                   <input className="input" defaultValue={item.startTime} name="startTime" placeholder="09:00" />
                                 </div>
                                 <div className="field">
-                                  <label>結束時間</label>
+                                  <label className="field-label">結束時間</label>
                                   <input className="input" defaultValue={item.endTime} name="endTime" placeholder="11:00" />
                                 </div>
                                 <div className="field">
-                                  <label>地點</label>
+                                  <label className="field-label">地點</label>
                                   <input className="input" defaultValue={item.location} name="location" />
                                 </div>
                                 <div className="field">
-                                  <label>排序</label>
+                                  <label className="field-label">排序</label>
                                   <input className="input" defaultValue={item.order} min={0} name="order" type="number" />
                                 </div>
                                 <div className="field">
-                                  <label>費用</label>
+                                  <label className="field-label">費用</label>
                                   <input className="input" defaultValue={item.cost ?? ""} min={0} name="cost" type="number" />
                                 </div>
                                 <div className="field">
-                                  <label>網址</label>
+                                  <label className="field-label">網址</label>
                                   <input className="input" defaultValue={item.url} name="url" />
                                 </div>
                               </div>
                               <div className="field">
-                                <label>備註</label>
+                                <label className="field-label">備註</label>
                                 <textarea className="textarea textarea--compact" defaultValue={item.notes} name="notes" />
                               </div>
                               <SubmitButton>儲存</SubmitButton>
@@ -398,11 +398,11 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                         <input name="dayId" type="hidden" value={day.id} />
                         <div className="forms-grid">
                           <div className="field">
-                            <label>名稱</label>
+                            <label className="field-label field-label--required">名稱</label>
                             <input className="input" name="title" placeholder="淺草寺散步" required />
                           </div>
                           <div className="field">
-                            <label>類型</label>
+                            <label className="field-label">類型</label>
                             <select className="select" defaultValue="景點" name="type">
                               <option value="景點">景點</option>
                               <option value="交通">交通</option>
@@ -414,32 +414,32 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                             </select>
                           </div>
                           <div className="field">
-                            <label>開始時間</label>
+                            <label className="field-label">開始時間</label>
                             <input className="input" name="startTime" placeholder="09:00" />
                           </div>
                           <div className="field">
-                            <label>結束時間</label>
+                            <label className="field-label">結束時間</label>
                             <input className="input" name="endTime" placeholder="11:00" />
                           </div>
                           <div className="field">
-                            <label>地點</label>
+                            <label className="field-label">地點</label>
                             <input className="input" name="location" placeholder="地點" />
                           </div>
                           <div className="field">
-                            <label>排序</label>
+                            <label className="field-label">排序</label>
                             <input className="input" defaultValue={day.items.length} min={0} name="order" type="number" />
                           </div>
                           <div className="field">
-                            <label>費用</label>
+                            <label className="field-label">費用</label>
                             <input className="input" min={0} name="cost" placeholder="0" type="number" />
                           </div>
                           <div className="field">
-                            <label>網址</label>
+                            <label className="field-label">網址</label>
                             <input className="input" name="url" placeholder="https://..." />
                           </div>
                         </div>
                         <div className="field">
-                          <label>備註</label>
+                          <label className="field-label">備註</label>
                           <textarea className="textarea textarea--compact" name="notes" placeholder="補充資訊" />
                         </div>
                         <SubmitButton>新增項目</SubmitButton>
@@ -555,8 +555,10 @@ function StaysTab({ detail }: { detail: TripDetail }) {
             <input name="tripId" type="hidden" value={detail.trip.id} />
             <div className="forms-grid">
               <LabeledInput label="住宿名稱" name="title" placeholder="Shinjuku Granbell" required />
-              <LabeledInput label="入住日期" name="checkInDate" type="date" />
-              <LabeledInput label="退房日期" name="checkOutDate" type="date" />
+              <LabeledInput label="入住日期" name="checkInDate" type="date" required />
+              <LabeledInput label="退房日期" name="checkOutDate" type="date" required />
+              <LabeledInput label="入住時間" name="checkInTime" type="time" />
+              <LabeledInput label="退房時間" name="checkOutTime" type="time" />
               <LabeledInput label="訂房代碼" name="bookingReference" placeholder="ABCD1234" />
             </div>
             <LabeledTextarea label="地址" name="address" placeholder="地址" />
@@ -574,6 +576,7 @@ function StaysTab({ detail }: { detail: TripDetail }) {
               label="住宿"
               meta={`${formatDate(stay.checkInDate)} - ${formatDate(stay.checkOutDate)}`}
               body={stay.address || "未填地址"}
+              preserveBodyNewlines
             >
               <div className="list-table">
                 <div className="list-table__row">
@@ -581,8 +584,16 @@ function StaysTab({ detail }: { detail: TripDetail }) {
                   <strong>{formatDate(stay.checkInDate)}</strong>
                 </div>
                 <div className="list-table__row">
+                  <span>入住時間</span>
+                  <strong>{stay.checkInTime || "未填"}</strong>
+                </div>
+                <div className="list-table__row">
                   <span>退房</span>
                   <strong>{formatDate(stay.checkOutDate)}</strong>
+                </div>
+                <div className="list-table__row">
+                  <span>退房時間</span>
+                  <strong>{stay.checkOutTime || "未填"}</strong>
                 </div>
                 <div className="list-table__row">
                   <span>訂房代碼</span>
@@ -601,8 +612,10 @@ function StaysTab({ detail }: { detail: TripDetail }) {
                     <input name="stayId" type="hidden" value={stay.id} />
                     <div className="forms-grid">
                       <LabeledInput label="住宿名稱" name="title" defaultValue={stay.title} required />
-                      <LabeledInput label="入住日期" name="checkInDate" type="date" defaultValue={toDateInputValue(stay.checkInDate)} />
-                      <LabeledInput label="退房日期" name="checkOutDate" type="date" defaultValue={toDateInputValue(stay.checkOutDate)} />
+                      <LabeledInput label="入住日期" name="checkInDate" type="date" defaultValue={toDateInputValue(stay.checkInDate)} required />
+                      <LabeledInput label="退房日期" name="checkOutDate" type="date" defaultValue={toDateInputValue(stay.checkOutDate)} required />
+                      <LabeledInput label="入住時間" name="checkInTime" type="time" defaultValue={stay.checkInTime} />
+                      <LabeledInput label="退房時間" name="checkOutTime" type="time" defaultValue={stay.checkOutTime} />
                       <LabeledInput label="訂房代碼" name="bookingReference" defaultValue={stay.bookingReference} />
                     </div>
                     <LabeledTextarea label="地址" name="address" defaultValue={stay.address} />
@@ -779,12 +792,14 @@ function StructuredCard({
   title,
   meta,
   body,
+  preserveBodyNewlines,
   children,
 }: {
   label: string;
   title: string;
   meta: string;
   body: string;
+  preserveBodyNewlines?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -796,7 +811,7 @@ function StructuredCard({
         </div>
         <span className="pill">{meta}</span>
       </div>
-      <p className="muted">{body}</p>
+      <p className={preserveBodyNewlines ? "muted detail-card__body detail-card__body--multiline" : "muted detail-card__body"}>{body}</p>
       {children}
     </div>
   );
@@ -831,7 +846,7 @@ function LabeledInput({
 }) {
   return (
     <div className="field">
-      <label>{label}</label>
+      <label className={required ? "field-label field-label--required" : "field-label"}>{label}</label>
       <input className="input" defaultValue={defaultValue} name={name} placeholder={placeholder} required={required} type={type} />
     </div>
   );
@@ -842,16 +857,18 @@ function LabeledTextarea({
   name,
   placeholder,
   defaultValue,
+  required,
 }: {
   label: string;
   name: string;
   placeholder?: string;
   defaultValue?: string;
+  required?: boolean;
 }) {
   return (
     <div className="field">
-      <label>{label}</label>
-      <textarea className="textarea textarea--compact" defaultValue={defaultValue} name={name} placeholder={placeholder} />
+      <label className={required ? "field-label field-label--required" : "field-label"}>{label}</label>
+      <textarea className="textarea textarea--compact" defaultValue={defaultValue} name={name} placeholder={placeholder} required={required} />
     </div>
   );
 }

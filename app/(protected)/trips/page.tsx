@@ -48,11 +48,11 @@ export default async function TripsPage() {
             <form action={createTripAction} className="stack">
               <div className="forms-grid">
                 <div className="field">
-                  <label htmlFor="title">旅程名稱</label>
+                  <label className="field-label field-label--required" htmlFor="title">旅程名稱</label>
                   <input className="input" id="title" name="title" placeholder="東京秋季散步之旅" required />
                 </div>
                 <div className="field">
-                  <label htmlFor="destination">目的地</label>
+                  <label className="field-label field-label--required" htmlFor="destination">目的地</label>
                   <input className="input" id="destination" name="destination" placeholder="東京、日本" required />
                 </div>
                 <div className="field">
@@ -78,7 +78,7 @@ export default async function TripsPage() {
                 </div>
               </div>
               <div className="field">
-                <label htmlFor="notes">摘要</label>
+                <label className="field-label" htmlFor="notes">摘要</label>
                 <textarea className="textarea textarea--compact" id="notes" name="notes" placeholder="這趟旅程的短摘要" />
               </div>
               <SubmitButton>建立旅程</SubmitButton>

@@ -67,6 +67,8 @@ const STAY_PROPS = {
   trip: "旅程",
   checkInDate: "入住日期",
   checkOutDate: "退房日期",
+  checkInTime: "入住時間",
+  checkOutTime: "退房時間",
   address: "地址",
   bookingReference: "訂房代碼",
   notes: "備註",
@@ -114,6 +116,18 @@ function dateProperty(value?: string) {
 
 function relationProperty(id: string) {
   return { relation: [{ id }] };
+}
+
+async function getDataSourcePropertyNames(dataSourceId: string) {
+  const client = getClient();
+  const response = await client.dataSources.retrieve({ data_source_id: dataSourceId } as any);
+  return new Set(Object.keys((response as any).properties ?? {}));
+}
+
+function filterPropertiesBySchema<T extends Record<string, any>>(properties: T, allowedPropertyNames: Set<string>) {
+  return Object.fromEntries(
+    Object.entries(properties).filter(([propertyName]) => allowedPropertyNames.has(propertyName)),
+  ) as Partial<T>;
 }
 
 function getTitle(properties: Record<string, any>, name: string) {
@@ -506,34 +520,50 @@ export async function updateFlight(flightId: string, input: Omit<TripFlight, "id
 
 export async function createStay(input: Omit<TripStay, "id">) {
   const client = getClient();
-
-  await client.pages.create({
-    parent: { data_source_id: getRequiredEnv("NOTION_STAYS_DB_ID") },
-    properties: {
+  const dataSourceId = getRequiredEnv("NOTION_STAYS_DB_ID");
+  const allowedPropertyNames = await getDataSourcePropertyNames(dataSourceId);
+  const properties = filterPropertiesBySchema(
+    {
       [STAY_PROPS.title]: titleProperty(input.title),
       [STAY_PROPS.trip]: relationProperty(input.tripId),
       [STAY_PROPS.checkInDate]: dateProperty(input.checkInDate ?? ""),
       [STAY_PROPS.checkOutDate]: dateProperty(input.checkOutDate ?? ""),
+      [STAY_PROPS.checkInTime]: richTextProperty(input.checkInTime),
+      [STAY_PROPS.checkOutTime]: richTextProperty(input.checkOutTime),
       [STAY_PROPS.address]: richTextProperty(input.address),
       [STAY_PROPS.bookingReference]: richTextProperty(input.bookingReference),
       [STAY_PROPS.notes]: richTextProperty(input.notes),
     },
+    allowedPropertyNames,
+  );
+
+  await client.pages.create({
+    parent: { data_source_id: dataSourceId },
+    properties,
   } as CreatePageParameters);
 }
 
 export async function updateStay(stayId: string, input: Omit<TripStay, "id" | "tripId">) {
   const client = getClient();
-
-  await client.pages.update({
-    page_id: stayId,
-    properties: {
+  const dataSourceId = getRequiredEnv("NOTION_STAYS_DB_ID");
+  const allowedPropertyNames = await getDataSourcePropertyNames(dataSourceId);
+  const properties = filterPropertiesBySchema(
+    {
       [STAY_PROPS.title]: titleProperty(input.title),
       [STAY_PROPS.checkInDate]: dateProperty(input.checkInDate ?? ""),
       [STAY_PROPS.checkOutDate]: dateProperty(input.checkOutDate ?? ""),
+      [STAY_PROPS.checkInTime]: richTextProperty(input.checkInTime),
+      [STAY_PROPS.checkOutTime]: richTextProperty(input.checkOutTime),
       [STAY_PROPS.address]: richTextProperty(input.address),
       [STAY_PROPS.bookingReference]: richTextProperty(input.bookingReference),
       [STAY_PROPS.notes]: richTextProperty(input.notes),
     },
+    allowedPropertyNames,
+  );
+
+  await client.pages.update({
+    page_id: stayId,
+    properties,
   } as any);
 }
 
@@ -699,6 +729,8 @@ function mapStay(properties: Record<string, any>, id: string): TripStay {
     title: getTitle(properties, STAY_PROPS.title),
     checkInDate: getDate(properties, STAY_PROPS.checkInDate),
     checkOutDate: getDate(properties, STAY_PROPS.checkOutDate),
+    checkInTime: getRichText(properties, STAY_PROPS.checkInTime),
+    checkOutTime: getRichText(properties, STAY_PROPS.checkOutTime),
     address: getRichText(properties, STAY_PROPS.address),
     bookingReference: getRichText(properties, STAY_PROPS.bookingReference),
     notes: getRichText(properties, STAY_PROPS.notes),

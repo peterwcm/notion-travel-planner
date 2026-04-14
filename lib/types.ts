@@ -66,6 +66,8 @@ export interface TripStay {
   title: string;
   checkInDate: string | null;
   checkOutDate: string | null;
+  checkInTime: string;
+  checkOutTime: string;
   address: string;
   bookingReference: string;
   notes: string;

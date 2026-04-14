@@ -334,6 +334,17 @@ textarea {
   font-size: 0.88rem;
 }
 
+.field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.field-label--required::after {
+  content: "*";
+  color: var(--accent-strong);
+}
+
 .input,
 .textarea,
 .select {
@@ -363,6 +374,14 @@ textarea {
 
 .textarea--compact {
   min-height: 88px;
+}
+
+.detail-card__body {
+  margin: 0;
+}
+
+.detail-card__body--multiline {
+  white-space: pre-line;
 }
 
 .button,

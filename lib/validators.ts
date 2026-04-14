@@ -55,8 +55,10 @@ export const flightSchema = z.object({
 export const staySchema = z.object({
   tripId: z.string().min(1),
   title: z.string().min(1, "請輸入住宿名稱"),
-  checkInDate: z.string().optional(),
-  checkOutDate: z.string().optional(),
+  checkInDate: z.string().min(1, "請輸入住日期"),
+  checkOutDate: z.string().min(1, "請輸入退房日期"),
+  checkInTime: z.string().optional(),
+  checkOutTime: z.string().optional(),
   address: z.string().optional(),
   bookingReference: z.string().optional(),
   notes: z.string().optional(),
