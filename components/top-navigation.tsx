@@ -10,7 +10,10 @@ interface TopNavigationProps {
   logoutAction?: () => Promise<void>;
 }
 
-export function TopNavigation({ isLoggedIn, logoutAction }: TopNavigationProps) {
+export function TopNavigation({
+  isLoggedIn,
+  logoutAction,
+}: TopNavigationProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -24,7 +27,6 @@ export function TopNavigation({ isLoggedIn, logoutAction }: TopNavigationProps) 
     <header className="topbar">
       <div className="topbar__inner">
         <Link className="topbar__brand" href={isLoggedIn ? "/trips" : "/login"}>
-          <span className="tag topbar__tag">Travel Planner</span>
           <strong>旅程規劃</strong>
         </Link>
 
@@ -41,15 +43,25 @@ export function TopNavigation({ isLoggedIn, logoutAction }: TopNavigationProps) 
           <span />
         </button>
 
-        <div className={isOpen ? "topbar__menu topbar__menu--open" : "topbar__menu"} id="topbar-menu">
+        <div
+          className={
+            isOpen ? "topbar__menu topbar__menu--open" : "topbar__menu"
+          }
+          id="topbar-menu"
+        >
           <nav className="topbar__nav" aria-label="Main navigation">
             {navLinks.map((link) => {
-              const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`);
+              const isActive =
+                pathname === link.href || pathname.startsWith(`${link.href}/`);
 
               return (
                 <Link
                   key={link.href}
-                  className={isActive ? "topbar__link topbar__link--active" : "topbar__link"}
+                  className={
+                    isActive
+                      ? "topbar__link topbar__link--active"
+                      : "topbar__link"
+                  }
                   href={link.href}
                 >
                   {link.label}
@@ -61,7 +73,10 @@ export function TopNavigation({ isLoggedIn, logoutAction }: TopNavigationProps) 
           <div className="topbar__actions">
             {isLoggedIn && logoutAction ? (
               <form action={logoutAction}>
-                <button className="topbar__action topbar__action--ghost" type="submit">
+                <button
+                  className="topbar__action topbar__action--ghost"
+                  type="submit"
+                >
                   Logout
                 </button>
               </form>
