@@ -175,6 +175,7 @@ export async function createFlightAction(formData: FormData) {
   assertConfigured();
 
   const tripId = String(formData.get("tripId") ?? "");
+  const timeZone = String(formData.get("timeZone") ?? "");
   const parsed = flightSchema.parse({
     tripId,
     airline: formData.get("airline"),
@@ -201,7 +202,7 @@ export async function createFlightAction(formData: FormData) {
     baggageInfo: parsed.baggageInfo ?? "",
     passengers: normalizeFlightPassengers(parsed.passengers),
     notes: parsed.notes ?? "",
-  });
+  }, timeZone || null);
 
   revalidatePath(`/trips/${tripId}`);
 }
@@ -211,6 +212,7 @@ export async function updateFlightAction(formData: FormData) {
 
   const tripId = String(formData.get("tripId") ?? "");
   const flightId = String(formData.get("flightId") ?? "");
+  const timeZone = String(formData.get("timeZone") ?? "");
   const parsed = flightSchema.parse({
     tripId,
     airline: formData.get("airline"),
@@ -236,7 +238,7 @@ export async function updateFlightAction(formData: FormData) {
     baggageInfo: parsed.baggageInfo ?? "",
     passengers: normalizeFlightPassengers(parsed.passengers),
     notes: parsed.notes ?? "",
-  });
+  }, timeZone || null);
 
   revalidatePath(`/trips/${tripId}`);
 }
@@ -307,6 +309,7 @@ export async function createPickupAction(formData: FormData) {
   assertConfigured();
 
   const tripId = String(formData.get("tripId") ?? "");
+  const timeZone = String(formData.get("timeZone") ?? "");
   const parsed = pickupSchema.parse({
     tripId,
     title: formData.get("title"),
@@ -327,7 +330,7 @@ export async function createPickupAction(formData: FormData) {
     provider: parsed.provider ?? "",
     contact: parsed.contact ?? "",
     notes: parsed.notes ?? "",
-  });
+  }, timeZone || null);
 
   revalidatePath(`/trips/${tripId}`);
 }
@@ -337,6 +340,7 @@ export async function updatePickupAction(formData: FormData) {
 
   const tripId = String(formData.get("tripId") ?? "");
   const pickupId = String(formData.get("pickupId") ?? "");
+  const timeZone = String(formData.get("timeZone") ?? "");
   const parsed = pickupSchema.parse({
     tripId,
     title: formData.get("title"),
@@ -356,7 +360,7 @@ export async function updatePickupAction(formData: FormData) {
     provider: parsed.provider ?? "",
     contact: parsed.contact ?? "",
     notes: parsed.notes ?? "",
-  });
+  }, timeZone || null);
 
   revalidatePath(`/trips/${tripId}`);
 }
@@ -365,6 +369,7 @@ export async function createReminderAction(formData: FormData) {
   assertConfigured();
 
   const tripId = String(formData.get("tripId") ?? "");
+  const timeZone = String(formData.get("timeZone") ?? "");
   const parsed = reminderSchema.parse({
     tripId,
     title: formData.get("title"),
@@ -381,7 +386,7 @@ export async function createReminderAction(formData: FormData) {
     location: parsed.location ?? "",
     url: parsed.url ?? "",
     notes: parsed.notes ?? "",
-  });
+  }, timeZone || null);
 
   revalidatePath(`/trips/${tripId}`);
 }
@@ -391,6 +396,7 @@ export async function updateReminderAction(formData: FormData) {
 
   const tripId = String(formData.get("tripId") ?? "");
   const reminderId = String(formData.get("reminderId") ?? "");
+  const timeZone = String(formData.get("timeZone") ?? "");
   const parsed = reminderSchema.parse({
     tripId,
     title: formData.get("title"),
@@ -406,7 +412,7 @@ export async function updateReminderAction(formData: FormData) {
     location: parsed.location ?? "",
     url: parsed.url ?? "",
     notes: parsed.notes ?? "",
-  });
+  }, timeZone || null);
 
   revalidatePath(`/trips/${tripId}`);
 }

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { BrowserTimeZoneField } from "@/components/browser-time-zone-field";
 import { FlightPassengersField } from "@/components/flight-passengers-field";
 import { FormDialog } from "@/components/form-dialog";
 import { SubmitButton } from "@/components/submit-button";
@@ -468,6 +469,7 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
         <FormDialog description="加入去程或回程航班。" title="新增航班" triggerLabel="新增航班">
           <form action={createFlightAction} className="stack">
             <input name="tripId" type="hidden" value={detail.trip.id} />
+            <BrowserTimeZoneField />
             <div className="forms-grid">
               <LabeledInput label="航空公司" name="airline" placeholder="EVA Air" required />
               <LabeledInput label="航班號碼" name="flightNumber" placeholder="BR67" required />
@@ -548,6 +550,7 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
                   <form action={updateFlightAction} className="stack">
                     <input name="tripId" type="hidden" value={detail.trip.id} />
                     <input name="flightId" type="hidden" value={flight.id} />
+                    <BrowserTimeZoneField />
                     <div className="forms-grid">
                       <LabeledInput label="航空公司" name="airline" defaultValue={flight.airline} required />
                       <LabeledInput label="航班號碼" name="flightNumber" defaultValue={flight.flightNumber} required />
@@ -673,6 +676,7 @@ function PickupsTab({ detail }: { detail: TripDetail }) {
         <FormDialog description="加入機場接送或市區移動安排。" title="新增接送" triggerLabel="新增接送">
           <form action={createPickupAction} className="stack">
             <input name="tripId" type="hidden" value={detail.trip.id} />
+            <BrowserTimeZoneField />
             <div className="forms-grid">
               <LabeledInput label="標題" name="title" placeholder="機場接送" required />
               <LabeledInput label="接送時間" name="pickupAt" type="datetime-local" />
@@ -716,6 +720,7 @@ function PickupsTab({ detail }: { detail: TripDetail }) {
                   <form action={updatePickupAction} className="stack">
                     <input name="tripId" type="hidden" value={detail.trip.id} />
                     <input name="pickupId" type="hidden" value={pickup.id} />
+                    <BrowserTimeZoneField />
                     <div className="forms-grid">
                       <LabeledInput label="標題" name="title" defaultValue={pickup.title} required />
                       <LabeledInput label="接送時間" name="pickupAt" type="datetime-local" defaultValue={toDateTimeInputValue(pickup.pickupAt)} />
@@ -748,6 +753,7 @@ function RemindersTab({ detail }: { detail: TripDetail }) {
         <FormDialog description="放進重要時間點與待辦。" title="新增提醒" triggerLabel="新增提醒">
           <form action={createReminderAction} className="stack">
             <input name="tripId" type="hidden" value={detail.trip.id} />
+            <BrowserTimeZoneField />
             <div className="forms-grid">
               <LabeledInput label="標題" name="title" placeholder="提早 3 小時出門" required />
               <LabeledInput label="提醒時間" name="remindAt" type="datetime-local" />
@@ -785,6 +791,7 @@ function RemindersTab({ detail }: { detail: TripDetail }) {
                   <form action={updateReminderAction} className="stack">
                     <input name="tripId" type="hidden" value={detail.trip.id} />
                     <input name="reminderId" type="hidden" value={reminder.id} />
+                    <BrowserTimeZoneField />
                     <div className="forms-grid">
                       <LabeledInput label="標題" name="title" defaultValue={reminder.title} required />
                       <LabeledInput label="提醒時間" name="remindAt" type="datetime-local" defaultValue={toDateTimeInputValue(reminder.remindAt)} />

@@ -112,8 +112,21 @@ function titleProperty(content: string) {
   return { title: richText(content) };
 }
 
-function dateProperty(value?: string) {
-  return value ? { date: { start: value } } : { date: null };
+function dateProperty(value?: string | null, timeZone?: string | null) {
+  if (!value) {
+    return { date: null };
+  }
+
+  if (timeZone && value.includes("T") && !/[zZ]|[+-]\d{2}:\d{2}$/.test(value)) {
+    return {
+      date: {
+        start: value,
+        time_zone: timeZone,
+      },
+    };
+  }
+
+  return { date: { start: value } };
 }
 
 function relationProperty(id: string) {
@@ -479,7 +492,7 @@ export async function updateItem(
   } as any);
 }
 
-export async function createFlight(input: Omit<TripFlight, "id">) {
+export async function createFlight(input: Omit<TripFlight, "id">, timeZone?: string | null) {
   const client = getClient();
 
   await client.pages.create({
@@ -491,8 +504,8 @@ export async function createFlight(input: Omit<TripFlight, "id">) {
       [FLIGHT_PROPS.flightNumber]: richTextProperty(input.flightNumber),
       [FLIGHT_PROPS.departureAirport]: richTextProperty(input.departureAirport),
       [FLIGHT_PROPS.arrivalAirport]: richTextProperty(input.arrivalAirport),
-      [FLIGHT_PROPS.departureAt]: dateProperty(input.departureAt ?? ""),
-      [FLIGHT_PROPS.arrivalAt]: dateProperty(input.arrivalAt ?? ""),
+      [FLIGHT_PROPS.departureAt]: dateProperty(input.departureAt, timeZone),
+      [FLIGHT_PROPS.arrivalAt]: dateProperty(input.arrivalAt, timeZone),
       [FLIGHT_PROPS.aircraft]: richTextProperty(input.aircraft),
       [FLIGHT_PROPS.baggageInfo]: richTextProperty(input.baggageInfo),
       [FLIGHT_PROPS.passengers]: richTextProperty(serializeFlightPassengers(input.passengers)),
@@ -501,7 +514,7 @@ export async function createFlight(input: Omit<TripFlight, "id">) {
   } as CreatePageParameters);
 }
 
-export async function updateFlight(flightId: string, input: Omit<TripFlight, "id" | "tripId">) {
+export async function updateFlight(flightId: string, input: Omit<TripFlight, "id" | "tripId">, timeZone?: string | null) {
   const client = getClient();
 
   await client.pages.update({
@@ -512,8 +525,8 @@ export async function updateFlight(flightId: string, input: Omit<TripFlight, "id
       [FLIGHT_PROPS.flightNumber]: richTextProperty(input.flightNumber),
       [FLIGHT_PROPS.departureAirport]: richTextProperty(input.departureAirport),
       [FLIGHT_PROPS.arrivalAirport]: richTextProperty(input.arrivalAirport),
-      [FLIGHT_PROPS.departureAt]: dateProperty(input.departureAt ?? ""),
-      [FLIGHT_PROPS.arrivalAt]: dateProperty(input.arrivalAt ?? ""),
+      [FLIGHT_PROPS.departureAt]: dateProperty(input.departureAt, timeZone),
+      [FLIGHT_PROPS.arrivalAt]: dateProperty(input.arrivalAt, timeZone),
       [FLIGHT_PROPS.aircraft]: richTextProperty(input.aircraft),
       [FLIGHT_PROPS.baggageInfo]: richTextProperty(input.baggageInfo),
       [FLIGHT_PROPS.passengers]: richTextProperty(serializeFlightPassengers(input.passengers)),
@@ -571,7 +584,7 @@ export async function updateStay(stayId: string, input: Omit<TripStay, "id" | "t
   } as any);
 }
 
-export async function createPickup(input: Omit<TripPickup, "id">) {
+export async function createPickup(input: Omit<TripPickup, "id">, timeZone?: string | null) {
   const client = getClient();
 
   await client.pages.create({
@@ -579,7 +592,7 @@ export async function createPickup(input: Omit<TripPickup, "id">) {
     properties: {
       [PICKUP_PROPS.title]: titleProperty(input.title),
       [PICKUP_PROPS.trip]: relationProperty(input.tripId),
-      [PICKUP_PROPS.pickupAt]: dateProperty(input.pickupAt ?? ""),
+      [PICKUP_PROPS.pickupAt]: dateProperty(input.pickupAt, timeZone),
       [PICKUP_PROPS.pickupLocation]: richTextProperty(input.pickupLocation),
       [PICKUP_PROPS.dropoffLocation]: richTextProperty(input.dropoffLocation),
       [PICKUP_PROPS.provider]: richTextProperty(input.provider),
@@ -589,14 +602,14 @@ export async function createPickup(input: Omit<TripPickup, "id">) {
   } as CreatePageParameters);
 }
 
-export async function updatePickup(pickupId: string, input: Omit<TripPickup, "id" | "tripId">) {
+export async function updatePickup(pickupId: string, input: Omit<TripPickup, "id" | "tripId">, timeZone?: string | null) {
   const client = getClient();
 
   await client.pages.update({
     page_id: pickupId,
     properties: {
       [PICKUP_PROPS.title]: titleProperty(input.title),
-      [PICKUP_PROPS.pickupAt]: dateProperty(input.pickupAt ?? ""),
+      [PICKUP_PROPS.pickupAt]: dateProperty(input.pickupAt, timeZone),
       [PICKUP_PROPS.pickupLocation]: richTextProperty(input.pickupLocation),
       [PICKUP_PROPS.dropoffLocation]: richTextProperty(input.dropoffLocation),
       [PICKUP_PROPS.provider]: richTextProperty(input.provider),
@@ -606,7 +619,7 @@ export async function updatePickup(pickupId: string, input: Omit<TripPickup, "id
   } as any);
 }
 
-export async function createReminder(input: Omit<TripReminder, "id">) {
+export async function createReminder(input: Omit<TripReminder, "id">, timeZone?: string | null) {
   const client = getClient();
 
   await client.pages.create({
@@ -614,7 +627,7 @@ export async function createReminder(input: Omit<TripReminder, "id">) {
     properties: {
       [REMINDER_PROPS.title]: titleProperty(input.title),
       [REMINDER_PROPS.trip]: relationProperty(input.tripId),
-      [REMINDER_PROPS.remindAt]: dateProperty(input.remindAt ?? ""),
+      [REMINDER_PROPS.remindAt]: dateProperty(input.remindAt, timeZone),
       [REMINDER_PROPS.location]: richTextProperty(input.location),
       [REMINDER_PROPS.url]: {
         url: input.url || null,
@@ -624,14 +637,14 @@ export async function createReminder(input: Omit<TripReminder, "id">) {
   } as CreatePageParameters);
 }
 
-export async function updateReminder(reminderId: string, input: Omit<TripReminder, "id" | "tripId">) {
+export async function updateReminder(reminderId: string, input: Omit<TripReminder, "id" | "tripId">, timeZone?: string | null) {
   const client = getClient();
 
   await client.pages.update({
     page_id: reminderId,
     properties: {
       [REMINDER_PROPS.title]: titleProperty(input.title),
-      [REMINDER_PROPS.remindAt]: dateProperty(input.remindAt ?? ""),
+      [REMINDER_PROPS.remindAt]: dateProperty(input.remindAt, timeZone),
       [REMINDER_PROPS.location]: richTextProperty(input.location),
       [REMINDER_PROPS.url]: {
         url: input.url || null,
