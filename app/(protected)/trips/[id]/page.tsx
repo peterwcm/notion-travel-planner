@@ -862,10 +862,6 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
                       <strong>{currency(flight.cost)}</strong>
                     </div>
                   ) : null}
-                  <div className="flight-card__fact">
-                    <span>乘客數</span>
-                    <strong>{flight.passengers.length || 0}</strong>
-                  </div>
                 </div>
               </div>
 
