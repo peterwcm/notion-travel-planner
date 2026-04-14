@@ -302,14 +302,16 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                             <span className="tag">{item.type}</span>
                             <h4>{item.title}</h4>
                           </div>
-                          <div className="item-time">
-                            {item.startTime || "--"} - {item.endTime || "--"}
+                          {getItemTimeLabel(item.startTime, item.endTime) ? (
+                            <div className="item-time">{getItemTimeLabel(item.startTime, item.endTime)}</div>
+                          ) : null}
+                        </div>
+                        {hasText(item.location) || typeof item.cost === "number" ? (
+                          <div className="row item-info">
+                            {hasText(item.location) ? <span className="muted">{item.location}</span> : <span />}
+                            {typeof item.cost === "number" ? <span>{currency(item.cost)}</span> : null}
                           </div>
-                        </div>
-                        <div className="row item-info">
-                          <span className="muted">{item.location || "未填地點"}</span>
-                          <span>{currency(item.cost)}</span>
-                        </div>
+                        ) : null}
                         {item.url ? (
                           <a className="muted" href={item.url} rel="noreferrer" target="_blank">
                             {item.url}
@@ -517,14 +519,18 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
                 </div>
 
                 <div className="flight-card__facts">
-                  <div className="flight-card__fact">
-                    <span>機型</span>
-                    <strong>{flight.aircraft || "未填"}</strong>
-                  </div>
-                  <div className="flight-card__fact">
-                    <span>行李資訊</span>
-                    <strong>{flight.baggageInfo || "未填"}</strong>
-                  </div>
+                  {hasText(flight.aircraft) ? (
+                    <div className="flight-card__fact">
+                      <span>機型</span>
+                      <strong>{flight.aircraft}</strong>
+                    </div>
+                  ) : null}
+                  {hasText(flight.baggageInfo) ? (
+                    <div className="flight-card__fact">
+                      <span>行李資訊</span>
+                      <strong>{flight.baggageInfo}</strong>
+                    </div>
+                  ) : null}
                   <div className="flight-card__fact">
                     <span>乘客數</span>
                     <strong>{flight.passengers.length || 0}</strong>
@@ -538,17 +544,21 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
                     <div className="flight-passenger-card" key={getPassengerKey(passenger, index)}>
                       <div className="header-actions">
                         <span className="tag">乘客 {index + 1}</span>
-                        <strong>{passenger.fullName || "未填姓名"}</strong>
+                        {hasText(passenger.fullName) ? <strong>{passenger.fullName}</strong> : null}
                       </div>
                       <div className="flight-passenger-card__grid">
-                        <div>
-                          <span>訂位代號</span>
-                          <strong>{passenger.bookingReference || "未填"}</strong>
-                        </div>
-                        <div>
-                          <span>機票號碼</span>
-                          <strong>{passenger.ticketNumber || "未填"}</strong>
-                        </div>
+                        {hasText(passenger.bookingReference) ? (
+                          <div>
+                            <span>訂位代號</span>
+                            <strong>{passenger.bookingReference}</strong>
+                          </div>
+                        ) : null}
+                        {hasText(passenger.ticketNumber) ? (
+                          <div>
+                            <span>機票號碼</span>
+                            <strong>{passenger.ticketNumber}</strong>
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   ))}
@@ -623,36 +633,53 @@ function StaysTab({ detail }: { detail: TripDetail }) {
       <section className="stack">
         {detail.stays.length > 0 ? (
           detail.stays.map((stay) => (
-            <StructuredCard
-              key={stay.id}
-              title={stay.title}
-              label="住宿"
-              meta={`${formatDate(stay.checkInDate)} - ${formatDate(stay.checkOutDate)}`}
-              body={stay.address || "未填地址"}
-              preserveBodyNewlines
-            >
-              <div className="list-table">
-                <div className="list-table__row">
+            <div className="detail-card stay-card" key={stay.id}>
+              <div className="stay-card__top">
+                <div>
+                  <span className="tag">住宿</span>
+                  <h4>{stay.title}</h4>
+                </div>
+                <span className="pill">
+                  {formatDate(stay.checkInDate)} - {formatDate(stay.checkOutDate)}
+                </span>
+              </div>
+
+              <div className="stay-card__timeline">
+                <div className="stay-card__point">
                   <span>入住</span>
                   <strong>{formatDate(stay.checkInDate)}</strong>
+                  {hasText(stay.checkInTime) ? <small>{stay.checkInTime}</small> : null}
                 </div>
-                <div className="list-table__row">
-                  <span>入住時間</span>
-                  <strong>{stay.checkInTime || "未填"}</strong>
-                </div>
-                <div className="list-table__row">
+                <div className="stay-card__line" />
+                <div className="stay-card__point">
                   <span>退房</span>
                   <strong>{formatDate(stay.checkOutDate)}</strong>
-                </div>
-                <div className="list-table__row">
-                  <span>退房時間</span>
-                  <strong>{stay.checkOutTime || "未填"}</strong>
-                </div>
-                <div className="list-table__row">
-                  <span>訂房代碼</span>
-                  <strong>{stay.bookingReference || "未填"}</strong>
+                  {hasText(stay.checkOutTime) ? <small>{stay.checkOutTime}</small> : null}
                 </div>
               </div>
+
+              <div className="stay-card__facts">
+                {hasText(stay.bookingReference) ? (
+                  <div className="stay-card__fact">
+                    <span>訂房代碼</span>
+                    <strong>{stay.bookingReference}</strong>
+                  </div>
+                ) : null}
+                {hasText(stay.address) ? (
+                  <div className="stay-card__fact stay-card__fact--wide">
+                    <span>地址</span>
+                    <strong className="stay-card__address">{stay.address}</strong>
+                  </div>
+                ) : null}
+              </div>
+
+              {stay.notes ? (
+                <div className="stay-card__notes">
+                  <span>備註</span>
+                  <p className="muted">{stay.notes}</p>
+                </div>
+              ) : null}
+
               <div className="card-actions">
                 <FormDialog
                   description="更新住宿日期與資訊。"
@@ -678,7 +705,7 @@ function StaysTab({ detail }: { detail: TripDetail }) {
                 </FormDialog>
                 <DeleteForm tripId={detail.trip.id} entityId={stay.id} />
               </div>
-            </StructuredCard>
+            </div>
           ))
         ) : (
           <div className="empty">尚未新增住宿。</div>
@@ -717,19 +744,25 @@ function PickupsTab({ detail }: { detail: TripDetail }) {
               key={pickup.id}
               title={pickup.title}
               label="接送"
-              meta={formatDateTime(pickup.pickupAt)}
-              body={`${pickup.pickupLocation || "未填上車地點"} → ${pickup.dropoffLocation || "未填下車地點"}`}
+              meta={pickup.pickupAt ? formatDateTime(pickup.pickupAt) : undefined}
+              body={getPickupRouteLabel(pickup.pickupLocation, pickup.dropoffLocation)}
             >
-              <div className="list-table">
-                <div className="list-table__row">
-                  <span>服務商</span>
-                  <strong>{pickup.provider || "未填"}</strong>
+              {hasText(pickup.provider) || hasText(pickup.contact) ? (
+                <div className="list-table">
+                  {hasText(pickup.provider) ? (
+                    <div className="list-table__row">
+                      <span>服務商</span>
+                      <strong>{pickup.provider}</strong>
+                    </div>
+                  ) : null}
+                  {hasText(pickup.contact) ? (
+                    <div className="list-table__row">
+                      <span>聯絡方式</span>
+                      <strong>{pickup.contact}</strong>
+                    </div>
+                  ) : null}
                 </div>
-                <div className="list-table__row">
-                  <span>聯絡方式</span>
-                  <strong>{pickup.contact || "未填"}</strong>
-                </div>
-              </div>
+              ) : null}
               <div className="card-actions">
                 <FormDialog
                   description="更新接送時間與聯絡資訊。"
@@ -792,8 +825,8 @@ function RemindersTab({ detail }: { detail: TripDetail }) {
               key={reminder.id}
               title={reminder.title}
               label="提醒"
-              meta={formatDateTime(reminder.remindAt)}
-              body={reminder.location || "未填地點"}
+              meta={reminder.remindAt ? formatDateTime(reminder.remindAt) : undefined}
+              body={hasText(reminder.location) ? reminder.location : undefined}
             >
               {reminder.url ? (
                 <a className="muted" href={reminder.url} rel="noreferrer" target="_blank">
@@ -854,8 +887,8 @@ function StructuredCard({
 }: {
   label: string;
   title: string;
-  meta: string;
-  body: string;
+  meta?: string;
+  body?: string;
   preserveBodyNewlines?: boolean;
   children: ReactNode;
 }) {
@@ -866,9 +899,11 @@ function StructuredCard({
           <span className="tag">{label}</span>
           <h4>{title}</h4>
         </div>
-        <span className="pill">{meta}</span>
+        {meta ? <span className="pill">{meta}</span> : null}
       </div>
-      <p className={preserveBodyNewlines ? "muted detail-card__body detail-card__body--multiline" : "muted detail-card__body"}>{body}</p>
+      {body ? (
+        <p className={preserveBodyNewlines ? "muted detail-card__body detail-card__body--multiline" : "muted detail-card__body"}>{body}</p>
+      ) : null}
       {children}
     </div>
   );
@@ -960,4 +995,40 @@ function toDateInputValue(value?: string | null) {
 
 function getPassengerKey(passenger: TripFlightPassenger, index: number) {
   return `${passenger.fullName}-${passenger.bookingReference}-${passenger.ticketNumber}-${index}`;
+}
+
+function hasText(value?: string | null) {
+  return Boolean(value?.trim());
+}
+
+function getItemTimeLabel(startTime?: string, endTime?: string) {
+  if (hasText(startTime) && hasText(endTime)) {
+    return `${startTime} - ${endTime}`;
+  }
+
+  if (hasText(startTime)) {
+    return startTime;
+  }
+
+  if (hasText(endTime)) {
+    return endTime;
+  }
+
+  return "";
+}
+
+function getPickupRouteLabel(pickupLocation?: string, dropoffLocation?: string) {
+  if (hasText(pickupLocation) && hasText(dropoffLocation)) {
+    return `${pickupLocation} → ${dropoffLocation}`;
+  }
+
+  if (hasText(pickupLocation)) {
+    return pickupLocation ?? "";
+  }
+
+  if (hasText(dropoffLocation)) {
+    return dropoffLocation ?? "";
+  }
+
+  return "";
 }

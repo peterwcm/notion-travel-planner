@@ -27,7 +27,7 @@ export function TripCard({ trip }: TripCardProps) {
         <p className="trip-card__dates">
           {formatDate(trip.startDate)} - {formatDate(trip.endDate)}
         </p>
-        <p className="trip-card__notes">{trip.notes || "尚未填寫摘要。"} </p>
+        {trip.notes ? <p className="trip-card__notes">{trip.notes}</p> : null}
         <div className="trip-card__footer">
           <span>查看</span>
           <span aria-hidden="true">→</span>
