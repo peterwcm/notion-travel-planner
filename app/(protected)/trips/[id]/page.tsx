@@ -201,47 +201,27 @@ export default async function TripDetailPage({ params, searchParams }: TripDetai
 }
 
 function OverviewTab({ detail }: { detail: TripDetail }) {
-  const stats = getTripStats(detail);
+  const items = getOverviewItems(detail);
 
   return (
     <section className="page page--tight">
-      <div className="overview-grid">
-        <div className="panel stack">
-          <div className="header-actions">
-            <h3 className="section-title">旅程摘要</h3>
-            <span className="panel-chip">Overview</span>
-          </div>
-          <div className="list-table">
-            <div className="list-table__row">
-              <span>航班</span>
-              <strong>{stats.flights}</strong>
-            </div>
-            <div className="list-table__row">
-              <span>住宿</span>
-              <strong>{stats.stays}</strong>
-            </div>
-            <div className="list-table__row">
-              <span>接送</span>
-              <strong>{stats.pickups}</strong>
-            </div>
-            <div className="list-table__row">
-              <span>提醒</span>
-              <strong>{stats.reminders}</strong>
-            </div>
-          </div>
-        </div>
-
-        <div className="panel stack">
-          <div className="header-actions">
-            <h3 className="section-title">快速預覽</h3>
-          </div>
-          <div className="mini-cards">
-            <MiniCard title="下一個航班" value={detail.flights[0] ? getFlightDisplayLabel(detail.flights[0]) : "尚未新增"} meta={detail.flights[0] ? formatDateTime(detail.flights[0].departureAt) : undefined} />
-            <MiniCard title="下一筆住宿" value={detail.stays[0]?.title || "尚未新增"} meta={detail.stays[0] ? formatDate(detail.stays[0].checkInDate) : undefined} />
-            <MiniCard title="下一筆接送" value={detail.pickups[0]?.title || "尚未新增"} meta={detail.pickups[0] ? formatDateTime(detail.pickups[0].pickupAt) : undefined} />
-            <MiniCard title="最近提醒" value={detail.reminders[0]?.title || "尚未新增"} meta={detail.reminders[0] ? formatDateTime(detail.reminders[0].remindAt) : undefined} />
-          </div>
-        </div>
+      <div className="stack">
+        {items.length > 0 ? (
+          items.map((item) => (
+            <StructuredCard
+              key={item.id}
+              label={item.label}
+              title={item.title}
+              meta={item.meta}
+              body={item.body}
+              preserveBodyNewlines={item.preserveBodyNewlines}
+            >
+              {item.children}
+            </StructuredCard>
+          ))
+        ) : (
+          <div className="empty">尚未新增任何旅程內容。</div>
+        )}
       </div>
     </section>
   );
@@ -875,16 +855,6 @@ function RemindersTab({ detail }: { detail: TripDetail }) {
   );
 }
 
-function MiniCard({ title, value, meta }: { title: string; value: string; meta?: string }) {
-  return (
-    <div className="mini-card">
-      <span>{title}</span>
-      <strong>{value}</strong>
-      {meta ? <p>{meta}</p> : null}
-    </div>
-  );
-}
-
 function StructuredCard({
   label,
   title,
@@ -1004,6 +974,186 @@ function toDateInputValue(value?: string | null) {
   return value.slice(0, 10);
 }
 
+type OverviewItem = {
+  id: string;
+  label: string;
+  title: string;
+  meta?: string;
+  body?: string;
+  preserveBodyNewlines?: boolean;
+  children: ReactNode;
+  sortValue: number;
+};
+
+function getOverviewItems(detail: TripDetail): OverviewItem[] {
+  const dayItems = detail.days.flatMap((day) =>
+    day.items.map<OverviewItem>((item, index) => ({
+      id: `day-item-${item.id}`,
+      label: `行程 Day ${day.dayNumber}`,
+      title: item.title,
+      meta: getItemDateTimeLabel(day.date, item.startTime, item.endTime),
+      body: item.notes || undefined,
+      preserveBodyNewlines: Boolean(item.notes),
+      children: (
+        <>
+          <div className="list-table">
+            <div className="list-table__row">
+              <span>類型</span>
+              <strong>{item.type}</strong>
+            </div>
+            <div className="list-table__row">
+              <span>地點</span>
+              <strong>{item.location || "未填寫"}</strong>
+            </div>
+            <div className="list-table__row">
+              <span>費用</span>
+              <strong>{currency(item.cost)}</strong>
+            </div>
+          </div>
+          {item.url ? (
+            <a className="muted" href={item.url} rel="noreferrer" target="_blank">
+              {item.url}
+            </a>
+          ) : null}
+        </>
+      ),
+      sortValue: getDateAndTimeSortValue(day.date, item.startTime, index),
+    })),
+  );
+
+  const flightItems = detail.flights.map<OverviewItem>((flight, index) => ({
+    id: `flight-${flight.id}`,
+    label: "航班",
+    title: getFlightDisplayLabel(flight),
+    meta: flight.departureAt ? formatDateTime(flight.departureAt) : "未設定",
+    body: flight.notes || undefined,
+    preserveBodyNewlines: Boolean(flight.notes),
+    children: (
+      <div className="list-table">
+        <div className="list-table__row">
+          <span>起飛</span>
+          <strong>{formatDateTime(flight.departureAt)}</strong>
+        </div>
+        <div className="list-table__row">
+          <span>降落</span>
+          <strong>{formatDateTime(flight.arrivalAt)}</strong>
+        </div>
+      </div>
+    ),
+    sortValue: getDateSortValue(flight.departureAt, index),
+  }));
+
+  const stayItems = detail.stays.map<OverviewItem>((stay, index) => ({
+    id: `stay-${stay.id}`,
+    label: "住宿",
+    title: stay.title,
+    meta: getStayDateTimeLabel(stay),
+    body: stay.notes || undefined,
+    preserveBodyNewlines: Boolean(stay.notes),
+    children: (
+      <div className="list-table">
+        <div className="list-table__row">
+          <span>入住</span>
+          <strong>{formatDate(stay.checkInDate)}{hasText(stay.checkInTime) ? ` ${normalizeTime(stay.checkInTime)}` : ""}</strong>
+        </div>
+        <div className="list-table__row">
+          <span>退房</span>
+          <strong>{formatDate(stay.checkOutDate)}{hasText(stay.checkOutTime) ? ` ${normalizeTime(stay.checkOutTime)}` : ""}</strong>
+        </div>
+        <div className="list-table__row">
+          <span>地址</span>
+          <strong>{stay.address || "未填寫"}</strong>
+        </div>
+      </div>
+    ),
+    sortValue: getDateAndTimeSortValue(stay.checkInDate, stay.checkInTime, index),
+  }));
+
+  const pickupItems = detail.pickups.map<OverviewItem>((pickup, index) => ({
+    id: `pickup-${pickup.id}`,
+    label: "接送",
+    title: pickup.title,
+    meta: pickup.pickupAt ? formatDateTime(pickup.pickupAt) : "未設定",
+    body: pickup.notes || undefined,
+    preserveBodyNewlines: Boolean(pickup.notes),
+    children: (
+      <div className="list-table">
+        <div className="list-table__row">
+          <span>上車</span>
+          <strong>{pickup.pickupLocation || "未填寫"}</strong>
+        </div>
+        <div className="list-table__row">
+          <span>下車</span>
+          <strong>{pickup.dropoffLocation || "未填寫"}</strong>
+        </div>
+        <div className="list-table__row">
+          <span>供應商</span>
+          <strong>{pickup.provider || "未填寫"}</strong>
+        </div>
+      </div>
+    ),
+    sortValue: getDateSortValue(pickup.pickupAt, index),
+  }));
+
+  const reminderItems = detail.reminders.map<OverviewItem>((reminder, index) => ({
+    id: `reminder-${reminder.id}`,
+    label: "提醒",
+    title: reminder.title,
+    meta: reminder.remindAt ? formatDateTime(reminder.remindAt) : "未設定",
+    body: reminder.notes || undefined,
+    preserveBodyNewlines: Boolean(reminder.notes),
+    children: (
+      <>
+        <div className="list-table">
+          <div className="list-table__row">
+            <span>地點</span>
+            <strong>{reminder.location || "未填寫"}</strong>
+          </div>
+        </div>
+        {reminder.url ? (
+          <a className="muted" href={reminder.url} rel="noreferrer" target="_blank">
+            {reminder.url}
+          </a>
+        ) : null}
+      </>
+    ),
+    sortValue: getDateSortValue(reminder.remindAt, index),
+  }));
+
+  return [...dayItems, ...flightItems, ...stayItems, ...pickupItems, ...reminderItems].sort((a, b) => a.sortValue - b.sortValue);
+}
+
+function getDateSortValue(value?: string | null, index = 0) {
+  if (!value) {
+    return Number.MAX_SAFE_INTEGER - 1000 + index;
+  }
+
+  const timestamp = new Date(value).getTime();
+  return Number.isNaN(timestamp) ? Number.MAX_SAFE_INTEGER - 1000 + index : timestamp;
+}
+
+function getDateAndTimeSortValue(date?: string | null, time?: string | null, index = 0) {
+  if (!date) {
+    return Number.MAX_SAFE_INTEGER - 1000 + index;
+  }
+
+  const normalizedTime = normalizeTime(time) ?? "00:00";
+  const timestamp = new Date(`${date}T${normalizedTime}:00`).getTime();
+  return Number.isNaN(timestamp) ? Number.MAX_SAFE_INTEGER - 1000 + index : timestamp;
+}
+
+function getItemDateTimeLabel(date?: string | null, startTime?: string | null, endTime?: string | null) {
+  const formattedDate = formatDate(date);
+  const timeLabel = getItemTimeLabel(normalizeTime(startTime) ?? undefined, normalizeTime(endTime) ?? undefined);
+  return timeLabel ? `${formattedDate} ${timeLabel}` : formattedDate;
+}
+
+function getStayDateTimeLabel(stay: TripDetail["stays"][number]) {
+  const checkIn = `${formatDate(stay.checkInDate)}${hasText(stay.checkInTime) ? ` ${normalizeTime(stay.checkInTime)}` : ""}`;
+  const checkOut = `${formatDate(stay.checkOutDate)}${hasText(stay.checkOutTime) ? ` ${normalizeTime(stay.checkOutTime)}` : ""}`;
+  return `${checkIn} - ${checkOut}`;
+}
+
 function getPassengerKey(passenger: TripFlightPassenger, index: number) {
   return `${passenger.fullName}-${passenger.bookingReference}-${passenger.ticketNumber}-${index}`;
 }
@@ -1042,4 +1192,18 @@ function getPickupRouteLabel(pickupLocation?: string, dropoffLocation?: string) 
   }
 
   return "";
+}
+
+function normalizeTime(value?: string | null) {
+  if (!hasText(value)) {
+    return null;
+  }
+
+  const match = value?.match(/^(\d{1,2}):(\d{2})/);
+  if (!match) {
+    return value ?? null;
+  }
+
+  const [, hours, minutes] = match;
+  return `${hours.padStart(2, "0")}:${minutes}`;
 }
