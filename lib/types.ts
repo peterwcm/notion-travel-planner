@@ -1,5 +1,3 @@
-export type TripStatus = "規劃中" | "已預訂" | "旅行中" | "已完成";
-
 export type ItemType =
   | "景點"
   | "交通"
@@ -16,7 +14,6 @@ export interface Trip {
   destination: string;
   startDate: string | null;
   endDate: string | null;
-  status: TripStatus;
   cover: string;
   notes: string;
 }

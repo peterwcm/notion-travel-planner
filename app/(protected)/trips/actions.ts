@@ -33,7 +33,6 @@ export async function createTripAction(formData: FormData) {
     destination: formData.get("destination"),
     startDate: formData.get("startDate"),
     endDate: formData.get("endDate"),
-    status: formData.get("status"),
     cover: formData.get("cover"),
     notes: formData.get("notes"),
   });
@@ -58,7 +57,6 @@ export async function updateTripAction(formData: FormData) {
     destination: formData.get("destination"),
     startDate: formData.get("startDate"),
     endDate: formData.get("endDate"),
-    status: formData.get("status"),
     cover: formData.get("cover"),
     notes: formData.get("notes"),
   });

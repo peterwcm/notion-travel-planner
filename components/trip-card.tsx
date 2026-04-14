@@ -22,7 +22,6 @@ export function TripCard({ trip }: TripCardProps) {
           <div className="stack trip-card__intro">
             <h3>{trip.title}</h3>
           </div>
-          <span className="pill">{trip.status}</span>
         </div>
         <p className="trip-card__dates">
           <LocalDate value={trip.startDate} /> - <LocalDate value={trip.endDate} />

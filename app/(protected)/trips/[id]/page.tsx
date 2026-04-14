@@ -23,7 +23,11 @@ import {
 } from "@/app/(protected)/trips/actions";
 import { getFlightDisplayLabel } from "@/lib/flight-passengers";
 import { getNotionStatus, getTripDetail, getTripStats } from "@/lib/notion";
-import type { TripDetail, TripFlightPassenger, TripSectionTab } from "@/lib/types";
+import type {
+  TripDetail,
+  TripFlightPassenger,
+  TripSectionTab,
+} from "@/lib/types";
 import { currency } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -45,10 +49,15 @@ interface TripDetailPageProps {
 }
 
 function getTab(tab?: string): TripSectionTab {
-  return tabs.some((item) => item.id === tab) ? (tab as TripSectionTab) : "overview";
+  return tabs.some((item) => item.id === tab)
+    ? (tab as TripSectionTab)
+    : "overview";
 }
 
-export default async function TripDetailPage({ params, searchParams }: TripDetailPageProps) {
+export default async function TripDetailPage({
+  params,
+  searchParams,
+}: TripDetailPageProps) {
   const setupStatus = getNotionStatus();
   let detail: TripDetail | null = null;
   let hasLoadError = false;
@@ -87,15 +96,16 @@ export default async function TripDetailPage({ params, searchParams }: TripDetai
         <div className="stack summary-copy">
           <div className="header-actions">
             <div className="stack compact-headline">
-              <span className="tag">{detail.trip.status}</span>
               <h2>{detail.trip.title}</h2>
-              <p className="muted summary-destination">{detail.trip.destination}</p>
+              <p className="muted summary-destination">
+                {detail.trip.destination}
+              </p>
             </div>
             <div className="stats-inline">
               <span>{detail.days.length} 天</span>
               <span>{stats.items} 個行程</span>
               <FormDialog
-                description="修改旅程名稱、日期、狀態與封面。"
+                description="修改旅程名稱、日期與封面。"
                 title="編輯旅程"
                 triggerClassName="ghost-button"
                 triggerLabel="編輯旅程"
@@ -104,38 +114,83 @@ export default async function TripDetailPage({ params, searchParams }: TripDetai
                   <input name="tripId" type="hidden" value={detail.trip.id} />
                   <div className="forms-grid">
                     <div className="field">
-                      <label className="field-label field-label--required" htmlFor="trip-title">旅程名稱</label>
-                      <input className="input" defaultValue={detail.trip.title} id="trip-title" name="title" required />
+                      <label
+                        className="field-label field-label--required"
+                        htmlFor="trip-title"
+                      >
+                        旅程名稱
+                      </label>
+                      <input
+                        className="input"
+                        defaultValue={detail.trip.title}
+                        id="trip-title"
+                        name="title"
+                        required
+                      />
                     </div>
                     <div className="field">
-                      <label className="field-label field-label--required" htmlFor="trip-destination">目的地</label>
-                      <input className="input" defaultValue={detail.trip.destination} id="trip-destination" name="destination" required />
+                      <label
+                        className="field-label field-label--required"
+                        htmlFor="trip-destination"
+                      >
+                        目的地
+                      </label>
+                      <input
+                        className="input"
+                        defaultValue={detail.trip.destination}
+                        id="trip-destination"
+                        name="destination"
+                        required
+                      />
                     </div>
                     <div className="field">
-                      <label className="field-label" htmlFor="trip-startDate">開始日期</label>
-                      <input className="input" defaultValue={toDateInputValue(detail.trip.startDate)} id="trip-startDate" name="startDate" type="date" />
+                      <label className="field-label" htmlFor="trip-startDate">
+                        開始日期
+                      </label>
+                      <input
+                        className="input"
+                        defaultValue={toDateInputValue(detail.trip.startDate)}
+                        id="trip-startDate"
+                        name="startDate"
+                        type="date"
+                      />
                     </div>
                     <div className="field">
-                      <label className="field-label" htmlFor="trip-endDate">結束日期</label>
-                      <input className="input" defaultValue={toDateInputValue(detail.trip.endDate)} id="trip-endDate" name="endDate" type="date" />
+                      <label className="field-label" htmlFor="trip-endDate">
+                        結束日期
+                      </label>
+                      <input
+                        className="input"
+                        defaultValue={toDateInputValue(detail.trip.endDate)}
+                        id="trip-endDate"
+                        name="endDate"
+                        type="date"
+                      />
                     </div>
                     <div className="field">
-                      <label className="field-label" htmlFor="trip-status">狀態</label>
-                      <select className="select" defaultValue={detail.trip.status} id="trip-status" name="status">
-                        <option value="規劃中">規劃中</option>
-                        <option value="已預訂">已預訂</option>
-                        <option value="旅行中">旅行中</option>
-                        <option value="已完成">已完成</option>
-                      </select>
-                    </div>
-                    <div className="field">
-                      <label className="field-label" htmlFor="trip-cover">封面圖片網址</label>
-                      <input className="input" defaultValue={detail.trip.cover} id="trip-cover" name="cover" placeholder="https://..." />
+                      <label className="field-label" htmlFor="trip-cover">
+                        封面圖片網址
+                      </label>
+                      <input
+                        className="input"
+                        defaultValue={detail.trip.cover}
+                        id="trip-cover"
+                        name="cover"
+                        placeholder="https://..."
+                      />
                     </div>
                   </div>
                   <div className="field">
-                    <label className="field-label" htmlFor="trip-notes">摘要</label>
-                    <textarea className="textarea textarea--compact" defaultValue={detail.trip.notes} id="trip-notes" name="notes" placeholder="這趟旅程的短摘要" />
+                    <label className="field-label" htmlFor="trip-notes">
+                      摘要
+                    </label>
+                    <textarea
+                      className="textarea textarea--compact"
+                      defaultValue={detail.trip.notes}
+                      id="trip-notes"
+                      name="notes"
+                      placeholder="這趟旅程的短摘要"
+                    />
                   </div>
                   <SubmitButton>儲存旅程</SubmitButton>
                 </form>
@@ -147,29 +202,19 @@ export default async function TripDetailPage({ params, searchParams }: TripDetai
             <div className="metric">
               <span className="metric__label">日期</span>
               <strong>
-                <LocalDate value={detail.trip.startDate} /> - <LocalDate value={detail.trip.endDate} />
+                <LocalDate value={detail.trip.startDate} /> -{" "}
+                <LocalDate value={detail.trip.endDate} />
               </strong>
             </div>
             <div className="metric">
-              <span className="metric__label">細節</span>
-              <strong>{stats.flights + stats.stays}</strong>
-            </div>
-            <div className="metric">
-              <span className="metric__label">Total cost</span>
+              <span className="metric__label">總費用</span>
               <strong>{currency(stats.totalCost)}</strong>
             </div>
           </div>
 
-          {detail.trip.notes ? <p className="summary-notes">{detail.trip.notes}</p> : null}
-        </div>
-
-        <div className="summary-cover">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          {detail.trip.cover ? <img alt={detail.trip.title} src={detail.trip.cover} /> : null}
-          <div className="summary-cover__meta">
-            <span>{stats.flights} 航班</span>
-            <span>{stats.stays} 住宿</span>
-          </div>
+          {detail.trip.notes ? (
+            <p className="summary-notes">{detail.trip.notes}</p>
+          ) : null}
         </div>
       </section>
 
@@ -177,7 +222,9 @@ export default async function TripDetailPage({ params, searchParams }: TripDetai
         {tabs.map((tab) => (
           <Link
             key={tab.id}
-            className={tab.id === activeTab ? "tab-link tab-link--active" : "tab-link"}
+            className={
+              tab.id === activeTab ? "tab-link tab-link--active" : "tab-link"
+            }
             href={`/trips/${detail.trip.id}?tab=${tab.id}`}
           >
             {tab.label}
@@ -225,26 +272,64 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
     <section className="page page--tight">
       <div className="header-actions">
         <h3 className="section-title">每日行程</h3>
-        <FormDialog description="新增一個新的 Day 區塊。" title="新增 Day" triggerLabel="新增 Day">
+        <FormDialog
+          description="新增一個新的 Day 區塊。"
+          title="新增 Day"
+          triggerLabel="新增 Day"
+        >
           <form action={createDayAction} className="stack">
             <input name="tripId" type="hidden" value={detail.trip.id} />
             <div className="forms-grid">
               <div className="field">
-                <label className="field-label field-label--required" htmlFor="day-title">標題</label>
-                <input className="input" defaultValue={`Day ${detail.days.length + 1}`} id="day-title" name="title" required />
+                <label
+                  className="field-label field-label--required"
+                  htmlFor="day-title"
+                >
+                  標題
+                </label>
+                <input
+                  className="input"
+                  defaultValue={`Day ${detail.days.length + 1}`}
+                  id="day-title"
+                  name="title"
+                  required
+                />
               </div>
               <div className="field">
-                <label className="field-label" htmlFor="day-date">日期</label>
-                <input className="input" id="day-date" name="date" type="date" />
+                <label className="field-label" htmlFor="day-date">
+                  日期
+                </label>
+                <input
+                  className="input"
+                  id="day-date"
+                  name="date"
+                  type="date"
+                />
               </div>
               <div className="field">
-                <label className="field-label" htmlFor="day-number">天次</label>
-                <input className="input" defaultValue={detail.days.length + 1} id="day-number" min={1} name="dayNumber" type="number" />
+                <label className="field-label" htmlFor="day-number">
+                  天次
+                </label>
+                <input
+                  className="input"
+                  defaultValue={detail.days.length + 1}
+                  id="day-number"
+                  min={1}
+                  name="dayNumber"
+                  type="number"
+                />
               </div>
             </div>
             <div className="field">
-              <label className="field-label" htmlFor="summary">摘要</label>
-              <textarea className="textarea textarea--compact" id="summary" name="summary" placeholder="簡短摘要" />
+              <label className="field-label" htmlFor="summary">
+                摘要
+              </label>
+              <textarea
+                className="textarea textarea--compact"
+                id="summary"
+                name="summary"
+                placeholder="簡短摘要"
+              />
             </div>
             <SubmitButton>新增 Day</SubmitButton>
           </form>
@@ -260,7 +345,8 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                   <span className="tag">Day {day.dayNumber}</span>
                   <h3 className="section-title">{day.title}</h3>
                   <p className="muted">
-                    <LocalDate value={day.date} />{day.summary ? ` ・${day.summary}` : ""}
+                    <LocalDate value={day.date} />
+                    {day.summary ? ` ・${day.summary}` : ""}
                   </p>
                 </div>
                 <span className="pill">{day.items.length} 項</span>
@@ -270,7 +356,10 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                 <div className="item-list">
                   {day.items.length > 0 ? (
                     day.items.map((item) => (
-                      <div className="item-card detail-card card-with-actions" key={item.id}>
+                      <div
+                        className="item-card detail-card card-with-actions"
+                        key={item.id}
+                      >
                         <div className="card-corner-actions">
                           <FormDialog
                             description="調整這筆行程項目的內容。"
@@ -281,17 +370,40 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                             triggerLabel="編輯"
                           >
                             <form action={updateItemAction} className="stack">
-                              <input name="tripId" type="hidden" value={detail.trip.id} />
-                              <input name="itemId" type="hidden" value={item.id} />
-                              <input name="dayId" type="hidden" value={day.id} />
+                              <input
+                                name="tripId"
+                                type="hidden"
+                                value={detail.trip.id}
+                              />
+                              <input
+                                name="itemId"
+                                type="hidden"
+                                value={item.id}
+                              />
+                              <input
+                                name="dayId"
+                                type="hidden"
+                                value={day.id}
+                              />
                               <div className="forms-grid">
                                 <div className="field">
-                                  <label className="field-label field-label--required">名稱</label>
-                                  <input className="input" defaultValue={item.title} name="title" required />
+                                  <label className="field-label field-label--required">
+                                    名稱
+                                  </label>
+                                  <input
+                                    className="input"
+                                    defaultValue={item.title}
+                                    name="title"
+                                    required
+                                  />
                                 </div>
                                 <div className="field">
                                   <label className="field-label">類型</label>
-                                  <select className="select" defaultValue={item.type} name="type">
+                                  <select
+                                    className="select"
+                                    defaultValue={item.type}
+                                    name="type"
+                                  >
                                     <option value="景點">景點</option>
                                     <option value="交通">交通</option>
                                     <option value="住宿">住宿</option>
@@ -301,38 +413,80 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                                   </select>
                                 </div>
                                 <div className="field">
-                                  <label className="field-label">開始時間</label>
-                                  <input className="input" defaultValue={item.startTime} name="startTime" placeholder="09:00" />
+                                  <label className="field-label">
+                                    開始時間
+                                  </label>
+                                  <input
+                                    className="input"
+                                    defaultValue={item.startTime}
+                                    name="startTime"
+                                    placeholder="09:00"
+                                  />
                                 </div>
                                 <div className="field">
-                                  <label className="field-label">結束時間</label>
-                                  <input className="input" defaultValue={item.endTime} name="endTime" placeholder="11:00" />
+                                  <label className="field-label">
+                                    結束時間
+                                  </label>
+                                  <input
+                                    className="input"
+                                    defaultValue={item.endTime}
+                                    name="endTime"
+                                    placeholder="11:00"
+                                  />
                                 </div>
                                 <div className="field">
                                   <label className="field-label">地點</label>
-                                  <input className="input" defaultValue={item.location} name="location" />
+                                  <input
+                                    className="input"
+                                    defaultValue={item.location}
+                                    name="location"
+                                  />
                                 </div>
                                 <div className="field">
                                   <label className="field-label">排序</label>
-                                  <input className="input" defaultValue={item.order} min={0} name="order" type="number" />
+                                  <input
+                                    className="input"
+                                    defaultValue={item.order}
+                                    min={0}
+                                    name="order"
+                                    type="number"
+                                  />
                                 </div>
                                 <div className="field">
                                   <label className="field-label">費用</label>
-                                  <input className="input" defaultValue={item.cost ?? ""} min={0} name="cost" type="number" />
+                                  <input
+                                    className="input"
+                                    defaultValue={item.cost ?? ""}
+                                    min={0}
+                                    name="cost"
+                                    type="number"
+                                  />
                                 </div>
                                 <div className="field">
                                   <label className="field-label">網址</label>
-                                  <input className="input" defaultValue={item.url} name="url" />
+                                  <input
+                                    className="input"
+                                    defaultValue={item.url}
+                                    name="url"
+                                  />
                                 </div>
                               </div>
                               <div className="field">
                                 <label className="field-label">備註</label>
-                                <textarea className="textarea textarea--compact" defaultValue={item.notes} name="notes" />
+                                <textarea
+                                  className="textarea textarea--compact"
+                                  defaultValue={item.notes}
+                                  name="notes"
+                                />
                               </div>
                               <SubmitButton>儲存</SubmitButton>
                             </form>
                           </FormDialog>
-                          <DeleteForm icon tripId={detail.trip.id} entityId={item.id} />
+                          <DeleteForm
+                            icon
+                            tripId={detail.trip.id}
+                            entityId={item.id}
+                          />
                         </div>
                         <div className="item-meta">
                           <div className="stack item-meta__title">
@@ -340,17 +494,31 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                             <h4>{item.title}</h4>
                           </div>
                           {getItemTimeLabel(item.startTime, item.endTime) ? (
-                            <div className="item-time">{getItemTimeLabel(item.startTime, item.endTime)}</div>
+                            <div className="item-time">
+                              {getItemTimeLabel(item.startTime, item.endTime)}
+                            </div>
                           ) : null}
                         </div>
-                        {hasText(item.location) || typeof item.cost === "number" ? (
+                        {hasText(item.location) ||
+                        typeof item.cost === "number" ? (
                           <div className="row item-info">
-                            {hasText(item.location) ? <span className="muted">{item.location}</span> : <span />}
-                            {typeof item.cost === "number" ? <span>{currency(item.cost)}</span> : null}
+                            {hasText(item.location) ? (
+                              <span className="muted">{item.location}</span>
+                            ) : (
+                              <span />
+                            )}
+                            {typeof item.cost === "number" ? (
+                              <span>{currency(item.cost)}</span>
+                            ) : null}
                           </div>
                         ) : null}
                         {item.url ? (
-                          <a className="muted" href={item.url} rel="noreferrer" target="_blank">
+                          <a
+                            className="muted"
+                            href={item.url}
+                            rel="noreferrer"
+                            target="_blank"
+                          >
                             {item.url}
                           </a>
                         ) : null}
@@ -365,18 +533,37 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                 <div className="panel panel--side stack">
                   <div className="header-actions">
                     <h4>新增項目</h4>
-                    <FormDialog description="加入這一天的新安排。" title={`新增 ${day.title} 項目`} triggerLabel="新增項目">
+                    <FormDialog
+                      description="加入這一天的新安排。"
+                      title={`新增 ${day.title} 項目`}
+                      triggerLabel="新增項目"
+                    >
                       <form action={createItemAction} className="stack">
-                        <input name="tripId" type="hidden" value={detail.trip.id} />
+                        <input
+                          name="tripId"
+                          type="hidden"
+                          value={detail.trip.id}
+                        />
                         <input name="dayId" type="hidden" value={day.id} />
                         <div className="forms-grid">
                           <div className="field">
-                            <label className="field-label field-label--required">名稱</label>
-                            <input className="input" name="title" placeholder="淺草寺散步" required />
+                            <label className="field-label field-label--required">
+                              名稱
+                            </label>
+                            <input
+                              className="input"
+                              name="title"
+                              placeholder="淺草寺散步"
+                              required
+                            />
                           </div>
                           <div className="field">
                             <label className="field-label">類型</label>
-                            <select className="select" defaultValue="景點" name="type">
+                            <select
+                              className="select"
+                              defaultValue="景點"
+                              name="type"
+                            >
                               <option value="景點">景點</option>
                               <option value="交通">交通</option>
                               <option value="住宿">住宿</option>
@@ -387,32 +574,64 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                           </div>
                           <div className="field">
                             <label className="field-label">開始時間</label>
-                            <input className="input" name="startTime" placeholder="09:00" />
+                            <input
+                              className="input"
+                              name="startTime"
+                              placeholder="09:00"
+                            />
                           </div>
                           <div className="field">
                             <label className="field-label">結束時間</label>
-                            <input className="input" name="endTime" placeholder="11:00" />
+                            <input
+                              className="input"
+                              name="endTime"
+                              placeholder="11:00"
+                            />
                           </div>
                           <div className="field">
                             <label className="field-label">地點</label>
-                            <input className="input" name="location" placeholder="地點" />
+                            <input
+                              className="input"
+                              name="location"
+                              placeholder="地點"
+                            />
                           </div>
                           <div className="field">
                             <label className="field-label">排序</label>
-                            <input className="input" defaultValue={day.items.length} min={0} name="order" type="number" />
+                            <input
+                              className="input"
+                              defaultValue={day.items.length}
+                              min={0}
+                              name="order"
+                              type="number"
+                            />
                           </div>
                           <div className="field">
                             <label className="field-label">費用</label>
-                            <input className="input" min={0} name="cost" placeholder="0" type="number" />
+                            <input
+                              className="input"
+                              min={0}
+                              name="cost"
+                              placeholder="0"
+                              type="number"
+                            />
                           </div>
                           <div className="field">
                             <label className="field-label">網址</label>
-                            <input className="input" name="url" placeholder="https://..." />
+                            <input
+                              className="input"
+                              name="url"
+                              placeholder="https://..."
+                            />
                           </div>
                         </div>
                         <div className="field">
                           <label className="field-label">備註</label>
-                          <textarea className="textarea textarea--compact" name="notes" placeholder="補充資訊" />
+                          <textarea
+                            className="textarea textarea--compact"
+                            name="notes"
+                            placeholder="補充資訊"
+                          />
                         </div>
                         <SubmitButton>新增項目</SubmitButton>
                       </form>
@@ -435,20 +654,68 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
     <section className="section-block">
       <div className="header-actions">
         <h3 className="section-title">航班</h3>
-        <FormDialog description="加入去程或回程航班。" title="新增航班" triggerLabel="新增航班">
+        <FormDialog
+          description="加入去程或回程航班。"
+          title="新增航班"
+          triggerLabel="新增航班"
+        >
           <form action={createFlightAction} className="stack">
             <input name="tripId" type="hidden" value={detail.trip.id} />
             <BrowserTimeZoneField />
             <div className="forms-grid">
-              <LabeledInput label="航空公司" name="airline" placeholder="EVA Air" required />
-              <LabeledInput label="航班號碼" name="flightNumber" placeholder="BR67" required />
-              <LabeledInput label="出發機場" name="departureAirport" placeholder="TPE" required />
-              <LabeledInput label="抵達機場" name="arrivalAirport" placeholder="NRT" required />
-              <LabeledInput label="出發時間" name="departureAt" type="datetime-local" required />
-              <LabeledInput label="抵達時間" name="arrivalAt" type="datetime-local" required />
-              <LabeledInput label="機型" name="aircraft" placeholder="Boeing 787-10" />
-              <LabeledInput label="行李資訊" name="baggageInfo" placeholder="23kg x 2 + 7kg 手提" />
-              <LabeledInput label="費用" name="cost" type="number" min={0} placeholder="0" />
+              <LabeledInput
+                label="航空公司"
+                name="airline"
+                placeholder="EVA Air"
+                required
+              />
+              <LabeledInput
+                label="航班號碼"
+                name="flightNumber"
+                placeholder="BR67"
+                required
+              />
+              <LabeledInput
+                label="出發機場"
+                name="departureAirport"
+                placeholder="TPE"
+                required
+              />
+              <LabeledInput
+                label="抵達機場"
+                name="arrivalAirport"
+                placeholder="NRT"
+                required
+              />
+              <LabeledInput
+                label="出發時間"
+                name="departureAt"
+                type="datetime-local"
+                required
+              />
+              <LabeledInput
+                label="抵達時間"
+                name="arrivalAt"
+                type="datetime-local"
+                required
+              />
+              <LabeledInput
+                label="機型"
+                name="aircraft"
+                placeholder="Boeing 787-10"
+              />
+              <LabeledInput
+                label="行李資訊"
+                name="baggageInfo"
+                placeholder="23kg x 2 + 7kg 手提"
+              />
+              <LabeledInput
+                label="費用"
+                name="cost"
+                type="number"
+                min={0}
+                placeholder="0"
+              />
             </div>
             <FlightPassengersField />
             <LabeledTextarea label="備註" name="notes" placeholder="補充資訊" />
@@ -459,7 +726,10 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
       <section className="stack">
         {detail.flights.length > 0 ? (
           detail.flights.map((flight) => (
-            <div className="detail-card flight-card card-with-actions" key={flight.id}>
+            <div
+              className="detail-card flight-card card-with-actions"
+              key={flight.id}
+            >
               <div className="card-corner-actions">
                 <FormDialog
                   description="更新航班時間與資訊。"
@@ -474,18 +744,68 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
                     <input name="flightId" type="hidden" value={flight.id} />
                     <BrowserTimeZoneField />
                     <div className="forms-grid">
-                      <LabeledInput label="航空公司" name="airline" defaultValue={flight.airline} required />
-                      <LabeledInput label="航班號碼" name="flightNumber" defaultValue={flight.flightNumber} required />
-                      <LabeledInput label="出發機場" name="departureAirport" defaultValue={flight.departureAirport} required />
-                      <LabeledInput label="抵達機場" name="arrivalAirport" defaultValue={flight.arrivalAirport} required />
-                      <LabeledInput label="出發時間" name="departureAt" type="datetime-local" defaultValue={toDateTimeInputValue(flight.departureAt)} required />
-                      <LabeledInput label="抵達時間" name="arrivalAt" type="datetime-local" defaultValue={toDateTimeInputValue(flight.arrivalAt)} required />
-                      <LabeledInput label="機型" name="aircraft" defaultValue={flight.aircraft} />
-                      <LabeledInput label="行李資訊" name="baggageInfo" defaultValue={flight.baggageInfo} />
-                      <LabeledInput label="費用" name="cost" type="number" min={0} defaultValue={flight.cost ?? ""} />
+                      <LabeledInput
+                        label="航空公司"
+                        name="airline"
+                        defaultValue={flight.airline}
+                        required
+                      />
+                      <LabeledInput
+                        label="航班號碼"
+                        name="flightNumber"
+                        defaultValue={flight.flightNumber}
+                        required
+                      />
+                      <LabeledInput
+                        label="出發機場"
+                        name="departureAirport"
+                        defaultValue={flight.departureAirport}
+                        required
+                      />
+                      <LabeledInput
+                        label="抵達機場"
+                        name="arrivalAirport"
+                        defaultValue={flight.arrivalAirport}
+                        required
+                      />
+                      <LabeledInput
+                        label="出發時間"
+                        name="departureAt"
+                        type="datetime-local"
+                        defaultValue={toDateTimeInputValue(flight.departureAt)}
+                        required
+                      />
+                      <LabeledInput
+                        label="抵達時間"
+                        name="arrivalAt"
+                        type="datetime-local"
+                        defaultValue={toDateTimeInputValue(flight.arrivalAt)}
+                        required
+                      />
+                      <LabeledInput
+                        label="機型"
+                        name="aircraft"
+                        defaultValue={flight.aircraft}
+                      />
+                      <LabeledInput
+                        label="行李資訊"
+                        name="baggageInfo"
+                        defaultValue={flight.baggageInfo}
+                      />
+                      <LabeledInput
+                        label="費用"
+                        name="cost"
+                        type="number"
+                        min={0}
+                        defaultValue={flight.cost ?? ""}
+                      />
                     </div>
                     <FlightPassengersField defaultValue={flight.passengers} />
-                    <LabeledTextarea label="備註" name="notes" defaultValue={flight.notes} />
+                    <LabeledTextarea
+                      label="備註"
+                      name="notes"
+                      defaultValue={flight.notes}
+                    />
                     <SubmitButton>儲存</SubmitButton>
                   </form>
                 </FormDialog>
@@ -502,8 +822,12 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
 
                 <div className="flight-card__route">
                   <div className="flight-card__stop">
-                    <span className="flight-card__code">{flight.departureAirport}</span>
-                    <strong><LocalDateTime value={flight.departureAt} /></strong>
+                    <span className="flight-card__code">
+                      {flight.departureAirport}
+                    </span>
+                    <strong>
+                      <LocalDateTime value={flight.departureAt} />
+                    </strong>
                     <span>出發</span>
                   </div>
                   <div className="flight-card__route-line">
@@ -511,8 +835,12 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
                     <small>{flight.flightNumber}</small>
                   </div>
                   <div className="flight-card__stop">
-                    <span className="flight-card__code">{flight.arrivalAirport}</span>
-                    <strong><LocalDateTime value={flight.arrivalAt} /></strong>
+                    <span className="flight-card__code">
+                      {flight.arrivalAirport}
+                    </span>
+                    <strong>
+                      <LocalDateTime value={flight.arrivalAt} />
+                    </strong>
                     <span>抵達</span>
                   </div>
                 </div>
@@ -546,10 +874,15 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
               {flight.passengers.length > 0 ? (
                 <div className="stack compact-list flight-card__passengers">
                   {flight.passengers.map((passenger, index) => (
-                    <div className="flight-passenger-card" key={getPassengerKey(passenger, index)}>
+                    <div
+                      className="flight-passenger-card"
+                      key={getPassengerKey(passenger, index)}
+                    >
                       <div className="header-actions">
                         <span className="tag">乘客 {index + 1}</span>
-                        {hasText(passenger.fullName) ? <strong>{passenger.fullName}</strong> : null}
+                        {hasText(passenger.fullName) ? (
+                          <strong>{passenger.fullName}</strong>
+                        ) : null}
                       </div>
                       <div className="flight-passenger-card__grid">
                         {hasText(passenger.bookingReference) ? (
@@ -590,18 +923,47 @@ function StaysTab({ detail }: { detail: TripDetail }) {
     <section className="section-block">
       <div className="header-actions">
         <h3 className="section-title">住宿</h3>
-        <FormDialog description="記錄飯店、民宿或公寓。" title="新增住宿" triggerLabel="新增住宿">
+        <FormDialog
+          description="記錄飯店、民宿或公寓。"
+          title="新增住宿"
+          triggerLabel="新增住宿"
+        >
           <form action={createStayAction} className="stack">
             <input name="tripId" type="hidden" value={detail.trip.id} />
             <div className="forms-grid">
-              <LabeledInput label="住宿名稱" name="title" placeholder="Shinjuku Granbell" required />
-              <LabeledInput label="入住日期" name="checkInDate" type="date" required />
-              <LabeledInput label="退房日期" name="checkOutDate" type="date" required />
+              <LabeledInput
+                label="住宿名稱"
+                name="title"
+                placeholder="Shinjuku Granbell"
+                required
+              />
+              <LabeledInput
+                label="入住日期"
+                name="checkInDate"
+                type="date"
+                required
+              />
+              <LabeledInput
+                label="退房日期"
+                name="checkOutDate"
+                type="date"
+                required
+              />
               <LabeledInput label="入住時間" name="checkInTime" type="time" />
               <LabeledInput label="退房時間" name="checkOutTime" type="time" />
-              <LabeledInput label="費用" name="cost" type="number" min={0} placeholder="0" />
+              <LabeledInput
+                label="費用"
+                name="cost"
+                type="number"
+                min={0}
+                placeholder="0"
+              />
               <LabeledInput label="網址" name="url" placeholder="https://..." />
-              <LabeledInput label="訂房代碼" name="bookingReference" placeholder="ABCD1234" />
+              <LabeledInput
+                label="訂房代碼"
+                name="bookingReference"
+                placeholder="ABCD1234"
+              />
             </div>
             <LabeledTextarea label="地址" name="address" placeholder="地址" />
             <LabeledTextarea label="備註" name="notes" placeholder="補充資訊" />
@@ -612,7 +974,10 @@ function StaysTab({ detail }: { detail: TripDetail }) {
       <section className="stack">
         {detail.stays.length > 0 ? (
           detail.stays.map((stay) => (
-            <div className="detail-card stay-card card-with-actions" key={stay.id}>
+            <div
+              className="detail-card stay-card card-with-actions"
+              key={stay.id}
+            >
               <div className="card-corner-actions">
                 <FormDialog
                   description="更新住宿日期與資訊。"
@@ -626,17 +991,67 @@ function StaysTab({ detail }: { detail: TripDetail }) {
                     <input name="tripId" type="hidden" value={detail.trip.id} />
                     <input name="stayId" type="hidden" value={stay.id} />
                     <div className="forms-grid">
-                      <LabeledInput label="住宿名稱" name="title" defaultValue={stay.title} required />
-                      <LabeledInput label="入住日期" name="checkInDate" type="date" defaultValue={toDateInputValue(stay.checkInDate)} required />
-                      <LabeledInput label="退房日期" name="checkOutDate" type="date" defaultValue={toDateInputValue(stay.checkOutDate)} required />
-                      <LabeledInput label="入住時間" name="checkInTime" type="time" defaultValue={stay.checkInTime} />
-                      <LabeledInput label="退房時間" name="checkOutTime" type="time" defaultValue={stay.checkOutTime} />
-                      <LabeledInput label="費用" name="cost" type="number" min={0} defaultValue={stay.cost ?? ""} />
-                      <LabeledInput label="網址" name="url" defaultValue={stay.url} placeholder="https://..." />
-                      <LabeledInput label="訂房代碼" name="bookingReference" defaultValue={stay.bookingReference} />
+                      <LabeledInput
+                        label="住宿名稱"
+                        name="title"
+                        defaultValue={stay.title}
+                        required
+                      />
+                      <LabeledInput
+                        label="入住日期"
+                        name="checkInDate"
+                        type="date"
+                        defaultValue={toDateInputValue(stay.checkInDate)}
+                        required
+                      />
+                      <LabeledInput
+                        label="退房日期"
+                        name="checkOutDate"
+                        type="date"
+                        defaultValue={toDateInputValue(stay.checkOutDate)}
+                        required
+                      />
+                      <LabeledInput
+                        label="入住時間"
+                        name="checkInTime"
+                        type="time"
+                        defaultValue={stay.checkInTime}
+                      />
+                      <LabeledInput
+                        label="退房時間"
+                        name="checkOutTime"
+                        type="time"
+                        defaultValue={stay.checkOutTime}
+                      />
+                      <LabeledInput
+                        label="費用"
+                        name="cost"
+                        type="number"
+                        min={0}
+                        defaultValue={stay.cost ?? ""}
+                      />
+                      <LabeledInput
+                        label="網址"
+                        name="url"
+                        defaultValue={stay.url}
+                        placeholder="https://..."
+                      />
+                      <LabeledInput
+                        label="訂房代碼"
+                        name="bookingReference"
+                        defaultValue={stay.bookingReference}
+                      />
                     </div>
-                    <LabeledTextarea label="地址" name="address" defaultValue={stay.address} />
-                    <LabeledTextarea label="備註" name="notes" defaultValue={stay.notes} />
+                    <LabeledTextarea
+                      label="地址"
+                      name="address"
+                      defaultValue={stay.address}
+                    />
+                    <LabeledTextarea
+                      label="備註"
+                      name="notes"
+                      defaultValue={stay.notes}
+                    />
                     <SubmitButton>儲存</SubmitButton>
                   </form>
                 </FormDialog>
@@ -648,21 +1063,30 @@ function StaysTab({ detail }: { detail: TripDetail }) {
                   <h4>{stay.title}</h4>
                 </div>
                 <span className="pill">
-                  <LocalDate value={stay.checkInDate} /> - <LocalDate value={stay.checkOutDate} />
+                  <LocalDate value={stay.checkInDate} /> -{" "}
+                  <LocalDate value={stay.checkOutDate} />
                 </span>
               </div>
 
               <div className="stay-card__timeline">
                 <div className="stay-card__point">
                   <span>入住</span>
-                  <strong><LocalDate value={stay.checkInDate} /></strong>
-                  {hasText(stay.checkInTime) ? <small>{stay.checkInTime}</small> : null}
+                  <strong>
+                    <LocalDate value={stay.checkInDate} />
+                  </strong>
+                  {hasText(stay.checkInTime) ? (
+                    <small>{stay.checkInTime}</small>
+                  ) : null}
                 </div>
                 <div className="stay-card__line" />
                 <div className="stay-card__point">
                   <span>退房</span>
-                  <strong><LocalDate value={stay.checkOutDate} /></strong>
-                  {hasText(stay.checkOutTime) ? <small>{stay.checkOutTime}</small> : null}
+                  <strong>
+                    <LocalDate value={stay.checkOutDate} />
+                  </strong>
+                  {hasText(stay.checkOutTime) ? (
+                    <small>{stay.checkOutTime}</small>
+                  ) : null}
                 </div>
               </div>
 
@@ -682,13 +1106,20 @@ function StaysTab({ detail }: { detail: TripDetail }) {
                 {hasText(stay.address) ? (
                   <div className="stay-card__fact stay-card__fact--wide">
                     <span>地址</span>
-                    <strong className="stay-card__address">{stay.address}</strong>
+                    <strong className="stay-card__address">
+                      {stay.address}
+                    </strong>
                   </div>
                 ) : null}
               </div>
 
               {stay.url ? (
-                <a className="muted" href={stay.url} rel="noreferrer" target="_blank">
+                <a
+                  className="muted"
+                  href={stay.url}
+                  rel="noreferrer"
+                  target="_blank"
+                >
                   {stay.url}
                 </a>
               ) : null}
@@ -699,7 +1130,6 @@ function StaysTab({ detail }: { detail: TripDetail }) {
                   <p className="muted">{stay.notes}</p>
                 </div>
               ) : null}
-
             </div>
           ))
         ) : (
@@ -738,19 +1168,39 @@ function StructuredCard({
         {meta ? <span className="pill">{meta}</span> : null}
       </div>
       {body ? (
-        <p className={preserveBodyNewlines ? "muted detail-card__body detail-card__body--multiline" : "muted detail-card__body"}>{body}</p>
+        <p
+          className={
+            preserveBodyNewlines
+              ? "muted detail-card__body detail-card__body--multiline"
+              : "muted detail-card__body"
+          }
+        >
+          {body}
+        </p>
       ) : null}
       {children}
     </div>
   );
 }
 
-function DeleteForm({ tripId, entityId, icon }: { tripId: string; entityId: string; icon?: boolean }) {
+function DeleteForm({
+  tripId,
+  entityId,
+  icon,
+}: {
+  tripId: string;
+  entityId: string;
+  icon?: boolean;
+}) {
   return (
     <form action={deleteEntityAction}>
       <input name="tripId" type="hidden" value={tripId} />
       <input name="entityId" type="hidden" value={entityId} />
-      <button aria-label="刪除" className={icon ? "icon-button icon-button--danger" : "ghost-button"} type="submit">
+      <button
+        aria-label="刪除"
+        className={icon ? "icon-button icon-button--danger" : "ghost-button"}
+        type="submit"
+      >
         {icon ? <TrashIcon /> : "刪除"}
       </button>
     </form>
@@ -776,8 +1226,22 @@ function LabeledInput({
 }) {
   return (
     <div className="field">
-      <label className={required ? "field-label field-label--required" : "field-label"}>{label}</label>
-      <input className="input" defaultValue={defaultValue} min={min} name={name} placeholder={placeholder} required={required} type={type} />
+      <label
+        className={
+          required ? "field-label field-label--required" : "field-label"
+        }
+      >
+        {label}
+      </label>
+      <input
+        className="input"
+        defaultValue={defaultValue}
+        min={min}
+        name={name}
+        placeholder={placeholder}
+        required={required}
+        type={type}
+      />
     </div>
   );
 }
@@ -797,8 +1261,20 @@ function LabeledTextarea({
 }) {
   return (
     <div className="field">
-      <label className={required ? "field-label field-label--required" : "field-label"}>{label}</label>
-      <textarea className="textarea textarea--compact" defaultValue={defaultValue} name={name} placeholder={placeholder} required={required} />
+      <label
+        className={
+          required ? "field-label field-label--required" : "field-label"
+        }
+      >
+        {label}
+      </label>
+      <textarea
+        className="textarea textarea--compact"
+        defaultValue={defaultValue}
+        name={name}
+        placeholder={placeholder}
+        required={required}
+      />
     </div>
   );
 }
@@ -868,7 +1344,12 @@ function getOverviewItems(detail: TripDetail): OverviewItem[] {
             </div>
           </div>
           {item.url ? (
-            <a className="muted" href={item.url} rel="noreferrer" target="_blank">
+            <a
+              className="muted"
+              href={item.url}
+              rel="noreferrer"
+              target="_blank"
+            >
               {item.url}
             </a>
           ) : null}
@@ -886,21 +1367,25 @@ function getOverviewItems(detail: TripDetail): OverviewItem[] {
     body: flight.notes || undefined,
     preserveBodyNewlines: Boolean(flight.notes),
     children: (
-        <div className="list-table">
-          <div className="list-table__row">
-            <span>起飛</span>
-            <strong><LocalDateTime value={flight.departureAt} /></strong>
-          </div>
-          <div className="list-table__row">
-            <span>降落</span>
-            <strong><LocalDateTime value={flight.arrivalAt} /></strong>
-          </div>
-          <div className="list-table__row">
-            <span>費用</span>
-            <strong>{currency(flight.cost)}</strong>
-          </div>
+      <div className="list-table">
+        <div className="list-table__row">
+          <span>起飛</span>
+          <strong>
+            <LocalDateTime value={flight.departureAt} />
+          </strong>
         </div>
-      ),
+        <div className="list-table__row">
+          <span>降落</span>
+          <strong>
+            <LocalDateTime value={flight.arrivalAt} />
+          </strong>
+        </div>
+        <div className="list-table__row">
+          <span>費用</span>
+          <strong>{currency(flight.cost)}</strong>
+        </div>
+      </div>
+    ),
     sortValue: getDateSortValue(flight.departureAt, index),
   }));
 
@@ -915,11 +1400,21 @@ function getOverviewItems(detail: TripDetail): OverviewItem[] {
       <div className="list-table">
         <div className="list-table__row">
           <span>入住</span>
-          <strong><LocalDate value={stay.checkInDate} />{hasText(stay.checkInTime) ? ` ${normalizeTime(stay.checkInTime)}` : ""}</strong>
+          <strong>
+            <LocalDate value={stay.checkInDate} />
+            {hasText(stay.checkInTime)
+              ? ` ${normalizeTime(stay.checkInTime)}`
+              : ""}
+          </strong>
         </div>
         <div className="list-table__row">
           <span>退房</span>
-          <strong><LocalDate value={stay.checkOutDate} />{hasText(stay.checkOutTime) ? ` ${normalizeTime(stay.checkOutTime)}` : ""}</strong>
+          <strong>
+            <LocalDate value={stay.checkOutDate} />
+            {hasText(stay.checkOutTime)
+              ? ` ${normalizeTime(stay.checkOutTime)}`
+              : ""}
+          </strong>
         </div>
         <div className="list-table__row">
           <span>地址</span>
@@ -936,10 +1431,16 @@ function getOverviewItems(detail: TripDetail): OverviewItem[] {
         ) : null}
       </div>
     ),
-    sortValue: getDateAndTimeSortValue(stay.checkInDate, stay.checkInTime, index),
+    sortValue: getDateAndTimeSortValue(
+      stay.checkInDate,
+      stay.checkInTime,
+      index,
+    ),
   }));
 
-  return [...dayItems, ...flightItems, ...stayItems].sort((a, b) => a.sortValue - b.sortValue);
+  return [...dayItems, ...flightItems, ...stayItems].sort(
+    (a, b) => a.sortValue - b.sortValue,
+  );
 }
 
 function getDateSortValue(value?: string | null, index = 0) {
@@ -948,21 +1449,36 @@ function getDateSortValue(value?: string | null, index = 0) {
   }
 
   const timestamp = new Date(value).getTime();
-  return Number.isNaN(timestamp) ? Number.MAX_SAFE_INTEGER - 1000 + index : timestamp;
+  return Number.isNaN(timestamp)
+    ? Number.MAX_SAFE_INTEGER - 1000 + index
+    : timestamp;
 }
 
-function getDateAndTimeSortValue(date?: string | null, time?: string | null, index = 0) {
+function getDateAndTimeSortValue(
+  date?: string | null,
+  time?: string | null,
+  index = 0,
+) {
   if (!date) {
     return Number.MAX_SAFE_INTEGER - 1000 + index;
   }
 
   const normalizedTime = normalizeTime(time) ?? "00:00";
   const timestamp = new Date(`${date}T${normalizedTime}:00`).getTime();
-  return Number.isNaN(timestamp) ? Number.MAX_SAFE_INTEGER - 1000 + index : timestamp;
+  return Number.isNaN(timestamp)
+    ? Number.MAX_SAFE_INTEGER - 1000 + index
+    : timestamp;
 }
 
-function getItemDateTimeLabel(date?: string | null, startTime?: string | null, endTime?: string | null) {
-  const timeLabel = getItemTimeLabel(normalizeTime(startTime) ?? undefined, normalizeTime(endTime) ?? undefined);
+function getItemDateTimeLabel(
+  date?: string | null,
+  startTime?: string | null,
+  endTime?: string | null,
+) {
+  const timeLabel = getItemTimeLabel(
+    normalizeTime(startTime) ?? undefined,
+    normalizeTime(endTime) ?? undefined,
+  );
   return (
     <>
       <LocalDate value={date} />

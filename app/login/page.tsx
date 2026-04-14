@@ -23,7 +23,7 @@ export default async function LoginPage() {
           <div className="auth-highlights">
             <div className="auth-highlight">
               <strong>旅程總覽</strong>
-              <p>日期、狀態、一眼掌握。</p>
+              <p>日期與重點資訊，一眼掌握。</p>
             </div>
             <div className="auth-highlight">
               <strong>每日行程</strong>

@@ -17,8 +17,6 @@ export default async function TripsPage() {
     hasLoadError = true;
   }
 
-  const activeTrips = trips.filter((trip) => trip.status !== "已完成").length;
-
   return (
     <div className="page">
       <section className="hero hero--compact">
@@ -29,7 +27,6 @@ export default async function TripsPage() {
           </div>
           <div className="stats-inline">
             <span>{trips.length} 個旅程</span>
-            <span>{activeTrips} 個進行中</span>
           </div>
         </div>
       </section>
@@ -62,15 +59,6 @@ export default async function TripsPage() {
                 <div className="field">
                   <label htmlFor="endDate">結束日期</label>
                   <input className="input" id="endDate" name="endDate" type="date" />
-                </div>
-                <div className="field">
-                  <label htmlFor="status">狀態</label>
-                  <select className="select" defaultValue="規劃中" id="status" name="status">
-                    <option value="規劃中">規劃中</option>
-                    <option value="已預訂">已預訂</option>
-                    <option value="旅行中">旅行中</option>
-                    <option value="已完成">已完成</option>
-                  </select>
                 </div>
                 <div className="field">
                   <label htmlFor="cover">封面圖片網址</label>

@@ -9,7 +9,6 @@ export const tripSchema = z.object({
   destination: z.string().min(1, "請輸入目的地"),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
-  status: z.enum(["規劃中", "已預訂", "旅行中", "已完成"]),
   cover: z.string().optional(),
   notes: z.string().optional(),
 });

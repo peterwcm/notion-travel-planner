@@ -12,7 +12,6 @@ import type {
   TripFlight,
   TripItem,
   TripStay,
-  TripStatus,
 } from "@/lib/types";
 import { sum } from "@/lib/utils";
 
@@ -21,7 +20,6 @@ const TRIP_PROPS = {
   destination: "目的地",
   startDate: "開始日期",
   endDate: "結束日期",
-  status: "狀態",
   cover: "封面",
   notes: "備註",
 } as const;
@@ -362,7 +360,6 @@ export async function createTrip(input: {
   destination: string;
   startDate: string;
   endDate: string;
-  status: TripStatus;
   cover: string;
   notes: string;
 }) {
@@ -375,9 +372,6 @@ export async function createTrip(input: {
       [TRIP_PROPS.destination]: richTextProperty(input.destination),
       [TRIP_PROPS.startDate]: dateProperty(input.startDate),
       [TRIP_PROPS.endDate]: dateProperty(input.endDate),
-      [TRIP_PROPS.status]: {
-        select: { name: input.status },
-      },
       [TRIP_PROPS.cover]: {
         url: input.cover || null,
       },
@@ -393,7 +387,6 @@ export async function updateTrip(
     destination: string;
     startDate: string;
     endDate: string;
-    status: TripStatus;
     cover: string;
     notes: string;
   },
@@ -407,9 +400,6 @@ export async function updateTrip(
       [TRIP_PROPS.destination]: richTextProperty(input.destination),
       [TRIP_PROPS.startDate]: dateProperty(input.startDate),
       [TRIP_PROPS.endDate]: dateProperty(input.endDate),
-      [TRIP_PROPS.status]: {
-        select: { name: input.status },
-      },
       [TRIP_PROPS.cover]: {
         url: input.cover || null,
       },
@@ -659,7 +649,6 @@ function mapTrip(properties: Record<string, any>, id: string): Trip {
     destination: getRichText(properties, TRIP_PROPS.destination),
     startDate: getDate(properties, TRIP_PROPS.startDate),
     endDate: getDate(properties, TRIP_PROPS.endDate),
-    status: (getSelect(properties, TRIP_PROPS.status) || "規劃中") as TripStatus,
     cover: getUrl(properties, TRIP_PROPS.cover),
     notes: getRichText(properties, TRIP_PROPS.notes),
   };
