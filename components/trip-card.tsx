@@ -1,7 +1,7 @@
 import Link from "next/link";
 
+import { LocalDate } from "@/components/local-date-time";
 import type { Trip } from "@/lib/types";
-import { formatDate } from "@/lib/utils";
 
 interface TripCardProps {
   trip: Trip;
@@ -25,7 +25,7 @@ export function TripCard({ trip }: TripCardProps) {
           <span className="pill">{trip.status}</span>
         </div>
         <p className="trip-card__dates">
-          {formatDate(trip.startDate)} - {formatDate(trip.endDate)}
+          <LocalDate value={trip.startDate} /> - <LocalDate value={trip.endDate} />
         </p>
         {trip.notes ? <p className="trip-card__notes">{trip.notes}</p> : null}
         <div className="trip-card__footer">

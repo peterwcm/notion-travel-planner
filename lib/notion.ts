@@ -98,13 +98,68 @@ function dateProperty(value?: string | null, timeZone?: string | null) {
   if (timeZone && value.includes("T") && !/[zZ]|[+-]\d{2}:\d{2}$/.test(value)) {
     return {
       date: {
-        start: value,
-        time_zone: timeZone,
+        start: localDateTimeToUtcIso(value, timeZone),
       },
     };
   }
 
   return { date: { start: value } };
+}
+
+function localDateTimeToUtcIso(value: string, timeZone: string) {
+  const match = value.match(
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/,
+  );
+
+  if (!match) {
+    return value;
+  }
+
+  const [, year, month, day, hour, minute, second = "00"] = match;
+  const desiredUtcMs = Date.UTC(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second),
+  );
+
+  let utcGuess = desiredUtcMs;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).formatToParts(new Date(utcGuess));
+
+    const getPart = (type: Intl.DateTimeFormatPartTypes) =>
+      Number(parts.find((part) => part.type === type)?.value ?? "0");
+
+    const actualUtcMs = Date.UTC(
+      getPart("year"),
+      getPart("month") - 1,
+      getPart("day"),
+      getPart("hour"),
+      getPart("minute"),
+      getPart("second"),
+    );
+
+    const diff = desiredUtcMs - actualUtcMs;
+    if (diff === 0) {
+      break;
+    }
+
+    utcGuess += diff;
+  }
+
+  return new Date(utcGuess).toISOString();
 }
 
 function relationProperty(id: string) {

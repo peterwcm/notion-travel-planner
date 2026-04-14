@@ -7,6 +7,7 @@ import { BrowserTimeZoneField } from "@/components/browser-time-zone-field";
 import { FlightPassengersField } from "@/components/flight-passengers-field";
 import { FormDialog } from "@/components/form-dialog";
 import { EditIcon, TrashIcon } from "@/components/icons";
+import { LocalDate, LocalDateTime } from "@/components/local-date-time";
 import { SubmitButton } from "@/components/submit-button";
 import {
   createDayAction,
@@ -23,7 +24,7 @@ import {
 import { getFlightDisplayLabel } from "@/lib/flight-passengers";
 import { getNotionStatus, getTripDetail, getTripStats } from "@/lib/notion";
 import type { TripDetail, TripFlightPassenger, TripSectionTab } from "@/lib/types";
-import { currency, formatDate, formatDateTime } from "@/lib/utils";
+import { currency } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -146,7 +147,7 @@ export default async function TripDetailPage({ params, searchParams }: TripDetai
             <div className="metric">
               <span className="metric__label">日期</span>
               <strong>
-                {formatDate(detail.trip.startDate)} - {formatDate(detail.trip.endDate)}
+                <LocalDate value={detail.trip.startDate} /> - <LocalDate value={detail.trip.endDate} />
               </strong>
             </div>
             <div className="metric">
@@ -259,7 +260,7 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                   <span className="tag">Day {day.dayNumber}</span>
                   <h3 className="section-title">{day.title}</h3>
                   <p className="muted">
-                    {formatDate(day.date)} {day.summary ? `・${day.summary}` : ""}
+                    <LocalDate value={day.date} />{day.summary ? ` ・${day.summary}` : ""}
                   </p>
                 </div>
                 <span className="pill">{day.items.length} 項</span>
@@ -500,7 +501,7 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
                 <div className="flight-card__route">
                   <div className="flight-card__stop">
                     <span className="flight-card__code">{flight.departureAirport}</span>
-                    <strong>{formatDateTime(flight.departureAt)}</strong>
+                    <strong><LocalDateTime value={flight.departureAt} /></strong>
                     <span>出發</span>
                   </div>
                   <div className="flight-card__route-line">
@@ -509,7 +510,7 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
                   </div>
                   <div className="flight-card__stop">
                     <span className="flight-card__code">{flight.arrivalAirport}</span>
-                    <strong>{formatDateTime(flight.arrivalAt)}</strong>
+                    <strong><LocalDateTime value={flight.arrivalAt} /></strong>
                     <span>抵達</span>
                   </div>
                 </div>
@@ -635,20 +636,20 @@ function StaysTab({ detail }: { detail: TripDetail }) {
                   <h4>{stay.title}</h4>
                 </div>
                 <span className="pill">
-                  {formatDate(stay.checkInDate)} - {formatDate(stay.checkOutDate)}
+                  <LocalDate value={stay.checkInDate} /> - <LocalDate value={stay.checkOutDate} />
                 </span>
               </div>
 
               <div className="stay-card__timeline">
                 <div className="stay-card__point">
                   <span>入住</span>
-                  <strong>{formatDate(stay.checkInDate)}</strong>
+                  <strong><LocalDate value={stay.checkInDate} /></strong>
                   {hasText(stay.checkInTime) ? <small>{stay.checkInTime}</small> : null}
                 </div>
                 <div className="stay-card__line" />
                 <div className="stay-card__point">
                   <span>退房</span>
-                  <strong>{formatDate(stay.checkOutDate)}</strong>
+                  <strong><LocalDate value={stay.checkOutDate} /></strong>
                   {hasText(stay.checkOutTime) ? <small>{stay.checkOutTime}</small> : null}
                 </div>
               </div>
@@ -696,8 +697,8 @@ function StructuredCard({
 }: {
   label: string;
   title: string;
-  meta?: string;
-  body?: string;
+  meta?: ReactNode;
+  body?: ReactNode;
   preserveBodyNewlines?: boolean;
   actions?: ReactNode;
   children: ReactNode;
@@ -808,8 +809,8 @@ type OverviewItem = {
   id: string;
   label: string;
   title: string;
-  meta?: string;
-  body?: string;
+  meta?: ReactNode;
+  body?: ReactNode;
   preserveBodyNewlines?: boolean;
   children: ReactNode;
   sortValue: number;
@@ -855,18 +856,18 @@ function getOverviewItems(detail: TripDetail): OverviewItem[] {
     id: `flight-${flight.id}`,
     label: "航班",
     title: getFlightDisplayLabel(flight),
-    meta: flight.departureAt ? formatDateTime(flight.departureAt) : "未設定",
+    meta: <LocalDateTime value={flight.departureAt} />,
     body: flight.notes || undefined,
     preserveBodyNewlines: Boolean(flight.notes),
     children: (
       <div className="list-table">
         <div className="list-table__row">
           <span>起飛</span>
-          <strong>{formatDateTime(flight.departureAt)}</strong>
+          <strong><LocalDateTime value={flight.departureAt} /></strong>
         </div>
         <div className="list-table__row">
           <span>降落</span>
-          <strong>{formatDateTime(flight.arrivalAt)}</strong>
+          <strong><LocalDateTime value={flight.arrivalAt} /></strong>
         </div>
       </div>
     ),
@@ -884,11 +885,11 @@ function getOverviewItems(detail: TripDetail): OverviewItem[] {
       <div className="list-table">
         <div className="list-table__row">
           <span>入住</span>
-          <strong>{formatDate(stay.checkInDate)}{hasText(stay.checkInTime) ? ` ${normalizeTime(stay.checkInTime)}` : ""}</strong>
+          <strong><LocalDate value={stay.checkInDate} />{hasText(stay.checkInTime) ? ` ${normalizeTime(stay.checkInTime)}` : ""}</strong>
         </div>
         <div className="list-table__row">
           <span>退房</span>
-          <strong>{formatDate(stay.checkOutDate)}{hasText(stay.checkOutTime) ? ` ${normalizeTime(stay.checkOutTime)}` : ""}</strong>
+          <strong><LocalDate value={stay.checkOutDate} />{hasText(stay.checkOutTime) ? ` ${normalizeTime(stay.checkOutTime)}` : ""}</strong>
         </div>
         <div className="list-table__row">
           <span>地址</span>
@@ -922,15 +923,25 @@ function getDateAndTimeSortValue(date?: string | null, time?: string | null, ind
 }
 
 function getItemDateTimeLabel(date?: string | null, startTime?: string | null, endTime?: string | null) {
-  const formattedDate = formatDate(date);
   const timeLabel = getItemTimeLabel(normalizeTime(startTime) ?? undefined, normalizeTime(endTime) ?? undefined);
-  return timeLabel ? `${formattedDate} ${timeLabel}` : formattedDate;
+  return (
+    <>
+      <LocalDate value={date} />
+      {timeLabel ? ` ${timeLabel}` : ""}
+    </>
+  );
 }
 
 function getStayDateTimeLabel(stay: TripDetail["stays"][number]) {
-  const checkIn = `${formatDate(stay.checkInDate)}${hasText(stay.checkInTime) ? ` ${normalizeTime(stay.checkInTime)}` : ""}`;
-  const checkOut = `${formatDate(stay.checkOutDate)}${hasText(stay.checkOutTime) ? ` ${normalizeTime(stay.checkOutTime)}` : ""}`;
-  return `${checkIn} - ${checkOut}`;
+  return (
+    <>
+      <LocalDate value={stay.checkInDate} />
+      {hasText(stay.checkInTime) ? ` ${normalizeTime(stay.checkInTime)}` : ""}
+      {" - "}
+      <LocalDate value={stay.checkOutDate} />
+      {hasText(stay.checkOutTime) ? ` ${normalizeTime(stay.checkOutTime)}` : ""}
+    </>
+  );
 }
 
 function getPassengerKey(passenger: TripFlightPassenger, index: number) {
