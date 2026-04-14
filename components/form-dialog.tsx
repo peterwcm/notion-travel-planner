@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { useId, useRef } from "react";
 
 interface FormDialogProps {
@@ -21,13 +21,23 @@ export function FormDialog({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
+  function handleSubmit(event: FormEvent<HTMLDialogElement>) {
+    const form = event.target;
+
+    if (!(form instanceof HTMLFormElement)) {
+      return;
+    }
+
+    dialogRef.current?.close();
+  }
+
   return (
     <>
       <button className={triggerClassName} onClick={() => dialogRef.current?.showModal()} type="button">
         {triggerLabel}
       </button>
 
-      <dialog aria-labelledby={titleId} className="form-dialog" ref={dialogRef}>
+      <dialog aria-labelledby={titleId} className="form-dialog" onSubmit={handleSubmit} ref={dialogRef}>
         <div className="form-dialog__surface">
           <div className="header-actions form-dialog__header">
             <div className="stack compact-headline">
