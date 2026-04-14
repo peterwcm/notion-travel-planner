@@ -84,6 +84,7 @@ export const staySchema = z.object({
     .optional()
     .transform((value) => (value ? Number(value) : null)),
   address: z.string().optional(),
+  url: z.string().optional(),
   bookingReference: z.string().optional(),
   notes: z.string().optional(),
 });

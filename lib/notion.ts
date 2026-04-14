@@ -72,6 +72,7 @@ const STAY_PROPS = {
   checkOutTime: "退房時間",
   cost: "費用",
   address: "地址",
+  url: "網址",
   bookingReference: "訂房代碼",
   notes: "備註",
 } as const;
@@ -584,6 +585,9 @@ export async function createStay(input: Omit<TripStay, "id">) {
         number: input.cost,
       },
       [STAY_PROPS.address]: richTextProperty(input.address),
+      [STAY_PROPS.url]: {
+        url: input.url || null,
+      },
       [STAY_PROPS.bookingReference]: richTextProperty(input.bookingReference),
       [STAY_PROPS.notes]: richTextProperty(input.notes),
     },
@@ -611,6 +615,9 @@ export async function updateStay(stayId: string, input: Omit<TripStay, "id" | "t
         number: input.cost,
       },
       [STAY_PROPS.address]: richTextProperty(input.address),
+      [STAY_PROPS.url]: {
+        url: input.url || null,
+      },
       [STAY_PROPS.bookingReference]: richTextProperty(input.bookingReference),
       [STAY_PROPS.notes]: richTextProperty(input.notes),
     },
@@ -722,6 +729,7 @@ function mapStay(properties: Record<string, any>, id: string): TripStay {
     checkOutTime: getRichText(properties, STAY_PROPS.checkOutTime),
     cost: getNumber(properties, STAY_PROPS.cost),
     address: getRichText(properties, STAY_PROPS.address),
+    url: getUrl(properties, STAY_PROPS.url),
     bookingReference: getRichText(properties, STAY_PROPS.bookingReference),
     notes: getRichText(properties, STAY_PROPS.notes),
   };

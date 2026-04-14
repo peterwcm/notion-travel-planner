@@ -600,6 +600,7 @@ function StaysTab({ detail }: { detail: TripDetail }) {
               <LabeledInput label="入住時間" name="checkInTime" type="time" />
               <LabeledInput label="退房時間" name="checkOutTime" type="time" />
               <LabeledInput label="費用" name="cost" type="number" min={0} placeholder="0" />
+              <LabeledInput label="網址" name="url" placeholder="https://..." />
               <LabeledInput label="訂房代碼" name="bookingReference" placeholder="ABCD1234" />
             </div>
             <LabeledTextarea label="地址" name="address" placeholder="地址" />
@@ -631,6 +632,7 @@ function StaysTab({ detail }: { detail: TripDetail }) {
                       <LabeledInput label="入住時間" name="checkInTime" type="time" defaultValue={stay.checkInTime} />
                       <LabeledInput label="退房時間" name="checkOutTime" type="time" defaultValue={stay.checkOutTime} />
                       <LabeledInput label="費用" name="cost" type="number" min={0} defaultValue={stay.cost ?? ""} />
+                      <LabeledInput label="網址" name="url" defaultValue={stay.url} placeholder="https://..." />
                       <LabeledInput label="訂房代碼" name="bookingReference" defaultValue={stay.bookingReference} />
                     </div>
                     <LabeledTextarea label="地址" name="address" defaultValue={stay.address} />
@@ -684,6 +686,12 @@ function StaysTab({ detail }: { detail: TripDetail }) {
                   </div>
                 ) : null}
               </div>
+
+              {stay.url ? (
+                <a className="muted" href={stay.url} rel="noreferrer" target="_blank">
+                  {stay.url}
+                </a>
+              ) : null}
 
               {stay.notes ? (
                 <div className="stay-card__notes">
@@ -921,6 +929,11 @@ function getOverviewItems(detail: TripDetail): OverviewItem[] {
           <span>費用</span>
           <strong>{currency(stay.cost)}</strong>
         </div>
+        {stay.url ? (
+          <a className="muted" href={stay.url} rel="noreferrer" target="_blank">
+            {stay.url}
+          </a>
+        ) : null}
       </div>
     ),
     sortValue: getDateAndTimeSortValue(stay.checkInDate, stay.checkInTime, index),

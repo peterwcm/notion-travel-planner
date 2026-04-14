@@ -256,6 +256,7 @@ export async function createStayAction(formData: FormData) {
     checkOutTime: formData.get("checkOutTime"),
     cost: formData.get("cost"),
     address: formData.get("address"),
+    url: formData.get("url"),
     bookingReference: formData.get("bookingReference"),
     notes: formData.get("notes"),
   });
@@ -269,6 +270,7 @@ export async function createStayAction(formData: FormData) {
     checkOutTime: parsed.checkOutTime ?? "",
     cost: parsed.cost,
     address: parsed.address ?? "",
+    url: parsed.url ?? "",
     bookingReference: parsed.bookingReference ?? "",
     notes: parsed.notes ?? "",
   });
@@ -290,6 +292,7 @@ export async function updateStayAction(formData: FormData) {
     checkOutTime: formData.get("checkOutTime"),
     cost: formData.get("cost"),
     address: formData.get("address"),
+    url: formData.get("url"),
     bookingReference: formData.get("bookingReference"),
     notes: formData.get("notes"),
   });
@@ -302,6 +305,7 @@ export async function updateStayAction(formData: FormData) {
     checkOutTime: parsed.checkOutTime ?? "",
     cost: parsed.cost,
     address: parsed.address ?? "",
+    url: parsed.url ?? "",
     bookingReference: parsed.bookingReference ?? "",
     notes: parsed.notes ?? "",
   });

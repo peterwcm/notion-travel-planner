@@ -129,6 +129,7 @@ npm run build
 - `退房時間` Rich text
 - `費用` Number
 - `地址` Rich text
+- `網址` URL
 - `訂房代碼` Rich text
 - `備註` Rich text
 
