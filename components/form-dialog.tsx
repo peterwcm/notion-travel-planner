@@ -9,6 +9,8 @@ interface FormDialogProps {
   description?: string;
   children: ReactNode;
   triggerClassName?: string;
+  triggerContent?: ReactNode;
+  triggerAriaLabel?: string;
 }
 
 export function FormDialog({
@@ -17,6 +19,8 @@ export function FormDialog({
   description,
   children,
   triggerClassName = "button",
+  triggerContent,
+  triggerAriaLabel,
 }: FormDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -33,8 +37,13 @@ export function FormDialog({
 
   return (
     <>
-      <button className={triggerClassName} onClick={() => dialogRef.current?.showModal()} type="button">
-        {triggerLabel}
+      <button
+        aria-label={triggerContent ? (triggerAriaLabel ?? triggerLabel) : undefined}
+        className={triggerClassName}
+        onClick={() => dialogRef.current?.showModal()}
+        type="button"
+      >
+        {triggerContent ?? triggerLabel}
       </button>
 
       <dialog aria-labelledby={titleId} className="form-dialog" onSubmit={handleSubmit} ref={dialogRef}>

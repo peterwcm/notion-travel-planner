@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { BrowserTimeZoneField } from "@/components/browser-time-zone-field";
 import { FlightPassengersField } from "@/components/flight-passengers-field";
 import { FormDialog } from "@/components/form-dialog";
+import { EditIcon, TrashIcon } from "@/components/icons";
 import { SubmitButton } from "@/components/submit-button";
 import {
   createDayAction,
@@ -296,33 +297,14 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                 <div className="item-list">
                   {day.items.length > 0 ? (
                     day.items.map((item) => (
-                      <div className="item-card" key={item.id}>
-                        <div className="item-meta">
-                          <div className="stack item-meta__title">
-                            <span className="tag">{item.type}</span>
-                            <h4>{item.title}</h4>
-                          </div>
-                          {getItemTimeLabel(item.startTime, item.endTime) ? (
-                            <div className="item-time">{getItemTimeLabel(item.startTime, item.endTime)}</div>
-                          ) : null}
-                        </div>
-                        {hasText(item.location) || typeof item.cost === "number" ? (
-                          <div className="row item-info">
-                            {hasText(item.location) ? <span className="muted">{item.location}</span> : <span />}
-                            {typeof item.cost === "number" ? <span>{currency(item.cost)}</span> : null}
-                          </div>
-                        ) : null}
-                        {item.url ? (
-                          <a className="muted" href={item.url} rel="noreferrer" target="_blank">
-                            {item.url}
-                          </a>
-                        ) : null}
-                        {item.notes ? <p>{item.notes}</p> : null}
-                        <div className="card-actions">
+                      <div className="item-card detail-card card-with-actions" key={item.id}>
+                        <div className="card-corner-actions">
                           <FormDialog
                             description="調整這筆行程項目的內容。"
                             title={`編輯 ${item.title}`}
-                            triggerClassName="ghost-button"
+                            triggerAriaLabel="編輯項目"
+                            triggerClassName="icon-button"
+                            triggerContent={<EditIcon />}
                             triggerLabel="編輯"
                           >
                             <form action={updateItemAction} className="stack">
@@ -378,15 +360,29 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                               <SubmitButton>儲存</SubmitButton>
                             </form>
                           </FormDialog>
-
-                          <form action={deleteItemAction}>
-                            <input name="tripId" type="hidden" value={detail.trip.id} />
-                            <input name="itemId" type="hidden" value={item.id} />
-                            <button className="ghost-button" type="submit">
-                              刪除
-                            </button>
-                          </form>
+                          <DeleteForm icon tripId={detail.trip.id} entityId={item.id} />
                         </div>
+                        <div className="item-meta">
+                          <div className="stack item-meta__title">
+                            <span className="tag">{item.type}</span>
+                            <h4>{item.title}</h4>
+                          </div>
+                          {getItemTimeLabel(item.startTime, item.endTime) ? (
+                            <div className="item-time">{getItemTimeLabel(item.startTime, item.endTime)}</div>
+                          ) : null}
+                        </div>
+                        {hasText(item.location) || typeof item.cost === "number" ? (
+                          <div className="row item-info">
+                            {hasText(item.location) ? <span className="muted">{item.location}</span> : <span />}
+                            {typeof item.cost === "number" ? <span>{currency(item.cost)}</span> : null}
+                          </div>
+                        ) : null}
+                        {item.url ? (
+                          <a className="muted" href={item.url} rel="noreferrer" target="_blank">
+                            {item.url}
+                          </a>
+                        ) : null}
+                        {item.notes ? <p>{item.notes}</p> : null}
                       </div>
                     ))
                   ) : (
@@ -491,7 +487,37 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
       <section className="stack">
         {detail.flights.length > 0 ? (
           detail.flights.map((flight) => (
-            <div className="detail-card flight-card" key={flight.id}>
+            <div className="detail-card flight-card card-with-actions" key={flight.id}>
+              <div className="card-corner-actions">
+                <FormDialog
+                  description="更新航班時間與資訊。"
+                  title={`編輯 ${getFlightDisplayLabel(flight)}`}
+                  triggerAriaLabel="編輯航班"
+                  triggerClassName="icon-button"
+                  triggerContent={<EditIcon />}
+                  triggerLabel="編輯"
+                >
+                  <form action={updateFlightAction} className="stack">
+                    <input name="tripId" type="hidden" value={detail.trip.id} />
+                    <input name="flightId" type="hidden" value={flight.id} />
+                    <BrowserTimeZoneField />
+                    <div className="forms-grid">
+                      <LabeledInput label="航空公司" name="airline" defaultValue={flight.airline} required />
+                      <LabeledInput label="航班號碼" name="flightNumber" defaultValue={flight.flightNumber} required />
+                      <LabeledInput label="出發機場" name="departureAirport" defaultValue={flight.departureAirport} required />
+                      <LabeledInput label="抵達機場" name="arrivalAirport" defaultValue={flight.arrivalAirport} required />
+                      <LabeledInput label="出發時間" name="departureAt" type="datetime-local" defaultValue={toDateTimeInputValue(flight.departureAt)} required />
+                      <LabeledInput label="抵達時間" name="arrivalAt" type="datetime-local" defaultValue={toDateTimeInputValue(flight.arrivalAt)} required />
+                      <LabeledInput label="機型" name="aircraft" defaultValue={flight.aircraft} />
+                      <LabeledInput label="行李資訊" name="baggageInfo" defaultValue={flight.baggageInfo} />
+                    </div>
+                    <FlightPassengersField defaultValue={flight.passengers} />
+                    <LabeledTextarea label="備註" name="notes" defaultValue={flight.notes} />
+                    <SubmitButton>儲存</SubmitButton>
+                  </form>
+                </FormDialog>
+                <DeleteForm icon tripId={detail.trip.id} entityId={flight.id} />
+              </div>
               <div className="flight-card__top">
                 <div className="flight-card__headline">
                   <div>
@@ -570,34 +596,6 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
                   <p className="muted">{flight.notes}</p>
                 </div>
               ) : null}
-              <div className="card-actions">
-                <FormDialog
-                  description="更新航班時間與資訊。"
-                  title={`編輯 ${getFlightDisplayLabel(flight)}`}
-                  triggerClassName="ghost-button"
-                  triggerLabel="編輯"
-                >
-                  <form action={updateFlightAction} className="stack">
-                    <input name="tripId" type="hidden" value={detail.trip.id} />
-                    <input name="flightId" type="hidden" value={flight.id} />
-                    <BrowserTimeZoneField />
-                    <div className="forms-grid">
-                      <LabeledInput label="航空公司" name="airline" defaultValue={flight.airline} required />
-                      <LabeledInput label="航班號碼" name="flightNumber" defaultValue={flight.flightNumber} required />
-                      <LabeledInput label="出發機場" name="departureAirport" defaultValue={flight.departureAirport} required />
-                      <LabeledInput label="抵達機場" name="arrivalAirport" defaultValue={flight.arrivalAirport} required />
-                      <LabeledInput label="出發時間" name="departureAt" type="datetime-local" defaultValue={toDateTimeInputValue(flight.departureAt)} required />
-                      <LabeledInput label="抵達時間" name="arrivalAt" type="datetime-local" defaultValue={toDateTimeInputValue(flight.arrivalAt)} required />
-                      <LabeledInput label="機型" name="aircraft" defaultValue={flight.aircraft} />
-                      <LabeledInput label="行李資訊" name="baggageInfo" defaultValue={flight.baggageInfo} />
-                    </div>
-                    <FlightPassengersField defaultValue={flight.passengers} />
-                    <LabeledTextarea label="備註" name="notes" defaultValue={flight.notes} />
-                    <SubmitButton>儲存</SubmitButton>
-                  </form>
-                </FormDialog>
-                <DeleteForm tripId={detail.trip.id} entityId={flight.id} />
-              </div>
             </div>
           ))
         ) : (
@@ -633,7 +631,34 @@ function StaysTab({ detail }: { detail: TripDetail }) {
       <section className="stack">
         {detail.stays.length > 0 ? (
           detail.stays.map((stay) => (
-            <div className="detail-card stay-card" key={stay.id}>
+            <div className="detail-card stay-card card-with-actions" key={stay.id}>
+              <div className="card-corner-actions">
+                <FormDialog
+                  description="更新住宿日期與資訊。"
+                  title={`編輯 ${stay.title}`}
+                  triggerAriaLabel="編輯住宿"
+                  triggerClassName="icon-button"
+                  triggerContent={<EditIcon />}
+                  triggerLabel="編輯"
+                >
+                  <form action={updateStayAction} className="stack">
+                    <input name="tripId" type="hidden" value={detail.trip.id} />
+                    <input name="stayId" type="hidden" value={stay.id} />
+                    <div className="forms-grid">
+                      <LabeledInput label="住宿名稱" name="title" defaultValue={stay.title} required />
+                      <LabeledInput label="入住日期" name="checkInDate" type="date" defaultValue={toDateInputValue(stay.checkInDate)} required />
+                      <LabeledInput label="退房日期" name="checkOutDate" type="date" defaultValue={toDateInputValue(stay.checkOutDate)} required />
+                      <LabeledInput label="入住時間" name="checkInTime" type="time" defaultValue={stay.checkInTime} />
+                      <LabeledInput label="退房時間" name="checkOutTime" type="time" defaultValue={stay.checkOutTime} />
+                      <LabeledInput label="訂房代碼" name="bookingReference" defaultValue={stay.bookingReference} />
+                    </div>
+                    <LabeledTextarea label="地址" name="address" defaultValue={stay.address} />
+                    <LabeledTextarea label="備註" name="notes" defaultValue={stay.notes} />
+                    <SubmitButton>儲存</SubmitButton>
+                  </form>
+                </FormDialog>
+                <DeleteForm icon tripId={detail.trip.id} entityId={stay.id} />
+              </div>
               <div className="stay-card__top">
                 <div>
                   <span className="tag">住宿</span>
@@ -680,31 +705,6 @@ function StaysTab({ detail }: { detail: TripDetail }) {
                 </div>
               ) : null}
 
-              <div className="card-actions">
-                <FormDialog
-                  description="更新住宿日期與資訊。"
-                  title={`編輯 ${stay.title}`}
-                  triggerClassName="ghost-button"
-                  triggerLabel="編輯"
-                >
-                  <form action={updateStayAction} className="stack">
-                    <input name="tripId" type="hidden" value={detail.trip.id} />
-                    <input name="stayId" type="hidden" value={stay.id} />
-                    <div className="forms-grid">
-                      <LabeledInput label="住宿名稱" name="title" defaultValue={stay.title} required />
-                      <LabeledInput label="入住日期" name="checkInDate" type="date" defaultValue={toDateInputValue(stay.checkInDate)} required />
-                      <LabeledInput label="退房日期" name="checkOutDate" type="date" defaultValue={toDateInputValue(stay.checkOutDate)} required />
-                      <LabeledInput label="入住時間" name="checkInTime" type="time" defaultValue={stay.checkInTime} />
-                      <LabeledInput label="退房時間" name="checkOutTime" type="time" defaultValue={stay.checkOutTime} />
-                      <LabeledInput label="訂房代碼" name="bookingReference" defaultValue={stay.bookingReference} />
-                    </div>
-                    <LabeledTextarea label="地址" name="address" defaultValue={stay.address} />
-                    <LabeledTextarea label="備註" name="notes" defaultValue={stay.notes} />
-                    <SubmitButton>儲存</SubmitButton>
-                  </form>
-                </FormDialog>
-                <DeleteForm tripId={detail.trip.id} entityId={stay.id} />
-              </div>
             </div>
           ))
         ) : (
@@ -746,6 +746,35 @@ function PickupsTab({ detail }: { detail: TripDetail }) {
               label="接送"
               meta={pickup.pickupAt ? formatDateTime(pickup.pickupAt) : undefined}
               body={getPickupRouteLabel(pickup.pickupLocation, pickup.dropoffLocation)}
+              actions={
+                <>
+                  <FormDialog
+                    description="更新接送時間與聯絡資訊。"
+                    title={`編輯 ${pickup.title}`}
+                    triggerAriaLabel="編輯接送"
+                    triggerClassName="icon-button"
+                    triggerContent={<EditIcon />}
+                    triggerLabel="編輯"
+                  >
+                    <form action={updatePickupAction} className="stack">
+                      <input name="tripId" type="hidden" value={detail.trip.id} />
+                      <input name="pickupId" type="hidden" value={pickup.id} />
+                      <BrowserTimeZoneField />
+                      <div className="forms-grid">
+                        <LabeledInput label="標題" name="title" defaultValue={pickup.title} required />
+                        <LabeledInput label="接送時間" name="pickupAt" type="datetime-local" defaultValue={toDateTimeInputValue(pickup.pickupAt)} />
+                        <LabeledInput label="服務商" name="provider" defaultValue={pickup.provider} />
+                        <LabeledInput label="聯絡方式" name="contact" defaultValue={pickup.contact} />
+                      </div>
+                      <LabeledTextarea label="上車地點" name="pickupLocation" defaultValue={pickup.pickupLocation} />
+                      <LabeledTextarea label="下車地點" name="dropoffLocation" defaultValue={pickup.dropoffLocation} />
+                      <LabeledTextarea label="備註" name="notes" defaultValue={pickup.notes} />
+                      <SubmitButton>儲存</SubmitButton>
+                    </form>
+                  </FormDialog>
+                  <DeleteForm icon tripId={detail.trip.id} entityId={pickup.id} />
+                </>
+              }
             >
               {hasText(pickup.provider) || hasText(pickup.contact) ? (
                 <div className="list-table">
@@ -763,31 +792,6 @@ function PickupsTab({ detail }: { detail: TripDetail }) {
                   ) : null}
                 </div>
               ) : null}
-              <div className="card-actions">
-                <FormDialog
-                  description="更新接送時間與聯絡資訊。"
-                  title={`編輯 ${pickup.title}`}
-                  triggerClassName="ghost-button"
-                  triggerLabel="編輯"
-                >
-                  <form action={updatePickupAction} className="stack">
-                    <input name="tripId" type="hidden" value={detail.trip.id} />
-                    <input name="pickupId" type="hidden" value={pickup.id} />
-                    <BrowserTimeZoneField />
-                    <div className="forms-grid">
-                      <LabeledInput label="標題" name="title" defaultValue={pickup.title} required />
-                      <LabeledInput label="接送時間" name="pickupAt" type="datetime-local" defaultValue={toDateTimeInputValue(pickup.pickupAt)} />
-                      <LabeledInput label="服務商" name="provider" defaultValue={pickup.provider} />
-                      <LabeledInput label="聯絡方式" name="contact" defaultValue={pickup.contact} />
-                    </div>
-                    <LabeledTextarea label="上車地點" name="pickupLocation" defaultValue={pickup.pickupLocation} />
-                    <LabeledTextarea label="下車地點" name="dropoffLocation" defaultValue={pickup.dropoffLocation} />
-                    <LabeledTextarea label="備註" name="notes" defaultValue={pickup.notes} />
-                    <SubmitButton>儲存</SubmitButton>
-                  </form>
-                </FormDialog>
-                <DeleteForm tripId={detail.trip.id} entityId={pickup.id} />
-              </div>
             </StructuredCard>
           ))
         ) : (
@@ -827,6 +831,33 @@ function RemindersTab({ detail }: { detail: TripDetail }) {
               label="提醒"
               meta={reminder.remindAt ? formatDateTime(reminder.remindAt) : undefined}
               body={hasText(reminder.location) ? reminder.location : undefined}
+              actions={
+                <>
+                  <FormDialog
+                    description="更新提醒時間與補充資訊。"
+                    title={`編輯 ${reminder.title}`}
+                    triggerAriaLabel="編輯提醒"
+                    triggerClassName="icon-button"
+                    triggerContent={<EditIcon />}
+                    triggerLabel="編輯"
+                  >
+                    <form action={updateReminderAction} className="stack">
+                      <input name="tripId" type="hidden" value={detail.trip.id} />
+                      <input name="reminderId" type="hidden" value={reminder.id} />
+                      <BrowserTimeZoneField />
+                      <div className="forms-grid">
+                        <LabeledInput label="標題" name="title" defaultValue={reminder.title} required />
+                        <LabeledInput label="提醒時間" name="remindAt" type="datetime-local" defaultValue={toDateTimeInputValue(reminder.remindAt)} />
+                        <LabeledInput label="網址" name="url" defaultValue={reminder.url} />
+                      </div>
+                      <LabeledTextarea label="地點" name="location" defaultValue={reminder.location} />
+                      <LabeledTextarea label="備註" name="notes" defaultValue={reminder.notes} />
+                      <SubmitButton>儲存</SubmitButton>
+                    </form>
+                  </FormDialog>
+                  <DeleteForm icon tripId={detail.trip.id} entityId={reminder.id} />
+                </>
+              }
             >
               {reminder.url ? (
                 <a className="muted" href={reminder.url} rel="noreferrer" target="_blank">
@@ -834,29 +865,6 @@ function RemindersTab({ detail }: { detail: TripDetail }) {
                 </a>
               ) : null}
               {reminder.notes ? <p className="muted">{reminder.notes}</p> : null}
-              <div className="card-actions">
-                <FormDialog
-                  description="更新提醒時間與補充資訊。"
-                  title={`編輯 ${reminder.title}`}
-                  triggerClassName="ghost-button"
-                  triggerLabel="編輯"
-                >
-                  <form action={updateReminderAction} className="stack">
-                    <input name="tripId" type="hidden" value={detail.trip.id} />
-                    <input name="reminderId" type="hidden" value={reminder.id} />
-                    <BrowserTimeZoneField />
-                    <div className="forms-grid">
-                      <LabeledInput label="標題" name="title" defaultValue={reminder.title} required />
-                      <LabeledInput label="提醒時間" name="remindAt" type="datetime-local" defaultValue={toDateTimeInputValue(reminder.remindAt)} />
-                      <LabeledInput label="網址" name="url" defaultValue={reminder.url} />
-                    </div>
-                    <LabeledTextarea label="地點" name="location" defaultValue={reminder.location} />
-                    <LabeledTextarea label="備註" name="notes" defaultValue={reminder.notes} />
-                    <SubmitButton>儲存</SubmitButton>
-                  </form>
-                </FormDialog>
-                <DeleteForm tripId={detail.trip.id} entityId={reminder.id} />
-              </div>
             </StructuredCard>
           ))
         ) : (
@@ -883,6 +891,7 @@ function StructuredCard({
   meta,
   body,
   preserveBodyNewlines,
+  actions,
   children,
 }: {
   label: string;
@@ -890,10 +899,12 @@ function StructuredCard({
   meta?: string;
   body?: string;
   preserveBodyNewlines?: boolean;
+  actions?: ReactNode;
   children: ReactNode;
 }) {
   return (
-    <div className="detail-card">
+    <div className={actions ? "detail-card card-with-actions" : "detail-card"}>
+      {actions ? <div className="card-corner-actions">{actions}</div> : null}
       <div className="header-actions">
         <div>
           <span className="tag">{label}</span>
@@ -909,13 +920,13 @@ function StructuredCard({
   );
 }
 
-function DeleteForm({ tripId, entityId }: { tripId: string; entityId: string }) {
+function DeleteForm({ tripId, entityId, icon }: { tripId: string; entityId: string; icon?: boolean }) {
   return (
     <form action={deleteEntityAction}>
       <input name="tripId" type="hidden" value={tripId} />
       <input name="entityId" type="hidden" value={entityId} />
-      <button className="ghost-button" type="submit">
-        刪除
+      <button aria-label="刪除" className={icon ? "icon-button icon-button--danger" : "ghost-button"} type="submit">
+        {icon ? <TrashIcon /> : "刪除"}
       </button>
     </form>
   );
