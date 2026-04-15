@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactElement } from "react";
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -6,28 +6,22 @@ import { notFound } from "next/navigation";
 import { BrowserTimeZoneField } from "@/components/browser-time-zone-field";
 import { FlightPassengersField } from "@/components/flight-passengers-field";
 import { FormDialog } from "@/components/form-dialog";
-import { EditIcon, TrashIcon } from "@/components/icons";
-import { LocalDate, LocalDateTime } from "@/components/local-date-time";
+import { LocalDate } from "@/components/local-date-time";
 import { SubmitButton } from "@/components/submit-button";
+import {
+  FlightDetailCard,
+  ItineraryItemCard,
+  StayDetailCard,
+} from "@/components/trip-detail-cards";
 import {
   createDayAction,
   createFlightAction,
   createItemAction,
   createStayAction,
-  deleteEntityAction,
-  deleteItemAction,
-  updateFlightAction,
-  updateItemAction,
-  updateStayAction,
   updateTripAction,
 } from "@/app/(protected)/trips/actions";
-import { getFlightDisplayLabel } from "@/lib/flight-passengers";
 import { getNotionStatus, getTripDetail, getTripStats } from "@/lib/notion";
-import type {
-  TripDetail,
-  TripFlightPassenger,
-  TripSectionTab,
-} from "@/lib/types";
+import type { TripDetail, TripSectionTab } from "@/lib/types";
 import { currency } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -255,18 +249,7 @@ function OverviewTab({ detail }: { detail: TripDetail }) {
     <section className="page page--tight">
       <div className="stack">
         {items.length > 0 ? (
-          items.map((item) => (
-            <StructuredCard
-              key={item.id}
-              label={item.label}
-              title={item.title}
-              meta={item.meta}
-              body={item.body}
-              preserveBodyNewlines={item.preserveBodyNewlines}
-            >
-              {item.children}
-            </StructuredCard>
-          ))
+          items.map((item) => item.card)
         ) : (
           <div className="empty">No trip details yet.</div>
         )}
@@ -364,173 +347,12 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                 <div className="item-list">
                   {day.items.length > 0 ? (
                     day.items.map((item) => (
-                      <div
-                        className="item-card detail-card card-with-actions"
+                      <ItineraryItemCard
                         key={item.id}
-                      >
-                        <div className="card-corner-actions">
-                          <FormDialog
-                            description="Update this itinerary item."
-                            title={`Edit ${item.title}`}
-                            triggerAriaLabel="Edit item"
-                            triggerClassName="icon-button"
-                            triggerContent={<EditIcon />}
-                            triggerLabel="Edit"
-                          >
-                            <form action={updateItemAction} className="stack">
-                              <input
-                                name="tripId"
-                                type="hidden"
-                                value={detail.trip.id}
-                              />
-                              <input
-                                name="itemId"
-                                type="hidden"
-                                value={item.id}
-                              />
-                              <input
-                                name="dayId"
-                                type="hidden"
-                                value={day.id}
-                              />
-                              <div className="forms-grid">
-                                <div className="field">
-                                  <label className="field-label field-label--required">
-                                    Name
-                                  </label>
-                                  <input
-                                    className="input"
-                                    defaultValue={item.title}
-                                    name="title"
-                                    required
-                                  />
-                                </div>
-                                <div className="field">
-                                  <label className="field-label">Type</label>
-                                  <select
-                                    className="select"
-                                    defaultValue={item.type}
-                                    name="type"
-                                  >
-                                    {ITEM_TYPE_OPTIONS.map((option) => (
-                                      <option key={option} value={option}>
-                                        {option}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
-                                <div className="field">
-                                  <label className="field-label">
-                                    Start time
-                                  </label>
-                                  <input
-                                    className="input"
-                                    defaultValue={item.startTime}
-                                    name="startTime"
-                                    placeholder="09:00"
-                                  />
-                                </div>
-                                <div className="field">
-                                  <label className="field-label">
-                                    End time
-                                  </label>
-                                  <input
-                                    className="input"
-                                    defaultValue={item.endTime}
-                                    name="endTime"
-                                    placeholder="11:00"
-                                  />
-                                </div>
-                                <div className="field">
-                                  <label className="field-label">Location</label>
-                                  <input
-                                    className="input"
-                                    defaultValue={item.location}
-                                    name="location"
-                                  />
-                                </div>
-                                <div className="field">
-                                  <label className="field-label">Order</label>
-                                  <input
-                                    className="input"
-                                    defaultValue={item.order}
-                                    min={0}
-                                    name="order"
-                                    type="number"
-                                  />
-                                </div>
-                                <div className="field">
-                                  <label className="field-label">Cost</label>
-                                  <input
-                                    className="input"
-                                    defaultValue={item.cost ?? ""}
-                                    min={0}
-                                    name="cost"
-                                    type="number"
-                                  />
-                                </div>
-                                <div className="field">
-                                  <label className="field-label">Link</label>
-                                  <input
-                                    className="input"
-                                    defaultValue={item.url}
-                                    name="url"
-                                  />
-                                </div>
-                              </div>
-                              <div className="field">
-                                <label className="field-label">Notes</label>
-                                <textarea
-                                  className="textarea textarea--compact"
-                                  defaultValue={item.notes}
-                                  name="notes"
-                                />
-                              </div>
-                              <SubmitButton>Save</SubmitButton>
-                            </form>
-                          </FormDialog>
-                          <DeleteForm
-                            icon
-                            tripId={detail.trip.id}
-                            entityId={item.id}
-                          />
-                        </div>
-                        <div className="item-meta">
-                          <div className="stack item-meta__title">
-                            <span className="tag">{item.type}</span>
-                            <h4>{item.title}</h4>
-                          </div>
-                          {getItemTimeLabel(item.startTime, item.endTime) ? (
-                            <div className="item-time">
-                              {getItemTimeLabel(item.startTime, item.endTime)}
-                            </div>
-                          ) : null}
-                        </div>
-                        {hasText(item.location) ||
-                        typeof item.cost === "number" ? (
-                          <div className="row item-info">
-                            {hasText(item.location) ? (
-                              <span className="muted">{item.location}</span>
-                            ) : (
-                              <span />
-                            )}
-                            {typeof item.cost === "number" ? (
-                              <span>{currency(item.cost)}</span>
-                            ) : null}
-                          </div>
-                        ) : null}
-                        {item.url ? (
-                          <a
-                            className="muted"
-                            href={item.url}
-                            rel="noreferrer"
-                            target="_blank"
-                          >
-                            {item.url}
-                          </a>
-                        ) : null}
-                        {item.notes ? <p>{item.notes}</p> : null}
-                      </div>
+                        tripId={detail.trip.id}
+                        dayId={day.id}
+                        item={item}
+                      />
                     ))
                   ) : (
                     <div className="empty">No items scheduled for this day.</div>
@@ -732,185 +554,11 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
       <section className="stack">
         {detail.flights.length > 0 ? (
           detail.flights.map((flight) => (
-            <div
-              className="detail-card flight-card card-with-actions"
+            <FlightDetailCard
               key={flight.id}
-            >
-              <div className="card-corner-actions">
-                <FormDialog
-                  description="Update the flight schedule and details."
-                  title={`Edit ${getFlightDisplayLabel(flight)}`}
-                  triggerAriaLabel="Edit flight"
-                  triggerClassName="icon-button"
-                  triggerContent={<EditIcon />}
-                  triggerLabel="Edit"
-                >
-                  <form action={updateFlightAction} className="stack">
-                    <input name="tripId" type="hidden" value={detail.trip.id} />
-                    <input name="flightId" type="hidden" value={flight.id} />
-                    <BrowserTimeZoneField />
-                    <div className="forms-grid">
-                      <LabeledInput
-                        label="Airline"
-                        name="airline"
-                        defaultValue={flight.airline}
-                        required
-                      />
-                      <LabeledInput
-                        label="Flight number"
-                        name="flightNumber"
-                        defaultValue={flight.flightNumber}
-                        required
-                      />
-                      <LabeledInput
-                        label="Departure airport"
-                        name="departureAirport"
-                        defaultValue={flight.departureAirport}
-                        required
-                      />
-                      <LabeledInput
-                        label="Arrival airport"
-                        name="arrivalAirport"
-                        defaultValue={flight.arrivalAirport}
-                        required
-                      />
-                      <LabeledInput
-                        label="Departure time"
-                        name="departureAt"
-                        type="datetime-local"
-                        defaultValue={toDateTimeInputValue(flight.departureAt)}
-                        required
-                      />
-                      <LabeledInput
-                        label="Arrival time"
-                        name="arrivalAt"
-                        type="datetime-local"
-                        defaultValue={toDateTimeInputValue(flight.arrivalAt)}
-                        required
-                      />
-                      <LabeledInput
-                        label="Aircraft"
-                        name="aircraft"
-                        defaultValue={flight.aircraft}
-                      />
-                      <LabeledInput
-                        label="Baggage info"
-                        name="baggageInfo"
-                        defaultValue={flight.baggageInfo}
-                      />
-                      <LabeledInput
-                        label="Cost"
-                        name="cost"
-                        type="number"
-                        min={0}
-                        defaultValue={flight.cost ?? ""}
-                      />
-                    </div>
-                    <FlightPassengersField defaultValue={flight.passengers} />
-                    <LabeledTextarea
-                      label="Notes"
-                      name="notes"
-                      defaultValue={flight.notes}
-                    />
-                    <SubmitButton>Save</SubmitButton>
-                  </form>
-                </FormDialog>
-                <DeleteForm icon tripId={detail.trip.id} entityId={flight.id} />
-              </div>
-              <div className="flight-card__top">
-                <div className="flight-card__headline">
-                  <div>
-                    <span className="tag">Flight</span>
-                    <h4>{getFlightDisplayLabel(flight)}</h4>
-                  </div>
-                  <span className="pill">{flight.airline}</span>
-                </div>
-
-                <div className="flight-card__route">
-                  <div className="flight-card__stop">
-                    <span className="flight-card__code">
-                      {flight.departureAirport}
-                    </span>
-                    <strong>
-                      <LocalDateTime value={flight.departureAt} />
-                    </strong>
-                    <span>Departure</span>
-                  </div>
-                  <div className="flight-card__route-line">
-                    <span />
-                    <small>{flight.flightNumber}</small>
-                  </div>
-                  <div className="flight-card__stop">
-                    <span className="flight-card__code">
-                      {flight.arrivalAirport}
-                    </span>
-                    <strong>
-                      <LocalDateTime value={flight.arrivalAt} />
-                    </strong>
-                    <span>Arrival</span>
-                  </div>
-                </div>
-
-                <div className="flight-card__facts">
-                  {hasText(flight.aircraft) ? (
-                    <div className="flight-card__fact">
-                      <span>Aircraft</span>
-                      <strong>{flight.aircraft}</strong>
-                    </div>
-                  ) : null}
-                  {hasText(flight.baggageInfo) ? (
-                    <div className="flight-card__fact">
-                      <span>Baggage info</span>
-                      <strong>{flight.baggageInfo}</strong>
-                    </div>
-                  ) : null}
-                  {typeof flight.cost === "number" ? (
-                    <div className="flight-card__fact">
-                      <span>Cost</span>
-                      <strong>{currency(flight.cost)}</strong>
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-
-              {flight.passengers.length > 0 ? (
-                <div className="stack compact-list flight-card__passengers">
-                  {flight.passengers.map((passenger, index) => (
-                    <div
-                      className="flight-passenger-card"
-                      key={getPassengerKey(passenger, index)}
-                    >
-                      <div className="header-actions">
-                        <span className="tag">Passenger {index + 1}</span>
-                        {hasText(passenger.fullName) ? (
-                          <strong>{passenger.fullName}</strong>
-                        ) : null}
-                      </div>
-                      <div className="flight-passenger-card__grid">
-                        {hasText(passenger.bookingReference) ? (
-                          <div>
-                            <span>Booking reference</span>
-                            <strong>{passenger.bookingReference}</strong>
-                          </div>
-                        ) : null}
-                        {hasText(passenger.ticketNumber) ? (
-                          <div>
-                            <span>Ticket number</span>
-                            <strong>{passenger.ticketNumber}</strong>
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-              {flight.notes ? (
-                <div className="flight-card__notes">
-                  <span>Notes</span>
-                  <p className="muted">{flight.notes}</p>
-                </div>
-              ) : null}
-            </div>
+              tripId={detail.trip.id}
+              flight={flight}
+            />
           ))
         ) : (
           <div className="empty">No flights yet.</div>
@@ -976,163 +624,11 @@ function StaysTab({ detail }: { detail: TripDetail }) {
       <section className="stack">
         {detail.stays.length > 0 ? (
           detail.stays.map((stay) => (
-            <div
-              className="detail-card stay-card card-with-actions"
+            <StayDetailCard
               key={stay.id}
-            >
-              <div className="card-corner-actions">
-                <FormDialog
-                  description="Update stay dates and details."
-                  title={`Edit ${stay.title}`}
-                  triggerAriaLabel="Edit stay"
-                  triggerClassName="icon-button"
-                  triggerContent={<EditIcon />}
-                  triggerLabel="Edit"
-                >
-                  <form action={updateStayAction} className="stack">
-                    <input name="tripId" type="hidden" value={detail.trip.id} />
-                    <input name="stayId" type="hidden" value={stay.id} />
-                    <div className="forms-grid">
-                      <LabeledInput
-                        label="Stay name"
-                        name="title"
-                        defaultValue={stay.title}
-                        required
-                      />
-                      <LabeledInput
-                        label="Check-in date"
-                        name="checkInDate"
-                        type="date"
-                        defaultValue={toDateInputValue(stay.checkInDate)}
-                        required
-                      />
-                      <LabeledInput
-                        label="Check-out date"
-                        name="checkOutDate"
-                        type="date"
-                        defaultValue={toDateInputValue(stay.checkOutDate)}
-                        required
-                      />
-                      <LabeledInput
-                        label="Check-in time"
-                        name="checkInTime"
-                        type="time"
-                        defaultValue={stay.checkInTime}
-                      />
-                      <LabeledInput
-                        label="Check-out time"
-                        name="checkOutTime"
-                        type="time"
-                        defaultValue={stay.checkOutTime}
-                      />
-                      <LabeledInput
-                        label="Cost"
-                        name="cost"
-                        type="number"
-                        min={0}
-                        defaultValue={stay.cost ?? ""}
-                      />
-                      <LabeledInput
-                        label="Link"
-                        name="url"
-                        defaultValue={stay.url}
-                        placeholder="https://..."
-                      />
-                      <LabeledInput
-                        label="Booking reference"
-                        name="bookingReference"
-                        defaultValue={stay.bookingReference}
-                      />
-                    </div>
-                    <LabeledTextarea
-                      label="Address"
-                      name="address"
-                      defaultValue={stay.address}
-                    />
-                    <LabeledTextarea
-                      label="Notes"
-                      name="notes"
-                      defaultValue={stay.notes}
-                    />
-                    <SubmitButton>Save</SubmitButton>
-                  </form>
-                </FormDialog>
-                <DeleteForm icon tripId={detail.trip.id} entityId={stay.id} />
-              </div>
-              <div className="stay-card__top">
-                <div>
-                  <span className="tag">Stay</span>
-                  <h4>{stay.title}</h4>
-                </div>
-                <span className="pill">
-                  <LocalDate value={stay.checkInDate} /> -{" "}
-                  <LocalDate value={stay.checkOutDate} />
-                </span>
-              </div>
-
-              <div className="stay-card__timeline">
-                <div className="stay-card__point">
-                  <span>Check-in</span>
-                  <strong>
-                    <LocalDate value={stay.checkInDate} />
-                  </strong>
-                  {hasText(stay.checkInTime) ? (
-                    <small>{stay.checkInTime}</small>
-                  ) : null}
-                </div>
-                <div className="stay-card__line" />
-                <div className="stay-card__point">
-                  <span>Check-out</span>
-                  <strong>
-                    <LocalDate value={stay.checkOutDate} />
-                  </strong>
-                  {hasText(stay.checkOutTime) ? (
-                    <small>{stay.checkOutTime}</small>
-                  ) : null}
-                </div>
-              </div>
-
-              <div className="stay-card__facts">
-                {hasText(stay.bookingReference) ? (
-                  <div className="stay-card__fact">
-                    <span>Booking reference</span>
-                    <strong>{stay.bookingReference}</strong>
-                  </div>
-                ) : null}
-                {typeof stay.cost === "number" ? (
-                  <div className="stay-card__fact">
-                    <span>Cost</span>
-                    <strong>{currency(stay.cost)}</strong>
-                  </div>
-                ) : null}
-                {hasText(stay.address) ? (
-                  <div className="stay-card__fact stay-card__fact--wide">
-                    <span>Address</span>
-                    <strong className="stay-card__address">
-                      {stay.address}
-                    </strong>
-                  </div>
-                ) : null}
-              </div>
-
-              {stay.url ? (
-                <a
-                  className="muted"
-                  href={stay.url}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  {stay.url}
-                </a>
-              ) : null}
-
-              {stay.notes ? (
-                <div className="stay-card__notes">
-                  <span>Notes</span>
-                  <p className="muted">{stay.notes}</p>
-                </div>
-              ) : null}
-            </div>
+              tripId={detail.trip.id}
+              stay={stay}
+            />
           ))
         ) : (
           <div className="empty">No stays yet.</div>
@@ -1142,71 +638,12 @@ function StaysTab({ detail }: { detail: TripDetail }) {
   );
 }
 
-function StructuredCard({
-  label,
-  title,
-  meta,
-  body,
-  preserveBodyNewlines,
-  actions,
-  children,
-}: {
-  label: string;
-  title: string;
-  meta?: ReactNode;
-  body?: ReactNode;
-  preserveBodyNewlines?: boolean;
-  actions?: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <div className={actions ? "detail-card card-with-actions" : "detail-card"}>
-      {actions ? <div className="card-corner-actions">{actions}</div> : null}
-      <div className="header-actions">
-        <div>
-          <span className="tag">{label}</span>
-          <h4>{title}</h4>
-        </div>
-        {meta ? <span className="pill">{meta}</span> : null}
-      </div>
-      {body ? (
-        <p
-          className={
-            preserveBodyNewlines
-              ? "muted detail-card__body detail-card__body--multiline"
-              : "muted detail-card__body"
-          }
-        >
-          {body}
-        </p>
-      ) : null}
-      {children}
-    </div>
-  );
-}
+function toDateInputValue(value?: string | null) {
+  if (!value) {
+    return "";
+  }
 
-function DeleteForm({
-  tripId,
-  entityId,
-  icon,
-}: {
-  tripId: string;
-  entityId: string;
-  icon?: boolean;
-}) {
-  return (
-    <form action={deleteEntityAction}>
-      <input name="tripId" type="hidden" value={tripId} />
-      <input name="entityId" type="hidden" value={entityId} />
-      <button
-        aria-label="Delete"
-        className={icon ? "icon-button icon-button--danger" : "ghost-button"}
-        type="submit"
-      >
-        {icon ? <TrashIcon /> : "Delete"}
-      </button>
-    </form>
-  );
+  return value.slice(0, 10);
 }
 
 function LabeledInput({
@@ -1281,157 +718,44 @@ function LabeledTextarea({
   );
 }
 
-function toDateTimeInputValue(value?: string | null) {
-  if (!value) {
-    return "";
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value.slice(0, 16);
-  }
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-}
-
-function toDateInputValue(value?: string | null) {
-  if (!value) {
-    return "";
-  }
-
-  return value.slice(0, 10);
-}
-
 type OverviewItem = {
-  id: string;
-  label: string;
-  title: string;
-  meta?: ReactNode;
-  body?: ReactNode;
-  preserveBodyNewlines?: boolean;
-  children: ReactNode;
+  card: ReactElement;
   sortValue: number;
 };
 
 function getOverviewItems(detail: TripDetail): OverviewItem[] {
   const dayItems = detail.days.flatMap((day) =>
     day.items.map<OverviewItem>((item, index) => ({
-      id: `day-item-${item.id}`,
-      label: `Day ${day.dayNumber}`,
-      title: item.title,
-      meta: getItemDateTimeLabel(day.date, item.startTime, item.endTime),
-      body: item.notes || undefined,
-      preserveBodyNewlines: Boolean(item.notes),
-      children: (
-        <>
-          <div className="list-table">
-            <div className="list-table__row">
-              <span>Type</span>
-              <strong>{item.type}</strong>
-            </div>
-            <div className="list-table__row">
-              <span>Location</span>
-              <strong>{item.location || "Not entered"}</strong>
-            </div>
-            <div className="list-table__row">
-              <span>Cost</span>
-              <strong>{currency(item.cost)}</strong>
-            </div>
-          </div>
-          {item.url ? (
-            <a
-              className="muted"
-              href={item.url}
-              rel="noreferrer"
-              target="_blank"
-            >
-              {item.url}
-            </a>
-          ) : null}
-        </>
+      card: (
+        <ItineraryItemCard
+          key={`overview-item-${item.id}`}
+          tripId={detail.trip.id}
+          dayId={day.id}
+          item={item}
+        />
       ),
       sortValue: getDateAndTimeSortValue(day.date, item.startTime, index),
     })),
   );
 
   const flightItems = detail.flights.map<OverviewItem>((flight, index) => ({
-    id: `flight-${flight.id}`,
-    label: "Flight",
-    title: getFlightDisplayLabel(flight),
-    meta: <LocalDateTime value={flight.departureAt} />,
-    body: flight.notes || undefined,
-    preserveBodyNewlines: Boolean(flight.notes),
-    children: (
-      <div className="list-table">
-        <div className="list-table__row">
-          <span>Departure</span>
-          <strong>
-            <LocalDateTime value={flight.departureAt} />
-          </strong>
-        </div>
-        <div className="list-table__row">
-          <span>Arrival</span>
-          <strong>
-            <LocalDateTime value={flight.arrivalAt} />
-          </strong>
-        </div>
-        <div className="list-table__row">
-          <span>Cost</span>
-          <strong>{currency(flight.cost)}</strong>
-        </div>
-      </div>
+    card: (
+      <FlightDetailCard
+        key={`overview-flight-${flight.id}`}
+        tripId={detail.trip.id}
+        flight={flight}
+      />
     ),
     sortValue: getDateSortValue(flight.departureAt, index),
   }));
 
   const stayItems = detail.stays.map<OverviewItem>((stay, index) => ({
-    id: `stay-${stay.id}`,
-    label: "Stay",
-    title: stay.title,
-    meta: getStayDateTimeLabel(stay),
-    body: stay.notes || undefined,
-    preserveBodyNewlines: Boolean(stay.notes),
-    children: (
-      <div className="list-table">
-        <div className="list-table__row">
-          <span>Check-in</span>
-          <strong>
-            <LocalDate value={stay.checkInDate} />
-            {hasText(stay.checkInTime)
-              ? ` ${normalizeTime(stay.checkInTime)}`
-              : ""}
-          </strong>
-        </div>
-        <div className="list-table__row">
-          <span>Check-out</span>
-          <strong>
-            <LocalDate value={stay.checkOutDate} />
-            {hasText(stay.checkOutTime)
-              ? ` ${normalizeTime(stay.checkOutTime)}`
-              : ""}
-          </strong>
-        </div>
-        <div className="list-table__row">
-          <span>Address</span>
-          <strong>{stay.address || "Not entered"}</strong>
-        </div>
-        <div className="list-table__row">
-          <span>Cost</span>
-          <strong>{currency(stay.cost)}</strong>
-        </div>
-        {stay.url ? (
-          <a className="muted" href={stay.url} rel="noreferrer" target="_blank">
-            {stay.url}
-          </a>
-        ) : null}
-      </div>
+    card: (
+      <StayDetailCard
+        key={`overview-stay-${stay.id}`}
+        tripId={detail.trip.id}
+        stay={stay}
+      />
     ),
     sortValue: getDateAndTimeSortValue(
       stay.checkInDate,
@@ -1472,57 +796,8 @@ function getDateAndTimeSortValue(
     : timestamp;
 }
 
-function getItemDateTimeLabel(
-  date?: string | null,
-  startTime?: string | null,
-  endTime?: string | null,
-) {
-  const timeLabel = getItemTimeLabel(
-    normalizeTime(startTime) ?? undefined,
-    normalizeTime(endTime) ?? undefined,
-  );
-  return (
-    <>
-      <LocalDate value={date} />
-      {timeLabel ? ` ${timeLabel}` : ""}
-    </>
-  );
-}
-
-function getStayDateTimeLabel(stay: TripDetail["stays"][number]) {
-  return (
-    <>
-      <LocalDate value={stay.checkInDate} />
-      {hasText(stay.checkInTime) ? ` ${normalizeTime(stay.checkInTime)}` : ""}
-      {" - "}
-      <LocalDate value={stay.checkOutDate} />
-      {hasText(stay.checkOutTime) ? ` ${normalizeTime(stay.checkOutTime)}` : ""}
-    </>
-  );
-}
-
-function getPassengerKey(passenger: TripFlightPassenger, index: number) {
-  return `${passenger.fullName}-${passenger.bookingReference}-${passenger.ticketNumber}-${index}`;
-}
-
 function hasText(value?: string | null) {
   return Boolean(value?.trim());
-}
-
-function getItemTimeLabel(startTime?: string, endTime?: string) {
-  if (hasText(startTime) && hasText(endTime)) {
-    return `${startTime} - ${endTime}`;
-  }
-
-  if (hasText(startTime)) {
-    return startTime;
-  }
-
-  if (hasText(endTime)) {
-    return endTime;
-  }
-
-  return "";
 }
 
 function normalizeTime(value?: string | null) {
