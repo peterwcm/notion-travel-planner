@@ -4,8 +4,10 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "next dev",
-    "build": "BUILD_OUTPUT_DIR=.next-build next build",
-    "start": "BUILD_OUTPUT_DIR=.next-build next start",
+    "build": "next build",
+    "build:isolated": "BUILD_OUTPUT_DIR=.next-build next build",
+    "start": "next start",
+    "start:isolated": "BUILD_OUTPUT_DIR=.next-build next start",
     "lint": "next lint"
   },
   "dependencies": {
