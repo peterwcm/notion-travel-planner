@@ -56,7 +56,9 @@ export function ItineraryItemCard({
             <input name="dayId" type="hidden" value={dayId} />
             <div className="forms-grid">
               <div className="field">
-                <label className="field-label field-label--required">Name</label>
+                <label className="field-label field-label--required">
+                  Name
+                </label>
                 <input
                   className="input"
                   defaultValue={item.title}
@@ -264,15 +266,15 @@ export function FlightDetailCard({
       <div className="flight-card__top">
         <div className="flight-card__headline">
           <div>
-            <span className="tag">Flight</span>
-            <h4>{getFlightDisplayLabel(flight)}</h4>
+            <h4>
+              <span className="tag">Flight</span>
+              {flight.departureAirport} → {flight.arrivalAirport}
+            </h4>
           </div>
-          <span className="pill">{flight.airline}</span>
         </div>
 
         <div className="flight-card__route">
           <div className="flight-card__stop">
-            <span className="flight-card__code">{flight.departureAirport}</span>
             <strong>
               <LocalDateTime value={flight.departureAt} />
             </strong>
@@ -280,10 +282,12 @@ export function FlightDetailCard({
           </div>
           <div className="flight-card__route-line">
             <span />
-            <small>{flight.flightNumber}</small>
+            <small>
+              {flight.airline}
+              {flight.flightNumber}
+            </small>
           </div>
           <div className="flight-card__stop">
-            <span className="flight-card__code">{flight.arrivalAirport}</span>
             <strong>
               <LocalDateTime value={flight.arrivalAt} />
             </strong>
