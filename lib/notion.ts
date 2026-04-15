@@ -66,8 +66,6 @@ const STAY_PROPS = {
   trip: "Trip",
   checkInDate: "Check-in Date",
   checkOutDate: "Check-out Date",
-  checkInTime: "Check-in Time",
-  checkOutTime: "Check-out Time",
   cost: "Cost",
   address: "Address",
   url: "Link",
@@ -102,6 +100,57 @@ function dateProperty(value?: string | null) {
   }
 
   return { date: { start: value } };
+}
+
+function combineDateAndTime(date?: string | null, time?: string | null) {
+  if (!date) {
+    return "";
+  }
+
+  const normalizedTime = normalizeTimeValue(time);
+  return `${date}T${normalizedTime}`;
+}
+
+function normalizeTimeValue(value?: string | null) {
+  const trimmed = value?.trim() ?? "";
+
+  if (!trimmed) {
+    return "00:00:00";
+  }
+
+  if (/^\d{2}:\d{2}:\d{2}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  if (/^\d{2}:\d{2}$/.test(trimmed)) {
+    return `${trimmed}:00`;
+  }
+
+  return trimmed;
+}
+
+function getDatePart(value?: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  return value.slice(0, 10);
+}
+
+function getTimePart(value?: string | null) {
+  if (!value || !value.includes("T")) {
+    return "";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    const match = value.match(/T(\d{2}:\d{2})/);
+    return match?.[1] ?? "";
+  }
+
+  const hours = String(date.getUTCHours()).padStart(2, "0");
+  const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
 }
 
 function relationProperty(id: string) {
@@ -511,10 +560,12 @@ export async function createStay(input: Omit<TripStay, "id">) {
     {
       [STAY_PROPS.title]: titleProperty(input.title),
       [STAY_PROPS.trip]: relationProperty(input.tripId),
-      [STAY_PROPS.checkInDate]: dateProperty(input.checkInDate ?? ""),
-      [STAY_PROPS.checkOutDate]: dateProperty(input.checkOutDate ?? ""),
-      [STAY_PROPS.checkInTime]: richTextProperty(input.checkInTime),
-      [STAY_PROPS.checkOutTime]: richTextProperty(input.checkOutTime),
+      [STAY_PROPS.checkInDate]: dateProperty(
+        combineDateAndTime(input.checkInDate, input.checkInTime),
+      ),
+      [STAY_PROPS.checkOutDate]: dateProperty(
+        combineDateAndTime(input.checkOutDate, input.checkOutTime),
+      ),
       [STAY_PROPS.cost]: {
         number: input.cost,
       },
@@ -544,10 +595,12 @@ export async function updateStay(
   const properties = filterPropertiesBySchema(
     {
       [STAY_PROPS.title]: titleProperty(input.title),
-      [STAY_PROPS.checkInDate]: dateProperty(input.checkInDate ?? ""),
-      [STAY_PROPS.checkOutDate]: dateProperty(input.checkOutDate ?? ""),
-      [STAY_PROPS.checkInTime]: richTextProperty(input.checkInTime),
-      [STAY_PROPS.checkOutTime]: richTextProperty(input.checkOutTime),
+      [STAY_PROPS.checkInDate]: dateProperty(
+        combineDateAndTime(input.checkInDate, input.checkInTime),
+      ),
+      [STAY_PROPS.checkOutDate]: dateProperty(
+        combineDateAndTime(input.checkOutDate, input.checkOutTime),
+      ),
       [STAY_PROPS.cost]: {
         number: input.cost,
       },
@@ -674,15 +727,17 @@ function mapFlight(properties: Record<string, any>, id: string): TripFlight {
 
 function mapStay(properties: Record<string, any>, id: string): TripStay {
   const [tripId] = getRelation(properties, STAY_PROPS.trip);
+  const checkInAt = getDate(properties, STAY_PROPS.checkInDate);
+  const checkOutAt = getDate(properties, STAY_PROPS.checkOutDate);
 
   return {
     id,
     tripId: tripId ?? "",
     title: getTitle(properties, STAY_PROPS.title),
-    checkInDate: getDate(properties, STAY_PROPS.checkInDate),
-    checkOutDate: getDate(properties, STAY_PROPS.checkOutDate),
-    checkInTime: getRichText(properties, STAY_PROPS.checkInTime),
-    checkOutTime: getRichText(properties, STAY_PROPS.checkOutTime),
+    checkInDate: getDatePart(checkInAt),
+    checkOutDate: getDatePart(checkOutAt),
+    checkInTime: getTimePart(checkInAt),
+    checkOutTime: getTimePart(checkOutAt),
     cost: getNumber(properties, STAY_PROPS.cost),
     address: getRichText(properties, STAY_PROPS.address),
     url: getUrl(properties, STAY_PROPS.url),
