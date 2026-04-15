@@ -565,6 +565,30 @@ textarea {
   gap: 12px;
 }
 
+.flight-card__details {
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(34, 34, 34, 0.08);
+}
+
+.flight-card__details summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  list-style: none;
+  text-transform: uppercase;
+}
+
+.flight-card__details summary::-webkit-details-marker {
+  display: none;
+}
+
+.flight-card__details-body {
+  margin-top: 14px;
+}
+
 .flight-card__fact {
   display: grid;
   gap: 6px;
@@ -642,6 +666,30 @@ textarea {
 .stay-card__top {
   display: flex;
   gap: 12px;
+}
+
+.stay-card__list {
+  display: grid;
+  gap: 4px;
+  font-size: 80%;
+}
+
+.stay-card__list-item {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  text-decoration: none;
+}
+
+.stay-card__list-item svg {
+  color: var(--muted);
+}
+
+.stay-card__list-item span {
+  min-width: 0;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .stay-card__timeline {

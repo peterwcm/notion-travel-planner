@@ -4,6 +4,8 @@ import {
   EditIcon,
   FlightIcon,
   FoodIcon,
+  LinkIcon,
+  LocationIcon,
   OtherIcon,
   ReminderIcon,
   ShoppingIcon,
@@ -303,65 +305,73 @@ export function FlightDetailCard({
             <span>Arrival</span>
           </div>
         </div>
-
-        <div className="flight-card__facts">
-          {hasText(flight.aircraft) ? (
-            <div className="flight-card__fact">
-              <span>Aircraft</span>
-              <strong>{flight.aircraft}</strong>
-            </div>
-          ) : null}
-          {hasText(flight.baggageInfo) ? (
-            <div className="flight-card__fact">
-              <span>Baggage info</span>
-              <strong>{flight.baggageInfo}</strong>
-            </div>
-          ) : null}
-          {typeof flight.cost === "number" ? (
-            <div className="flight-card__fact">
-              <span>Cost</span>
-              <strong>{currency(flight.cost)}</strong>
-            </div>
-          ) : null}
-        </div>
       </div>
 
-      {flight.passengers.length > 0 ? (
-        <div className="stack compact-list flight-card__passengers">
-          {flight.passengers.map((passenger, index) => (
-            <div
-              className="flight-passenger-card"
-              key={getPassengerKey(passenger, index)}
-            >
-              <div className="header-actions">
-                <span className="tag">Passenger {index + 1}</span>
-                {hasText(passenger.fullName) ? (
-                  <strong>{passenger.fullName}</strong>
-                ) : null}
-              </div>
-              <div className="flight-passenger-card__grid">
-                {hasText(passenger.bookingReference) ? (
-                  <div>
-                    <span>Booking reference</span>
-                    <strong>{passenger.bookingReference}</strong>
-                  </div>
-                ) : null}
-                {hasText(passenger.ticketNumber) ? (
-                  <div>
-                    <span>Ticket number</span>
-                    <strong>{passenger.ticketNumber}</strong>
-                  </div>
-                ) : null}
-              </div>
+      {hasFlightDetails(flight) ? (
+        <details className="flight-card__details">
+          <summary>Details</summary>
+          <div className="flight-card__details-body stack">
+            <div className="flight-card__facts">
+              {hasText(flight.aircraft) ? (
+                <div className="flight-card__fact">
+                  <span>Aircraft</span>
+                  <strong>{flight.aircraft}</strong>
+                </div>
+              ) : null}
+              {hasText(flight.baggageInfo) ? (
+                <div className="flight-card__fact">
+                  <span>Baggage info</span>
+                  <strong>{flight.baggageInfo}</strong>
+                </div>
+              ) : null}
+              {typeof flight.cost === "number" ? (
+                <div className="flight-card__fact">
+                  <span>Cost</span>
+                  <strong>{currency(flight.cost)}</strong>
+                </div>
+              ) : null}
             </div>
-          ))}
-        </div>
-      ) : null}
-      {flight.notes ? (
-        <div className="flight-card__notes">
-          <span>Notes</span>
-          <p className="muted">{flight.notes}</p>
-        </div>
+
+            {flight.passengers.length > 0 ? (
+              <div className="stack compact-list flight-card__passengers">
+                {flight.passengers.map((passenger, index) => (
+                  <div
+                    className="flight-passenger-card"
+                    key={getPassengerKey(passenger, index)}
+                  >
+                    <div className="header-actions">
+                      <span className="tag">Passenger {index + 1}</span>
+                      {hasText(passenger.fullName) ? (
+                        <strong>{passenger.fullName}</strong>
+                      ) : null}
+                    </div>
+                    <div className="flight-passenger-card__grid">
+                      {hasText(passenger.bookingReference) ? (
+                        <div>
+                          <span>Booking reference</span>
+                          <strong>{passenger.bookingReference}</strong>
+                        </div>
+                      ) : null}
+                      {hasText(passenger.ticketNumber) ? (
+                        <div>
+                          <span>Ticket number</span>
+                          <strong>{passenger.ticketNumber}</strong>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            {flight.notes ? (
+              <div className="flight-card__notes">
+                <span>Notes</span>
+                <p className="muted">{flight.notes}</p>
+              </div>
+            ) : null}
+          </div>
+        </details>
       ) : null}
     </div>
   );
@@ -462,6 +472,28 @@ export function StayDetailCard({
         <h4>{stay.title}</h4>
       </div>
 
+      {hasText(stay.address) || stay.url ? (
+        <div className="stay-card__list">
+          {hasText(stay.address) ? (
+            <div className="stay-card__list-item">
+              <LocationIcon />
+              <span>{stay.address}</span>
+            </div>
+          ) : null}
+          {stay.url ? (
+            <a
+              className="stay-card__list-item muted"
+              href={stay.url}
+              rel="noreferrer"
+              target="_blank"
+            >
+              <LinkIcon />
+              <span>{stay.url}</span>
+            </a>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className="stay-card__timeline">
         <div className="stay-card__point">
           <span>Check-in</span>
@@ -495,19 +527,7 @@ export function StayDetailCard({
             <strong>{currency(stay.cost)}</strong>
           </div>
         ) : null}
-        {hasText(stay.address) ? (
-          <div className="stay-card__fact stay-card__fact--wide">
-            <span>Address</span>
-            <strong className="stay-card__address">{stay.address}</strong>
-          </div>
-        ) : null}
       </div>
-
-      {stay.url ? (
-        <a className="muted" href={stay.url} rel="noreferrer" target="_blank">
-          {stay.url}
-        </a>
-      ) : null}
 
       {stay.notes ? (
         <div className="stay-card__notes">
@@ -716,6 +736,16 @@ function getPassengerKey(passenger: TripFlightPassenger, index: number) {
 
 function hasText(value?: string | null) {
   return Boolean(value?.trim());
+}
+
+function hasFlightDetails(flight: TripFlight) {
+  return (
+    hasText(flight.aircraft) ||
+    hasText(flight.baggageInfo) ||
+    typeof flight.cost === "number" ||
+    flight.passengers.length > 0 ||
+    hasText(flight.notes)
+  );
 }
 
 function getItemTimeLabel(startTime?: string, endTime?: string) {
