@@ -448,13 +448,11 @@ export function StayDetailCard({
       </div>
       <div className="stay-card__top">
         <div>
-          <span className="tag">Stay</span>
-          <h4>{stay.title}</h4>
+          <h4>
+            <span className="tag">Stay</span>
+            {stay.title}
+          </h4>
         </div>
-        <span className="pill">
-          <LocalDate value={stay.checkInDate} /> -{" "}
-          <LocalDate value={stay.checkOutDate} />
-        </span>
       </div>
 
       <div className="stay-card__timeline">
