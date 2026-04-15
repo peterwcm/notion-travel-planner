@@ -1,7 +1,18 @@
 import { BrowserTimeZoneField } from "@/components/browser-time-zone-field";
 import { FlightPassengersField } from "@/components/flight-passengers-field";
 import { FormDialog } from "@/components/form-dialog";
-import { EditIcon, TrashIcon } from "@/components/icons";
+import {
+  EditIcon,
+  FlightIcon,
+  FoodIcon,
+  OtherIcon,
+  ReminderIcon,
+  ShoppingIcon,
+  SightseeingIcon,
+  StayIcon,
+  TransitIcon,
+  TrashIcon,
+} from "@/components/icons";
 import { LocalDate, LocalDateTime } from "@/components/local-date-time";
 import { SubmitButton } from "@/components/submit-button";
 import {
@@ -142,7 +153,7 @@ export function ItineraryItemCard({
       </div>
       <div className="item-meta">
         <div className="stack item-meta__title">
-          <span className="tag">{item.type}</span>
+          <ItemTypeTag type={item.type} />
           <h4>{item.title}</h4>
         </div>
         {getItemTimeLabel(item.startTime, item.endTime) ? (
@@ -265,12 +276,12 @@ export function FlightDetailCard({
       </div>
       <div className="flight-card__top">
         <div className="flight-card__headline">
-          <div>
-            <h4>
-              <span className="tag">Flight</span>
-              {flight.departureAirport} → {flight.arrivalAirport}
-            </h4>
-          </div>
+          <CardTag label="Flight">
+            <FlightIcon />
+          </CardTag>
+          <h4>
+            {flight.departureAirport} → {flight.arrivalAirport}
+          </h4>
         </div>
 
         <div className="flight-card__route">
@@ -447,12 +458,10 @@ export function StayDetailCard({
         <DeleteForm icon tripId={tripId} entityId={stay.id} />
       </div>
       <div className="stay-card__top">
-        <div>
-          <h4>
-            <span className="tag">Stay</span>
-            {stay.title}
-          </h4>
-        </div>
+        <CardTag label="Stay">
+          <StayIcon />
+        </CardTag>
+        <h4>{stay.title}</h4>
       </div>
 
       <div className="stay-card__timeline">
@@ -534,6 +543,68 @@ function DeleteForm({
       </button>
     </form>
   );
+}
+
+function CardTag({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <span aria-label={label} className="tag" title={label}>
+      {children}
+    </span>
+  );
+}
+
+function ItemTypeTag({ type }: { type: ItemType }) {
+  switch (type) {
+    case "Sightseeing":
+      return (
+        <CardTag label={type}>
+          <SightseeingIcon />
+        </CardTag>
+      );
+    case "Transit":
+      return (
+        <CardTag label={type}>
+          <TransitIcon />
+        </CardTag>
+      );
+    case "Stay":
+      return (
+        <CardTag label={type}>
+          <StayIcon />
+        </CardTag>
+      );
+    case "Food":
+      return (
+        <CardTag label={type}>
+          <FoodIcon />
+        </CardTag>
+      );
+    case "Shopping":
+      return (
+        <CardTag label={type}>
+          <ShoppingIcon />
+        </CardTag>
+      );
+    case "Reminder":
+      return (
+        <CardTag label={type}>
+          <ReminderIcon />
+        </CardTag>
+      );
+    case "Other":
+    default:
+      return (
+        <CardTag label={type}>
+          <OtherIcon />
+        </CardTag>
+      );
+  }
 }
 
 function LabeledInput({

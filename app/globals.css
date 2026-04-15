@@ -493,8 +493,6 @@ textarea {
 
 .flight-card__headline {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
   gap: 12px;
 }
 
@@ -643,8 +641,6 @@ textarea {
 
 .stay-card__top {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
   gap: 12px;
 }
 

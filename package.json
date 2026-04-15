@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "build": "BUILD_OUTPUT_DIR=.next-build next build",
+    "start": "BUILD_OUTPUT_DIR=.next-build next start",
     "lint": "next lint"
   },
   "dependencies": {
@@ -30,4 +30,3 @@
     "typescript": "^6.0.2"
   }
 }
-
