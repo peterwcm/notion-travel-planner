@@ -94,12 +94,28 @@ function dateProperty(value?: string | null) {
     return { date: null };
   }
 
-  if (value.includes("T") && !/[zZ]|[+-]\d{2}:\d{2}$/.test(value)) {
-    const normalized = value.length === 16 ? `${value}:00` : value;
-    return { date: { start: `${normalized}Z` } };
+  if (value.includes("T")) {
+    return {
+      date: {
+        start: normalizeUtcDateTimeValue(value),
+        time_zone: "Etc/UTC",
+      },
+    };
   }
 
   return { date: { start: value } };
+}
+
+function normalizeUtcDateTimeValue(value: string) {
+  if (/[zZ]|[+-]\d{2}:\d{2}$/.test(value)) {
+    return new Date(value).toISOString().slice(0, 19);
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) {
+    return `${value}:00`;
+  }
+
+  return value;
 }
 
 function combineDateAndTime(date?: string | null, time?: string | null) {
