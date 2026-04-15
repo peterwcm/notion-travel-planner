@@ -803,7 +803,7 @@ function getDateAndTimeSortValue(
   }
 
   const normalizedTime = normalizeTime(time) ?? "00:00";
-  const timestamp = new Date(`${date}T${normalizedTime}:00`).getTime();
+  const timestamp = new Date(`${date}T${normalizedTime}:00Z`).getTime();
   return Number.isNaN(timestamp)
     ? Number.MAX_SAFE_INTEGER - 1000 + index
     : timestamp;
