@@ -27,8 +27,6 @@ function assertConfigured() {
 
 export async function createTripAction(formData: FormData) {
   assertConfigured();
-  const startDateTimeZone = String(formData.get("startDateTimeZone") ?? "");
-  const endDateTimeZone = String(formData.get("endDateTimeZone") ?? "");
 
   const parsed = tripSchema.parse({
     title: formData.get("title"),
@@ -45,9 +43,6 @@ export async function createTripAction(formData: FormData) {
     notes: parsed.notes ?? "",
     startDate: parsed.startDate ?? "",
     endDate: parsed.endDate ?? "",
-  }, {
-    startDate: startDateTimeZone || null,
-    endDate: endDateTimeZone || null,
   });
 
   revalidatePath("/trips");
@@ -57,8 +52,6 @@ export async function updateTripAction(formData: FormData) {
   assertConfigured();
 
   const tripId = String(formData.get("tripId") ?? "");
-  const startDateTimeZone = String(formData.get("startDateTimeZone") ?? "");
-  const endDateTimeZone = String(formData.get("endDateTimeZone") ?? "");
   const parsed = tripSchema.parse({
     title: formData.get("title"),
     destination: formData.get("destination"),
@@ -74,9 +67,6 @@ export async function updateTripAction(formData: FormData) {
     notes: parsed.notes ?? "",
     startDate: parsed.startDate ?? "",
     endDate: parsed.endDate ?? "",
-  }, {
-    startDate: startDateTimeZone || null,
-    endDate: endDateTimeZone || null,
   });
 
   revalidatePath("/trips");
@@ -85,7 +75,6 @@ export async function updateTripAction(formData: FormData) {
 
 export async function createDayAction(formData: FormData) {
   assertConfigured();
-  const dateTimeZone = String(formData.get("dateTimeZone") ?? "");
 
   const parsed = daySchema.parse({
     tripId: formData.get("tripId"),
@@ -99,7 +88,7 @@ export async function createDayAction(formData: FormData) {
     ...parsed,
     date: parsed.date ?? "",
     summary: parsed.summary ?? "",
-  }, dateTimeZone || null);
+  });
 
   revalidatePath(`/trips/${parsed.tripId}`);
 }
@@ -180,8 +169,6 @@ export async function createFlightAction(formData: FormData) {
   assertConfigured();
 
   const tripId = String(formData.get("tripId") ?? "");
-  const departureAtTimeZone = String(formData.get("departureAtTimeZone") ?? "");
-  const arrivalAtTimeZone = String(formData.get("arrivalAtTimeZone") ?? "");
   const parsed = flightSchema.parse({
     tripId,
     airline: formData.get("airline"),
@@ -210,9 +197,6 @@ export async function createFlightAction(formData: FormData) {
     cost: parsed.cost,
     passengers: normalizeFlightPassengers(parsed.passengers),
     notes: parsed.notes ?? "",
-  }, {
-    departureAt: departureAtTimeZone || null,
-    arrivalAt: arrivalAtTimeZone || null,
   });
 
   revalidatePath(`/trips/${tripId}`);
@@ -223,8 +207,6 @@ export async function updateFlightAction(formData: FormData) {
 
   const tripId = String(formData.get("tripId") ?? "");
   const flightId = String(formData.get("flightId") ?? "");
-  const departureAtTimeZone = String(formData.get("departureAtTimeZone") ?? "");
-  const arrivalAtTimeZone = String(formData.get("arrivalAtTimeZone") ?? "");
   const parsed = flightSchema.parse({
     tripId,
     airline: formData.get("airline"),
@@ -252,9 +234,6 @@ export async function updateFlightAction(formData: FormData) {
     cost: parsed.cost,
     passengers: normalizeFlightPassengers(parsed.passengers),
     notes: parsed.notes ?? "",
-  }, {
-    departureAt: departureAtTimeZone || null,
-    arrivalAt: arrivalAtTimeZone || null,
   });
 
   revalidatePath(`/trips/${tripId}`);
@@ -264,8 +243,6 @@ export async function createStayAction(formData: FormData) {
   assertConfigured();
 
   const tripId = String(formData.get("tripId") ?? "");
-  const checkInDateTimeZone = String(formData.get("checkInDateTimeZone") ?? "");
-  const checkOutDateTimeZone = String(formData.get("checkOutDateTimeZone") ?? "");
   const parsed = staySchema.parse({
     tripId,
     title: formData.get("title"),
@@ -292,9 +269,6 @@ export async function createStayAction(formData: FormData) {
     url: parsed.url ?? "",
     bookingReference: parsed.bookingReference ?? "",
     notes: parsed.notes ?? "",
-  }, {
-    checkInDate: checkInDateTimeZone || null,
-    checkOutDate: checkOutDateTimeZone || null,
   });
 
   revalidatePath(`/trips/${tripId}`);
@@ -305,8 +279,6 @@ export async function updateStayAction(formData: FormData) {
 
   const tripId = String(formData.get("tripId") ?? "");
   const stayId = String(formData.get("stayId") ?? "");
-  const checkInDateTimeZone = String(formData.get("checkInDateTimeZone") ?? "");
-  const checkOutDateTimeZone = String(formData.get("checkOutDateTimeZone") ?? "");
   const parsed = staySchema.parse({
     tripId,
     title: formData.get("title"),
@@ -332,9 +304,6 @@ export async function updateStayAction(formData: FormData) {
     url: parsed.url ?? "",
     bookingReference: parsed.bookingReference ?? "",
     notes: parsed.notes ?? "",
-  }, {
-    checkInDate: checkInDateTimeZone || null,
-    checkOutDate: checkOutDateTimeZone || null,
   });
 
   revalidatePath(`/trips/${tripId}`);

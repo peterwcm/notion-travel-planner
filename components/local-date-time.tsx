@@ -20,7 +20,7 @@ function formatDateOnly(value: string) {
   return `${year}/${month}/${day}`;
 }
 
-function formatLocalValue(value: string, includeTime: boolean) {
+function formatUtcValue(value: string, includeTime: boolean) {
   if (isDateOnly(value)) {
     return formatDateOnly(value);
   }
@@ -31,6 +31,7 @@ function formatLocalValue(value: string, includeTime: boolean) {
   }
 
   return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "UTC",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -67,7 +68,7 @@ function LocalizedValue({
       return;
     }
 
-    setFormatted(formatLocalValue(value, includeTime));
+    setFormatted(formatUtcValue(value, includeTime));
   }, [emptyLabel, includeTime, value]);
 
   return <span suppressHydrationWarning>{formatted || emptyLabel}</span>;

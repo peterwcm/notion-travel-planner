@@ -1,4 +1,3 @@
-import { BrowserTimeZoneField } from "@/components/browser-time-zone-field";
 import { FlightPassengersField } from "@/components/flight-passengers-field";
 import { FormDialog } from "@/components/form-dialog";
 import {
@@ -237,20 +236,12 @@ export function FlightDetailCard({
                 defaultValue={toDateTimeInputValue(flight.departureAt)}
                 required
               />
-              <BrowserTimeZoneField
-                label="Departure time zone"
-                name="departureAtTimeZone"
-              />
               <LabeledInput
                 label="Arrival time"
                 name="arrivalAt"
                 type="datetime-local"
                 defaultValue={toDateTimeInputValue(flight.arrivalAt)}
                 required
-              />
-              <BrowserTimeZoneField
-                label="Arrival time zone"
-                name="arrivalAtTimeZone"
               />
               <LabeledInput
                 label="Aircraft"
@@ -411,20 +402,12 @@ export function StayDetailCard({
                 defaultValue={toDateInputValue(stay.checkInDate)}
                 required
               />
-              <BrowserTimeZoneField
-                label="Check-in date time zone"
-                name="checkInDateTimeZone"
-              />
               <LabeledInput
                 label="Check-out date"
                 name="checkOutDate"
                 type="date"
                 defaultValue={toDateInputValue(stay.checkOutDate)}
                 required
-              />
-              <BrowserTimeZoneField
-                label="Check-out date time zone"
-                name="checkOutDateTimeZone"
               />
               <LabeledInput
                 label="Check-in time"
@@ -705,11 +688,11 @@ function toDateTimeInputValue(value?: string | null) {
     return value.slice(0, 16);
   }
 
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  const hours = String(date.getUTCHours()).padStart(2, "0");
+  const minutes = String(date.getUTCMinutes()).padStart(2, "0");
 
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }

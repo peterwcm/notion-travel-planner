@@ -3,7 +3,6 @@ import type { ReactElement } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { BrowserTimeZoneField } from "@/components/browser-time-zone-field";
 import { FlightPassengersField } from "@/components/flight-passengers-field";
 import { FormDialog } from "@/components/form-dialog";
 import { LocalDate } from "@/components/local-date-time";
@@ -100,9 +99,13 @@ export default async function TripDetailPage({
         <div className="stack summary-copy">
           <div className="header-actions">
             <div className="stack compact-headline">
-              <h2>{detail.trip.title}</h2>
+              <h2>
+                {detail.trip.title}{" "}
+                <div className="pill">{detail.trip.destination}</div>
+              </h2>
               <p className="muted summary-destination">
-                {detail.trip.destination}
+                <LocalDate value={detail.trip.startDate} /> -{" "}
+                <LocalDate value={detail.trip.endDate} />
               </p>
             </div>
             <div className="stats-inline">
@@ -157,10 +160,6 @@ export default async function TripDetailPage({
                         type="date"
                       />
                     </div>
-                    <BrowserTimeZoneField
-                      label="Start date time zone"
-                      name="startDateTimeZone"
-                    />
                     <div className="field">
                       <label className="field-label" htmlFor="trip-endDate">
                         End date
@@ -173,10 +172,6 @@ export default async function TripDetailPage({
                         type="date"
                       />
                     </div>
-                    <BrowserTimeZoneField
-                      label="End date time zone"
-                      name="endDateTimeZone"
-                    />
                     <div className="field">
                       <label className="field-label" htmlFor="trip-cover">
                         Cover image URL
@@ -209,13 +204,6 @@ export default async function TripDetailPage({
           </div>
 
           <div className="metrics metrics--summary">
-            <div className="metric">
-              <span className="metric__label">Dates</span>
-              <strong>
-                <LocalDate value={detail.trip.startDate} /> -{" "}
-                <LocalDate value={detail.trip.endDate} />
-              </strong>
-            </div>
             <div className="metric">
               <span className="metric__label">Total cost</span>
               <strong>{currency(stats.totalCost)}</strong>
@@ -305,10 +293,6 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                   type="date"
                 />
               </div>
-              <BrowserTimeZoneField
-                label="Date time zone"
-                name="dateTimeZone"
-              />
               <div className="field">
                 <label className="field-label" htmlFor="day-number">
                   Day number
@@ -367,7 +351,9 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                       />
                     ))
                   ) : (
-                    <div className="empty">No items scheduled for this day.</div>
+                    <div className="empty">
+                      No items scheduled for this day.
+                    </div>
                   )}
                 </div>
 
@@ -532,19 +518,11 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
                 type="datetime-local"
                 required
               />
-              <BrowserTimeZoneField
-                label="Departure time zone"
-                name="departureAtTimeZone"
-              />
               <LabeledInput
                 label="Arrival time"
                 name="arrivalAt"
                 type="datetime-local"
                 required
-              />
-              <BrowserTimeZoneField
-                label="Arrival time zone"
-                name="arrivalAtTimeZone"
               />
               <LabeledInput
                 label="Aircraft"
@@ -565,7 +543,11 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
               />
             </div>
             <FlightPassengersField />
-            <LabeledTextarea label="Notes" name="notes" placeholder="Additional details" />
+            <LabeledTextarea
+              label="Notes"
+              name="notes"
+              placeholder="Additional details"
+            />
             <SubmitButton>Create flight</SubmitButton>
           </form>
         </FormDialog>
@@ -612,22 +594,22 @@ function StaysTab({ detail }: { detail: TripDetail }) {
                 type="date"
                 required
               />
-              <BrowserTimeZoneField
-                label="Check-in date time zone"
-                name="checkInDateTimeZone"
-              />
               <LabeledInput
                 label="Check-out date"
                 name="checkOutDate"
                 type="date"
                 required
               />
-              <BrowserTimeZoneField
-                label="Check-out date time zone"
-                name="checkOutDateTimeZone"
+              <LabeledInput
+                label="Check-in time"
+                name="checkInTime"
+                type="time"
               />
-              <LabeledInput label="Check-in time" name="checkInTime" type="time" />
-              <LabeledInput label="Check-out time" name="checkOutTime" type="time" />
+              <LabeledInput
+                label="Check-out time"
+                name="checkOutTime"
+                type="time"
+              />
               <LabeledInput
                 label="Cost"
                 name="cost"
@@ -642,8 +624,16 @@ function StaysTab({ detail }: { detail: TripDetail }) {
                 placeholder="ABCD1234"
               />
             </div>
-            <LabeledTextarea label="Address" name="address" placeholder="Address" />
-            <LabeledTextarea label="Notes" name="notes" placeholder="Additional details" />
+            <LabeledTextarea
+              label="Address"
+              name="address"
+              placeholder="Address"
+            />
+            <LabeledTextarea
+              label="Notes"
+              name="notes"
+              placeholder="Additional details"
+            />
             <SubmitButton>Create stay</SubmitButton>
           </form>
         </FormDialog>
@@ -651,11 +641,7 @@ function StaysTab({ detail }: { detail: TripDetail }) {
       <section className="stack">
         {detail.stays.length > 0 ? (
           detail.stays.map((stay) => (
-            <StayDetailCard
-              key={stay.id}
-              tripId={detail.trip.id}
-              stay={stay}
-            />
+            <StayDetailCard key={stay.id} tripId={detail.trip.id} stay={stay} />
           ))
         ) : (
           <div className="empty">No stays yet.</div>

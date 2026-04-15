@@ -91,76 +91,17 @@ function titleProperty(content: string) {
   return { title: richText(content) };
 }
 
-function dateProperty(value?: string | null, timeZone?: string | null) {
+function dateProperty(value?: string | null) {
   if (!value) {
     return { date: null };
   }
 
-  if (timeZone && value.includes("T") && !/[zZ]|[+-]\d{2}:\d{2}$/.test(value)) {
-    return {
-      date: {
-        start: localDateTimeToUtcIso(value, timeZone),
-      },
-    };
+  if (value.includes("T") && !/[zZ]|[+-]\d{2}:\d{2}$/.test(value)) {
+    const normalized = value.length === 16 ? `${value}:00` : value;
+    return { date: { start: `${normalized}Z` } };
   }
 
   return { date: { start: value } };
-}
-
-function localDateTimeToUtcIso(value: string, timeZone: string) {
-  const match = value.match(
-    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/,
-  );
-
-  if (!match) {
-    return value;
-  }
-
-  const [, year, month, day, hour, minute, second = "00"] = match;
-  const desiredUtcMs = Date.UTC(
-    Number(year),
-    Number(month) - 1,
-    Number(day),
-    Number(hour),
-    Number(minute),
-    Number(second),
-  );
-
-  let utcGuess = desiredUtcMs;
-
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const parts = new Intl.DateTimeFormat("en-CA", {
-      timeZone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    }).formatToParts(new Date(utcGuess));
-
-    const getPart = (type: Intl.DateTimeFormatPartTypes) =>
-      Number(parts.find((part) => part.type === type)?.value ?? "0");
-
-    const actualUtcMs = Date.UTC(
-      getPart("year"),
-      getPart("month") - 1,
-      getPart("day"),
-      getPart("hour"),
-      getPart("minute"),
-      getPart("second"),
-    );
-
-    const diff = desiredUtcMs - actualUtcMs;
-    if (diff === 0) {
-      break;
-    }
-
-    utcGuess += diff;
-  }
-
-  return new Date(utcGuess).toISOString();
 }
 
 function relationProperty(id: string) {
@@ -362,9 +303,6 @@ export async function createTrip(input: {
   endDate: string;
   cover: string;
   notes: string;
-}, timeZones?: {
-  startDate?: string | null;
-  endDate?: string | null;
 }) {
   const client = getClient();
 
@@ -373,8 +311,8 @@ export async function createTrip(input: {
     properties: {
       [TRIP_PROPS.title]: titleProperty(input.title),
       [TRIP_PROPS.destination]: richTextProperty(input.destination),
-      [TRIP_PROPS.startDate]: dateProperty(input.startDate, timeZones?.startDate),
-      [TRIP_PROPS.endDate]: dateProperty(input.endDate, timeZones?.endDate),
+      [TRIP_PROPS.startDate]: dateProperty(input.startDate),
+      [TRIP_PROPS.endDate]: dateProperty(input.endDate),
       [TRIP_PROPS.cover]: {
         url: input.cover || null,
       },
@@ -393,10 +331,6 @@ export async function updateTrip(
     cover: string;
     notes: string;
   },
-  timeZones?: {
-    startDate?: string | null;
-    endDate?: string | null;
-  },
 ) {
   const client = getClient();
 
@@ -405,8 +339,8 @@ export async function updateTrip(
     properties: {
       [TRIP_PROPS.title]: titleProperty(input.title),
       [TRIP_PROPS.destination]: richTextProperty(input.destination),
-      [TRIP_PROPS.startDate]: dateProperty(input.startDate, timeZones?.startDate),
-      [TRIP_PROPS.endDate]: dateProperty(input.endDate, timeZones?.endDate),
+      [TRIP_PROPS.startDate]: dateProperty(input.startDate),
+      [TRIP_PROPS.endDate]: dateProperty(input.endDate),
       [TRIP_PROPS.cover]: {
         url: input.cover || null,
       },
@@ -421,7 +355,7 @@ export async function createDay(input: {
   date: string;
   dayNumber: number;
   summary: string;
-}, timeZone?: string | null) {
+}) {
   const client = getClient();
 
   await client.pages.create({
@@ -429,7 +363,7 @@ export async function createDay(input: {
     properties: {
       [DAY_PROPS.title]: titleProperty(input.title),
       [DAY_PROPS.trip]: relationProperty(input.tripId),
-      [DAY_PROPS.date]: dateProperty(input.date, timeZone),
+      [DAY_PROPS.date]: dateProperty(input.date),
       [DAY_PROPS.dayNumber]: {
         number: input.dayNumber,
       },
@@ -517,10 +451,7 @@ export async function updateItem(
   } as any);
 }
 
-export async function createFlight(input: Omit<TripFlight, "id">, timeZones?: {
-  departureAt?: string | null;
-  arrivalAt?: string | null;
-}) {
+export async function createFlight(input: Omit<TripFlight, "id">) {
   const client = getClient();
 
   await client.pages.create({
@@ -532,8 +463,8 @@ export async function createFlight(input: Omit<TripFlight, "id">, timeZones?: {
       [FLIGHT_PROPS.flightNumber]: richTextProperty(input.flightNumber),
       [FLIGHT_PROPS.departureAirport]: richTextProperty(input.departureAirport),
       [FLIGHT_PROPS.arrivalAirport]: richTextProperty(input.arrivalAirport),
-      [FLIGHT_PROPS.departureAt]: dateProperty(input.departureAt, timeZones?.departureAt),
-      [FLIGHT_PROPS.arrivalAt]: dateProperty(input.arrivalAt, timeZones?.arrivalAt),
+      [FLIGHT_PROPS.departureAt]: dateProperty(input.departureAt),
+      [FLIGHT_PROPS.arrivalAt]: dateProperty(input.arrivalAt),
       [FLIGHT_PROPS.aircraft]: richTextProperty(input.aircraft),
       [FLIGHT_PROPS.baggageInfo]: richTextProperty(input.baggageInfo),
       [FLIGHT_PROPS.cost]: {
@@ -548,10 +479,6 @@ export async function createFlight(input: Omit<TripFlight, "id">, timeZones?: {
 export async function updateFlight(
   flightId: string,
   input: Omit<TripFlight, "id" | "tripId">,
-  timeZones?: {
-    departureAt?: string | null;
-    arrivalAt?: string | null;
-  },
 ) {
   const client = getClient();
 
@@ -563,8 +490,8 @@ export async function updateFlight(
       [FLIGHT_PROPS.flightNumber]: richTextProperty(input.flightNumber),
       [FLIGHT_PROPS.departureAirport]: richTextProperty(input.departureAirport),
       [FLIGHT_PROPS.arrivalAirport]: richTextProperty(input.arrivalAirport),
-      [FLIGHT_PROPS.departureAt]: dateProperty(input.departureAt, timeZones?.departureAt),
-      [FLIGHT_PROPS.arrivalAt]: dateProperty(input.arrivalAt, timeZones?.arrivalAt),
+      [FLIGHT_PROPS.departureAt]: dateProperty(input.departureAt),
+      [FLIGHT_PROPS.arrivalAt]: dateProperty(input.arrivalAt),
       [FLIGHT_PROPS.aircraft]: richTextProperty(input.aircraft),
       [FLIGHT_PROPS.baggageInfo]: richTextProperty(input.baggageInfo),
       [FLIGHT_PROPS.cost]: {
@@ -576,10 +503,7 @@ export async function updateFlight(
   } as any);
 }
 
-export async function createStay(input: Omit<TripStay, "id">, timeZones?: {
-  checkInDate?: string | null;
-  checkOutDate?: string | null;
-}) {
+export async function createStay(input: Omit<TripStay, "id">) {
   const client = getClient();
   const dataSourceId = getRequiredEnv("NOTION_STAYS_DB_ID");
   const allowedPropertyNames = await getDataSourcePropertyNames(dataSourceId);
@@ -587,8 +511,8 @@ export async function createStay(input: Omit<TripStay, "id">, timeZones?: {
     {
       [STAY_PROPS.title]: titleProperty(input.title),
       [STAY_PROPS.trip]: relationProperty(input.tripId),
-      [STAY_PROPS.checkInDate]: dateProperty(input.checkInDate ?? "", timeZones?.checkInDate),
-      [STAY_PROPS.checkOutDate]: dateProperty(input.checkOutDate ?? "", timeZones?.checkOutDate),
+      [STAY_PROPS.checkInDate]: dateProperty(input.checkInDate ?? ""),
+      [STAY_PROPS.checkOutDate]: dateProperty(input.checkOutDate ?? ""),
       [STAY_PROPS.checkInTime]: richTextProperty(input.checkInTime),
       [STAY_PROPS.checkOutTime]: richTextProperty(input.checkOutTime),
       [STAY_PROPS.cost]: {
@@ -613,10 +537,6 @@ export async function createStay(input: Omit<TripStay, "id">, timeZones?: {
 export async function updateStay(
   stayId: string,
   input: Omit<TripStay, "id" | "tripId">,
-  timeZones?: {
-    checkInDate?: string | null;
-    checkOutDate?: string | null;
-  },
 ) {
   const client = getClient();
   const dataSourceId = getRequiredEnv("NOTION_STAYS_DB_ID");
@@ -624,8 +544,8 @@ export async function updateStay(
   const properties = filterPropertiesBySchema(
     {
       [STAY_PROPS.title]: titleProperty(input.title),
-      [STAY_PROPS.checkInDate]: dateProperty(input.checkInDate ?? "", timeZones?.checkInDate),
-      [STAY_PROPS.checkOutDate]: dateProperty(input.checkOutDate ?? "", timeZones?.checkOutDate),
+      [STAY_PROPS.checkInDate]: dateProperty(input.checkInDate ?? ""),
+      [STAY_PROPS.checkOutDate]: dateProperty(input.checkOutDate ?? ""),
       [STAY_PROPS.checkInTime]: richTextProperty(input.checkInTime),
       [STAY_PROPS.checkOutTime]: richTextProperty(input.checkOutTime),
       [STAY_PROPS.cost]: {
