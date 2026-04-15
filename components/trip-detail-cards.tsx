@@ -14,6 +14,7 @@ import {
   TransitIcon,
   TrashIcon,
 } from "@/components/icons";
+import { CostPopover } from "@/components/cost-popover";
 import { LocalDate, LocalDateTime } from "@/components/local-date-time";
 import { SubmitButton } from "@/components/submit-button";
 import {
@@ -54,6 +55,7 @@ export function ItineraryItemCard({
   return (
     <div className="item-card detail-card card-with-actions">
       <div className="card-corner-actions">
+        <CostAction cost={item.cost} />
         <FormDialog
           description="Update this itinerary item."
           title={`Edit ${item.title}`}
@@ -163,16 +165,13 @@ export function ItineraryItemCard({
           </div>
         ) : null}
       </div>
-      {hasText(item.location) || typeof item.cost === "number" ? (
+      {hasText(item.location) ? (
         <div className="row item-info">
           {hasText(item.location) ? (
             <span className="muted">{item.location}</span>
           ) : (
             <span />
           )}
-          {typeof item.cost === "number" ? (
-            <span>{currency(item.cost)}</span>
-          ) : null}
         </div>
       ) : null}
       {item.url ? (
@@ -195,6 +194,7 @@ export function FlightDetailCard({
   return (
     <div className="detail-card flight-card card-with-actions">
       <div className="card-corner-actions">
+        <CostAction cost={flight.cost} />
         <FormDialog
           description="Update the flight schedule and details."
           title={`Edit ${getFlightDisplayLabel(flight)}`}
@@ -324,12 +324,6 @@ export function FlightDetailCard({
                   <strong>{flight.baggageInfo}</strong>
                 </div>
               ) : null}
-              {typeof flight.cost === "number" ? (
-                <div className="flight-card__fact">
-                  <span>Cost</span>
-                  <strong>{currency(flight.cost)}</strong>
-                </div>
-              ) : null}
             </div>
 
             {flight.passengers.length > 0 ? (
@@ -387,6 +381,7 @@ export function StayDetailCard({
   return (
     <div className="detail-card stay-card card-with-actions">
       <div className="card-corner-actions">
+        <CostAction cost={stay.cost} />
         <FormDialog
           description="Update stay dates and details."
           title={`Edit ${stay.title}`}
@@ -521,12 +516,6 @@ export function StayDetailCard({
             <strong>{stay.bookingReference}</strong>
           </div>
         ) : null}
-        {typeof stay.cost === "number" ? (
-          <div className="stay-card__fact">
-            <span>Cost</span>
-            <strong>{currency(stay.cost)}</strong>
-          </div>
-        ) : null}
       </div>
 
       {stay.notes ? (
@@ -561,6 +550,16 @@ function DeleteForm({
       </button>
     </form>
   );
+}
+
+function CostAction({ cost }: { cost?: number | null }) {
+  if (typeof cost !== "number") {
+    return null;
+  }
+
+  const formattedCost = currency(cost);
+
+  return <CostPopover label={formattedCost} />;
 }
 
 function CardTag({

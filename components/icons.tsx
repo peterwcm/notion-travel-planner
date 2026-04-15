@@ -139,3 +139,12 @@ export function LinkIcon(props: SVGProps<SVGSVGElement>) {
     </IconBase>
   );
 }
+
+export function DollarIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <path d="M12 3v18" />
+      <path d="M16.5 7.5c0-1.93-2.01-3.5-4.5-3.5S7.5 5.57 7.5 7.5 9.51 11 12 11s4.5 1.57 4.5 3.5S14.49 18 12 18s-4.5-1.57-4.5-3.5" />
+    </IconBase>
+  );
+}
