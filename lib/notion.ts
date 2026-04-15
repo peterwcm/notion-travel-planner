@@ -124,14 +124,14 @@ function combineDateAndTime(date?: string | null, time?: string | null) {
   }
 
   const normalizedTime = normalizeTimeValue(time);
-  return `${date}T${normalizedTime}`;
+  return normalizedTime ? `${date}T${normalizedTime}` : date;
 }
 
 function normalizeTimeValue(value?: string | null) {
   const trimmed = value?.trim() ?? "";
 
   if (!trimmed) {
-    return "00:00:00";
+    return "";
   }
 
   if (/^\d{2}:\d{2}:\d{2}$/.test(trimmed)) {
