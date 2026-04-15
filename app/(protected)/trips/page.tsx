@@ -19,18 +19,6 @@ export default async function TripsPage() {
 
   return (
     <div className="page">
-      <section className="hero hero--compact">
-        <div className="header-actions">
-          <div className="stack compact-headline">
-            <span className="tag">Trips</span>
-            <h2>Your trips</h2>
-          </div>
-          <div className="stats-inline">
-            <span>{trips.length} trips</span>
-          </div>
-        </div>
-      </section>
-
       {!setupStatus.configured || hasLoadError ? (
         <div className="notice">
           <strong>Trip data is temporarily unavailable</strong>
@@ -40,34 +28,89 @@ export default async function TripsPage() {
 
       <section className="section-block">
         <div className="header-actions">
-          <h3 className="section-title">All trips</h3>
-          <FormDialog description="Create a new trip card." title="New trip" triggerLabel="New trip">
+          <h3 className="section-title">
+            All trips
+            <div className="stats-inline">
+              <span>
+                {trips.length} trip{trips.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+          </h3>
+          <FormDialog
+            description="Create a new trip card."
+            title="New trip"
+            triggerLabel="New trip"
+          >
             <form action={createTripAction} className="stack">
               <div className="forms-grid">
                 <div className="field">
-                  <label className="field-label field-label--required" htmlFor="title">Trip name</label>
-                  <input className="input" id="title" name="title" placeholder="Autumn walk in Tokyo" required />
+                  <label
+                    className="field-label field-label--required"
+                    htmlFor="title"
+                  >
+                    Trip name
+                  </label>
+                  <input
+                    className="input"
+                    id="title"
+                    name="title"
+                    placeholder="Autumn walk in Tokyo"
+                    required
+                  />
                 </div>
                 <div className="field">
-                  <label className="field-label field-label--required" htmlFor="destination">Destination</label>
-                  <input className="input" id="destination" name="destination" placeholder="Tokyo, Japan" required />
+                  <label
+                    className="field-label field-label--required"
+                    htmlFor="destination"
+                  >
+                    Destination
+                  </label>
+                  <input
+                    className="input"
+                    id="destination"
+                    name="destination"
+                    placeholder="Tokyo, Japan"
+                    required
+                  />
                 </div>
                 <div className="field">
                   <label htmlFor="startDate">Start date</label>
-                  <input className="input" id="startDate" name="startDate" type="date" />
+                  <input
+                    className="input"
+                    id="startDate"
+                    name="startDate"
+                    type="date"
+                  />
                 </div>
                 <div className="field">
                   <label htmlFor="endDate">End date</label>
-                  <input className="input" id="endDate" name="endDate" type="date" />
+                  <input
+                    className="input"
+                    id="endDate"
+                    name="endDate"
+                    type="date"
+                  />
                 </div>
                 <div className="field">
                   <label htmlFor="cover">Cover image URL</label>
-                  <input className="input" id="cover" name="cover" placeholder="https://..." />
+                  <input
+                    className="input"
+                    id="cover"
+                    name="cover"
+                    placeholder="https://..."
+                  />
                 </div>
               </div>
               <div className="field">
-                <label className="field-label" htmlFor="notes">Notes</label>
-                <textarea className="textarea textarea--compact" id="notes" name="notes" placeholder="Short summary for this trip" />
+                <label className="field-label" htmlFor="notes">
+                  Notes
+                </label>
+                <textarea
+                  className="textarea textarea--compact"
+                  id="notes"
+                  name="notes"
+                  placeholder="Short summary for this trip"
+                />
               </div>
               <SubmitButton>Create trip</SubmitButton>
             </form>
