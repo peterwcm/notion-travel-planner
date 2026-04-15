@@ -42,7 +42,7 @@ async function sign(value: string, secret: Uint8Array) {
 export async function createSessionToken() {
   const secret = getSecret();
   if (!secret) {
-    throw new Error("缺少必要環境變數：SESSION_SECRET");
+    throw new Error("Missing required environment variable: SESSION_SECRET");
   }
 
   const payload = JSON.stringify({

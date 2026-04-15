@@ -27,13 +27,13 @@ export function TopNavigation({
     <header className="topbar">
       <div className="topbar__inner">
         <Link className="topbar__brand" href={isLoggedIn ? "/trips" : "/login"}>
-          <strong>旅程規劃</strong>
+          <strong>Travel Planner</strong>
         </Link>
 
         <button
           aria-controls="topbar-menu"
           aria-expanded={isOpen}
-          aria-label={isOpen ? "關閉選單" : "開啟選單"}
+          aria-label={isOpen ? "Close menu" : "Open menu"}
           className="topbar__menu-button"
           onClick={() => setIsOpen((current) => !current)}
           type="button"

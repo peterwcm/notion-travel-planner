@@ -46,10 +46,10 @@ export function FlightPassengersField({
     <div className="field">
       <div className="header-actions">
         <label className="field-label" htmlFor={`${fieldId}-0-fullName`}>
-          乘客資訊
+          Passengers
         </label>
         <button className="ghost-button" onClick={addPassenger} type="button">
-          新增乘客
+          Add passenger
         </button>
       </div>
 
@@ -59,17 +59,17 @@ export function FlightPassengersField({
         {passengers.map((passenger, index) => (
           <div className="detail-card detail-card--compact" key={`${fieldId}-${index}`}>
             <div className="header-actions">
-              <strong>乘客 {index + 1}</strong>
+              <strong>Passenger {index + 1}</strong>
               {passengers.length > 1 ? (
                 <button className="ghost-button" onClick={() => removePassenger(index)} type="button">
-                  移除
+                  Remove
                 </button>
               ) : null}
             </div>
 
             <div className="forms-grid">
               <div className="field">
-                <label className="field-label" htmlFor={`${fieldId}-${index}-fullName`}>姓名</label>
+                <label className="field-label" htmlFor={`${fieldId}-${index}-fullName`}>Name</label>
                 <input
                   className="input"
                   id={`${fieldId}-${index}-fullName`}
@@ -78,7 +78,7 @@ export function FlightPassengersField({
                 />
               </div>
               <div className="field">
-                <label className="field-label" htmlFor={`${fieldId}-${index}-bookingReference`}>訂位代號</label>
+                <label className="field-label" htmlFor={`${fieldId}-${index}-bookingReference`}>Booking reference</label>
                 <input
                   className="input"
                   id={`${fieldId}-${index}-bookingReference`}
@@ -87,7 +87,7 @@ export function FlightPassengersField({
                 />
               </div>
               <div className="field">
-                <label className="field-label" htmlFor={`${fieldId}-${index}-ticketNumber`}>機票號碼</label>
+                <label className="field-label" htmlFor={`${fieldId}-${index}-ticketNumber`}>Ticket number</label>
                 <input
                   className="input"
                   id={`${fieldId}-${index}-ticketNumber`}

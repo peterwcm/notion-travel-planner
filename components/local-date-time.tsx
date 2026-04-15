@@ -30,7 +30,7 @@ function formatLocalValue(value: string, includeTime: boolean) {
     return value;
   }
 
-  return new Intl.DateTimeFormat("zh-TW", {
+  return new Intl.DateTimeFormat("en-CA", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -46,7 +46,7 @@ function formatLocalValue(value: string, includeTime: boolean) {
 
 function LocalizedValue({
   value,
-  emptyLabel = "未設定",
+  emptyLabel = "Not set",
   includeTime,
 }: LocalDateTimeProps) {
   const [formatted, setFormatted] = useState(() => {

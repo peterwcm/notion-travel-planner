@@ -22,54 +22,54 @@ export default async function TripsPage() {
       <section className="hero hero--compact">
         <div className="header-actions">
           <div className="stack compact-headline">
-            <span className="tag">旅程</span>
-            <h2>你的旅程</h2>
+            <span className="tag">Trips</span>
+            <h2>Your trips</h2>
           </div>
           <div className="stats-inline">
-            <span>{trips.length} 個旅程</span>
+            <span>{trips.length} trips</span>
           </div>
         </div>
       </section>
 
       {!setupStatus.configured || hasLoadError ? (
         <div className="notice">
-          <strong>目前暫時無法讀取旅程資料</strong>
-          <p className="muted">請檢查設定後重新整理頁面。</p>
+          <strong>Trip data is temporarily unavailable</strong>
+          <p className="muted">Check the setup and refresh the page.</p>
         </div>
       ) : null}
 
       <section className="section-block">
         <div className="header-actions">
-          <h3 className="section-title">全部旅程</h3>
-          <FormDialog description="快速建立新的旅程卡片。" title="新增旅程" triggerLabel="新增旅程">
+          <h3 className="section-title">All trips</h3>
+          <FormDialog description="Create a new trip card." title="New trip" triggerLabel="New trip">
             <form action={createTripAction} className="stack">
               <div className="forms-grid">
                 <div className="field">
-                  <label className="field-label field-label--required" htmlFor="title">旅程名稱</label>
-                  <input className="input" id="title" name="title" placeholder="東京秋季散步之旅" required />
+                  <label className="field-label field-label--required" htmlFor="title">Trip name</label>
+                  <input className="input" id="title" name="title" placeholder="Autumn walk in Tokyo" required />
                 </div>
                 <div className="field">
-                  <label className="field-label field-label--required" htmlFor="destination">目的地</label>
-                  <input className="input" id="destination" name="destination" placeholder="東京、日本" required />
+                  <label className="field-label field-label--required" htmlFor="destination">Destination</label>
+                  <input className="input" id="destination" name="destination" placeholder="Tokyo, Japan" required />
                 </div>
                 <div className="field">
-                  <label htmlFor="startDate">開始日期</label>
+                  <label htmlFor="startDate">Start date</label>
                   <input className="input" id="startDate" name="startDate" type="date" />
                 </div>
                 <div className="field">
-                  <label htmlFor="endDate">結束日期</label>
+                  <label htmlFor="endDate">End date</label>
                   <input className="input" id="endDate" name="endDate" type="date" />
                 </div>
                 <div className="field">
-                  <label htmlFor="cover">封面圖片網址</label>
+                  <label htmlFor="cover">Cover image URL</label>
                   <input className="input" id="cover" name="cover" placeholder="https://..." />
                 </div>
               </div>
               <div className="field">
-                <label className="field-label" htmlFor="notes">摘要</label>
-                <textarea className="textarea textarea--compact" id="notes" name="notes" placeholder="這趟旅程的短摘要" />
+                <label className="field-label" htmlFor="notes">Notes</label>
+                <textarea className="textarea textarea--compact" id="notes" name="notes" placeholder="Short summary for this trip" />
               </div>
-              <SubmitButton>建立旅程</SubmitButton>
+              <SubmitButton>Create trip</SubmitButton>
             </form>
           </FormDialog>
         </div>
@@ -80,7 +80,7 @@ export default async function TripsPage() {
             ))}
           </div>
         ) : (
-          <div className="empty">目前還沒有任何旅程。</div>
+          <div className="empty">No trips yet.</div>
         )}
       </section>
     </div>

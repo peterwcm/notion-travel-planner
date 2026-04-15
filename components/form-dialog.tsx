@@ -55,12 +55,12 @@ export function FormDialog({
               {description ? <p className="muted">{description}</p> : null}
             </div>
             <button
-              aria-label="關閉"
+              aria-label="Close"
               className="ghost-button"
               onClick={() => dialogRef.current?.close()}
               type="button"
             >
-              關閉
+              Close
             </button>
           </div>
           {children}

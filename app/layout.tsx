@@ -10,8 +10,8 @@ import { hasValidSessionToken } from "@/lib/session";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "旅行規劃筆記",
-  description: "個人旅行規劃工具",
+  title: "Travel Planner",
+  description: "Private travel planning workspace",
 };
 
 async function logoutAction() {
@@ -30,7 +30,7 @@ export default async function RootLayout({
   const isLoggedIn = await hasValidSessionToken(token);
 
   return (
-    <html lang="zh-Hant">
+    <html lang="en">
       <body>
         <div className="site-shell">
           <TopNavigation isLoggedIn={isLoggedIn} logoutAction={isLoggedIn ? logoutAction : undefined} />

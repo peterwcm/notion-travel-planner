@@ -1,12 +1,12 @@
 import { z } from "zod";
 
 export const loginSchema = z.object({
-  password: z.string().min(1, "請輸入密碼"),
+  password: z.string().min(1, "Enter the password."),
 });
 
 export const tripSchema = z.object({
-  title: z.string().min(1, "請輸入旅程名稱"),
-  destination: z.string().min(1, "請輸入目的地"),
+  title: z.string().min(1, "Enter a trip name."),
+  destination: z.string().min(1, "Enter a destination."),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   cover: z.string().optional(),
@@ -15,16 +15,16 @@ export const tripSchema = z.object({
 
 export const daySchema = z.object({
   tripId: z.string().min(1),
-  title: z.string().min(1, "請輸入每日標題"),
+  title: z.string().min(1, "Enter a day title."),
   date: z.string().optional(),
-  dayNumber: z.coerce.number().int().positive("天次需大於 0"),
+  dayNumber: z.coerce.number().int().positive("Day number must be greater than 0."),
   summary: z.string().optional(),
 });
 
 export const itemSchema = z.object({
   dayId: z.string().min(1),
-  title: z.string().min(1, "請輸入項目名稱"),
-  type: z.enum(["景點", "交通", "住宿", "餐廳", "購物", "其他"]),
+  title: z.string().min(1, "Enter an item name."),
+  type: z.enum(["Sightseeing", "Transit", "Stay", "Food", "Shopping", "Reminder", "Other"]),
   startTime: z.string().optional(),
   endTime: z.string().optional(),
   location: z.string().optional(),
@@ -45,12 +45,12 @@ const flightPassengerSchema = z.object({
 
 export const flightSchema = z.object({
   tripId: z.string().min(1),
-  airline: z.string().min(1, "請輸入航空公司"),
-  flightNumber: z.string().min(1, "請輸入航班號碼"),
-  departureAirport: z.string().min(1, "請輸入出發機場"),
-  arrivalAirport: z.string().min(1, "請輸入抵達機場"),
-  departureAt: z.string().min(1, "請輸入出發時間"),
-  arrivalAt: z.string().min(1, "請輸入抵達時間"),
+  airline: z.string().min(1, "Enter an airline."),
+  flightNumber: z.string().min(1, "Enter a flight number."),
+  departureAirport: z.string().min(1, "Enter a departure airport."),
+  arrivalAirport: z.string().min(1, "Enter an arrival airport."),
+  departureAt: z.string().min(1, "Enter a departure time."),
+  arrivalAt: z.string().min(1, "Enter an arrival time."),
   aircraft: z.string().optional(),
   baggageInfo: z.string().optional(),
   cost: z
@@ -73,9 +73,9 @@ export const flightSchema = z.object({
 
 export const staySchema = z.object({
   tripId: z.string().min(1),
-  title: z.string().min(1, "請輸入住宿名稱"),
-  checkInDate: z.string().min(1, "請輸入住日期"),
-  checkOutDate: z.string().min(1, "請輸入退房日期"),
+  title: z.string().min(1, "Enter a stay name."),
+  checkInDate: z.string().min(1, "Enter a check-in date."),
+  checkOutDate: z.string().min(1, "Enter a check-out date."),
   checkInTime: z.string().optional(),
   checkOutTime: z.string().optional(),
   cost: z

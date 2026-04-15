@@ -11,15 +11,14 @@ export async function loginAction(_: string | undefined, formData: FormData) {
   });
 
   if (!parsed.success) {
-    return parsed.error.issues[0]?.message ?? "登入失敗";
+    return parsed.error.issues[0]?.message ?? "Login failed.";
   }
 
   const valid = await isPasswordValid(parsed.data.password);
   if (!valid) {
-    return "密碼錯誤，請重新輸入。";
+    return "Incorrect password. Try again.";
   }
 
   await createSession();
   redirect("/trips");
 }
-

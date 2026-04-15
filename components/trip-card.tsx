@@ -12,9 +12,9 @@ export function TripCard({ trip }: TripCardProps) {
     <Link className="trip-card" href={`/trips/${trip.id}`}>
       <div className="trip-card__cover">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {trip.cover ? <img alt={trip.title} src={trip.cover} /> : <span>{trip.destination.slice(0, 2) || "旅行"}</span>}
+        {trip.cover ? <img alt={trip.title} src={trip.cover} /> : <span>{trip.destination.slice(0, 2) || "TR"}</span>}
         <div className="trip-card__overlay">
-          <span className="trip-card__destination">{trip.destination || "未設定目的地"}</span>
+          <span className="trip-card__destination">{trip.destination || "Destination not set"}</span>
         </div>
       </div>
       <div className="trip-card__content">
@@ -28,7 +28,7 @@ export function TripCard({ trip }: TripCardProps) {
         </p>
         {trip.notes ? <p className="trip-card__notes">{trip.notes}</p> : null}
         <div className="trip-card__footer">
-          <span>查看</span>
+          <span>View</span>
           <span aria-hidden="true">→</span>
         </div>
       </div>

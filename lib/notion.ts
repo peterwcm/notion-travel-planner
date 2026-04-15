@@ -16,63 +16,63 @@ import type {
 import { sum } from "@/lib/utils";
 
 const TRIP_PROPS = {
-  title: "名稱",
-  destination: "目的地",
-  startDate: "開始日期",
-  endDate: "結束日期",
-  cover: "封面",
-  notes: "備註",
+  title: "Name",
+  destination: "Destination",
+  startDate: "Start Date",
+  endDate: "End Date",
+  cover: "Cover",
+  notes: "Notes",
 } as const;
 
 const DAY_PROPS = {
-  title: "名稱",
-  trip: "旅程",
-  date: "日期",
-  dayNumber: "天次",
-  summary: "摘要",
+  title: "Name",
+  trip: "Trip",
+  date: "Date",
+  dayNumber: "Day Number",
+  summary: "Summary",
 } as const;
 
 const ITEM_PROPS = {
-  title: "名稱",
+  title: "Name",
   day: "Day",
-  startTime: "開始時間",
-  endTime: "結束時間",
-  type: "類型",
-  location: "地點",
-  cost: "費用",
-  url: "網址",
-  notes: "備註",
-  order: "排序",
+  startTime: "Start Time",
+  endTime: "End Time",
+  type: "Item Type",
+  location: "Location",
+  cost: "Cost",
+  url: "Link",
+  notes: "Notes",
+  order: "Order",
 } as const;
 
 const FLIGHT_PROPS = {
-  title: "名稱",
-  trip: "旅程",
-  airline: "航空公司",
-  flightNumber: "航班號碼",
-  departureAirport: "出發機場",
-  arrivalAirport: "抵達機場",
-  departureAt: "出發時間",
-  arrivalAt: "抵達時間",
-  aircraft: "機型",
-  baggageInfo: "行李資訊",
-  cost: "費用",
-  passengers: "乘客資訊",
-  notes: "備註",
+  title: "Name",
+  trip: "Trip",
+  airline: "Airline",
+  flightNumber: "Flight Number",
+  departureAirport: "Departure Airport",
+  arrivalAirport: "Arrival Airport",
+  departureAt: "Departure Time",
+  arrivalAt: "Arrival Time",
+  aircraft: "Aircraft",
+  baggageInfo: "Baggage Info",
+  cost: "Cost",
+  passengers: "Passengers",
+  notes: "Notes",
 } as const;
 
 const STAY_PROPS = {
-  title: "名稱",
-  trip: "旅程",
-  checkInDate: "入住日期",
-  checkOutDate: "退房日期",
-  checkInTime: "入住時間",
-  checkOutTime: "退房時間",
-  cost: "費用",
-  address: "地址",
-  url: "網址",
-  bookingReference: "訂房代碼",
-  notes: "備註",
+  title: "Name",
+  trip: "Trip",
+  checkInDate: "Check-in Date",
+  checkOutDate: "Check-out Date",
+  checkInTime: "Check-in Time",
+  checkOutTime: "Check-out Time",
+  cost: "Cost",
+  address: "Address",
+  url: "Link",
+  bookingReference: "Booking Reference",
+  notes: "Notes",
 } as const;
 
 function getClient() {
@@ -674,7 +674,7 @@ function mapItem(properties: Record<string, any>, id: string): TripItem {
     id,
     dayId: dayId ?? "",
     title: getTitle(properties, ITEM_PROPS.title),
-    type: (getSelect(properties, ITEM_PROPS.type) || "其他") as ItemType,
+    type: normalizeItemType(getSelect(properties, ITEM_PROPS.type)) as ItemType,
     startTime: getRichText(properties, ITEM_PROPS.startTime),
     endTime: getRichText(properties, ITEM_PROPS.endTime),
     location: getRichText(properties, ITEM_PROPS.location),
@@ -683,6 +683,26 @@ function mapItem(properties: Record<string, any>, id: string): TripItem {
     notes: getRichText(properties, ITEM_PROPS.notes),
     order: getNumber(properties, ITEM_PROPS.order) ?? 0,
   };
+}
+
+function normalizeItemType(value: string): ItemType {
+  switch (value) {
+    case "景點":
+      return "Sightseeing";
+    case "交通":
+      return "Transit";
+    case "住宿":
+      return "Stay";
+    case "餐廳":
+      return "Food";
+    case "購物":
+      return "Shopping";
+    case "提醒":
+      return "Reminder";
+    case "其他":
+    default:
+      return "Other";
+  }
 }
 
 function mapFlight(properties: Record<string, any>, id: string): TripFlight {

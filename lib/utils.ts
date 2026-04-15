@@ -7,10 +7,10 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatDate(value?: string | null) {
   if (!value) {
-    return "未設定";
+    return "Not set";
   }
 
-  return new Intl.DateTimeFormat("zh-TW", {
+  return new Intl.DateTimeFormat("en-CA", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -19,10 +19,10 @@ export function formatDate(value?: string | null) {
 
 export function formatDateTime(value?: string | null) {
   if (!value) {
-    return "未設定";
+    return "Not set";
   }
 
-  return new Intl.DateTimeFormat("zh-TW", {
+  return new Intl.DateTimeFormat("en-CA", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -34,10 +34,10 @@ export function formatDateTime(value?: string | null) {
 
 export function currency(value?: number | null) {
   if (typeof value !== "number" || Number.isNaN(value)) {
-    return "未填寫";
+    return "Not entered";
   }
 
-  return new Intl.NumberFormat("zh-TW", {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "TWD",
     maximumFractionDigits: 0,

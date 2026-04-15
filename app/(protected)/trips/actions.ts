@@ -21,7 +21,7 @@ import { daySchema, flightSchema, itemSchema, staySchema, tripSchema } from "@/l
 function assertConfigured() {
   const status = getNotionStatus();
   if (!status.configured) {
-    throw new Error(`目前無法使用完整旅程資料，請先完成設定：${status.missing.join(", ")}`);
+    throw new Error(`Travel data is unavailable until setup is complete: ${status.missing.join(", ")}`);
   }
 }
 

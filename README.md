@@ -1,29 +1,29 @@
 # Notion Travel Planner
 
-Airbnb 風格的個人旅行規劃 App。介面採繁體中文，使用 `Next.js App Router` 建構，部署目標為 `Vercel Free`，資料層以 `Notion` 為唯一真實來源，並預留 `Figma` 元件同步 scaffold。
+Airbnb-inspired personal travel planner built with `Next.js App Router`. The UI is now English-first, deployment targets `Vercel Free`, `Notion` remains the single source of truth, and the repo keeps a small `Figma` sync scaffold.
 
 ## Product Summary
 
-這個專案把 Notion 裡的旅行資料整理成更適合日常規劃與旅途中使用的 UI：
+This project reshapes travel data stored in Notion into a UI that is easier to use during planning and while traveling:
 
-- 用共享密碼保護私人工作台
-- 用旅程卡片查看旅行日期與摘要
-- 用單一旅程頁編排每天的 Day 與每個行程項目
-- 所有新增、編輯、刪除都直接寫回 Notion
-- 視覺方向偏簡潔、現代、Airbnb-style
+- A shared password protects the private workspace
+- Trip cards show dates and summaries at a glance
+- A dedicated trip page organizes days and itinerary items
+- All create, edit, and delete actions write directly back to Notion
+- The visual direction is clean, modern, and Airbnb-style
 
 ## Core Features
 
 - `/login`
-  簡單密碼保護頁面，登入後以 signed cookie 維持 session
+  Password-protected entry page with a signed-cookie session
 - `/trips`
-  旅程列表、統計區塊、建立新旅程表單
+  Trip list, summary stats, and a new-trip form
 - `/trips/[id]`
-  單一旅程總覽、建立 Day、建立/編輯/刪除行程項目、航班與住宿
+  Trip overview plus create/edit/delete flows for days, itinerary items, flights, and stays
 - `Notion` integration
-  `Trips`、`Days`、`Items`、`Flights`、`Stays` 五個 data sources 作為唯一資料來源
+  `Trips`, `Days`, `Items`, `Flights`, and `Stays` data sources act as the only backend
 - `Figma` scaffold
-  預留 component mapping 與設計同步結構
+  Reserved component-mapping and design-sync structure
 
 ## Stack
 
@@ -32,17 +32,17 @@ Airbnb 風格的個人旅行規劃 App。介面採繁體中文，使用 `Next.js
 - `TypeScript`
 - `@notionhq/client`
 - `Zod`
-- 自訂 CSS 設計系統
+- Custom CSS design system
 
 ## Local Development
 
-1. 安裝依賴
+1. Install dependencies
 
 ```bash
 npm install
 ```
 
-2. 建立 `.env.local`
+2. Create `.env.local`
 
 ```bash
 NOTION_TOKEN=
@@ -55,15 +55,15 @@ APP_PASSWORD=
 SESSION_SECRET=
 ```
 
-註：雖然變數名稱沿用 `*_DB_ID`，但在目前 `@notionhq/client` 版本下，實際上請填入對應 database 的 `data source ID`。
+Note: although the variable names still use `*_DB_ID`, the current `@notionhq/client` integration expects the Notion data source ID for each database.
 
-3. 啟動開發環境
+3. Start the development server
 
 ```bash
 npm run dev
 ```
 
-4. 驗證
+4. Verify
 
 ```bash
 npm run lint
@@ -74,63 +74,63 @@ npm run build
 
 ### Trips
 
-- `名稱` Title
-- `目的地` Rich text
-- `開始日期` Date
-- `結束日期` Date
-- `封面` URL
-- `備註` Rich text
+- `Name` Title
+- `Destination` Rich text
+- `Start Date` Date
+- `End Date` Date
+- `Cover` URL
+- `Notes` Rich text
 
 ### Days
 
-- `名稱` Title
-- `旅程` Relation -> Trips
-- `日期` Date
-- `天次` Number
-- `摘要` Rich text
+- `Name` Title
+- `Trip` Relation -> Trips
+- `Date` Date
+- `Day Number` Number
+- `Summary` Rich text
 
 ### Items
 
-- `名稱` Title
+- `Name` Title
 - `Day` Relation -> Days
-- `開始時間` Rich text
-- `結束時間` Rich text
-- `類型` Select: `景點`, `交通`, `住宿`, `餐廳`, `購物`, `其他`
-- `地點` Rich text
-- `費用` Number
-- `網址` URL
-- `備註` Rich text
-- `排序` Number
+- `Start Time` Rich text
+- `End Time` Rich text
+- `Item Type` Select: `Sightseeing`, `Transit`, `Stay`, `Food`, `Shopping`, `Reminder`, `Other`
+- `Location` Rich text
+- `Cost` Number
+- `Link` URL
+- `Notes` Rich text
+- `Order` Number
 
 ### Flights
 
-- `名稱` Title
-- `旅程` Relation -> Trips
-- `航空公司` Rich text
-- `航班號碼` Rich text
-- `出發機場` Rich text
-- `抵達機場` Rich text
-- `出發時間` Date
-- `抵達時間` Date
-- `機型` Rich text
-- `行李資訊` Rich text
-- `費用` Number
-- `乘客資訊` Rich text
-- `備註` Rich text
+- `Name` Title
+- `Trip` Relation -> Trips
+- `Airline` Rich text
+- `Flight Number` Rich text
+- `Departure Airport` Rich text
+- `Arrival Airport` Rich text
+- `Departure Time` Date
+- `Arrival Time` Date
+- `Aircraft` Rich text
+- `Baggage Info` Rich text
+- `Cost` Number
+- `Passengers` Rich text
+- `Notes` Rich text
 
 ### Stays
 
-- `名稱` Title
-- `旅程` Relation -> Trips
-- `入住日期` Date
-- `退房日期` Date
-- `入住時間` Rich text
-- `退房時間` Rich text
-- `費用` Number
-- `地址` Rich text
-- `網址` URL
-- `訂房代碼` Rich text
-- `備註` Rich text
+- `Name` Title
+- `Trip` Relation -> Trips
+- `Check-in Date` Date
+- `Check-out Date` Date
+- `Check-in Time` Rich text
+- `Check-out Time` Rich text
+- `Cost` Number
+- `Address` Rich text
+- `Link` URL
+- `Booking Reference` Rich text
+- `Notes` Rich text
 
 ## Project Structure
 
@@ -145,13 +145,13 @@ figma/                    component mapping scaffold
 
 ## Deployment Notes
 
-- 將 `.env.local` 中的變數同步到 Vercel Project Settings
-- `middleware` 會保護 `/trips` 路由，因此 `APP_PASSWORD` 與 `SESSION_SECRET` 為必填
-- 本專案適合部署於 `Vercel Free`
+- Sync the values from `.env.local` into Vercel Project Settings
+- `middleware` protects `/trips`, so `APP_PASSWORD` and `SESSION_SECRET` are required
+- This project is suitable for `Vercel Free`
 
 ## Roadmap
 
-- 更完整的 Figma component sync
-- 更細的旅程篩選與排序
-- 預算分析與旅程摘要強化
-- 更穩定的 dev-mode 表單流程與 UX polish
+- Richer Figma component sync
+- More detailed trip filters and sorting
+- Better budget analysis and trip summaries
+- More stable dev-mode form flows and UX polish

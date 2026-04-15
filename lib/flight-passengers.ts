@@ -14,10 +14,10 @@ export function serializeFlightPassengers(passengers: TripFlightPassenger[]) {
   return normalizeFlightPassengers(passengers)
     .map((passenger, index) =>
       [
-        `乘客 ${index + 1}`,
-        `姓名：${passenger.fullName}`,
-        `訂位代號：${passenger.bookingReference}`,
-        `機票號碼：${passenger.ticketNumber}`,
+        `Passenger ${index + 1}`,
+        `Name:${passenger.fullName}`,
+        `Booking Reference:${passenger.bookingReference}`,
+        `Ticket Number:${passenger.ticketNumber}`,
       ].join("\n"),
     )
     .join("\n\n");
@@ -34,15 +34,20 @@ export function parseFlightPassengers(value?: string | null) {
     .filter(Boolean)
     .map((block) => {
       const lines = block.split("\n").map((line) => line.trim());
-      const details = lines.filter((line) => line.includes("："));
+      const details = lines.filter((line) => line.includes(":") || line.includes("："));
 
-      const getFieldValue = (label: string) =>
-        details.find((line) => line.startsWith(`${label}：`))?.slice(label.length + 1).trim() ?? "";
+      const getFieldValue = (labels: string[]) =>
+        details
+          .find((line) =>
+            labels.some((label) => line.startsWith(`${label}:`) || line.startsWith(`${label}：`)),
+          )
+          ?.replace(/^[^:：]+[:：]/, "")
+          .trim() ?? "";
 
       return {
-        fullName: getFieldValue("姓名"),
-        bookingReference: getFieldValue("訂位代號"),
-        ticketNumber: getFieldValue("機票號碼"),
+        fullName: getFieldValue(["Name", "姓名"]),
+        bookingReference: getFieldValue(["Booking Reference", "訂位代號"]),
+        ticketNumber: getFieldValue(["Ticket Number", "機票號碼"]),
       };
     })
     .filter((passenger) => passenger.fullName || passenger.bookingReference || passenger.ticketNumber);
@@ -75,5 +80,5 @@ export function getFlightDisplayLabel(input: {
     return airline;
   }
 
-  return "未命名航班";
+  return "Untitled flight";
 }

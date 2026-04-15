@@ -14,8 +14,7 @@ export function SubmitButton({ children, className }: SubmitButtonProps) {
 
   return (
     <button className={cn("button", className)} disabled={pending} type="submit">
-      {pending ? "處理中..." : children}
+      {pending ? "Saving..." : children}
     </button>
   );
 }
-

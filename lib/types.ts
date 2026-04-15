@@ -1,10 +1,11 @@
 export type ItemType =
-  | "景點"
-  | "交通"
-  | "住宿"
-  | "餐廳"
-  | "購物"
-  | "其他";
+  | "Sightseeing"
+  | "Transit"
+  | "Stay"
+  | "Food"
+  | "Shopping"
+  | "Reminder"
+  | "Other";
 
 export type TripSectionTab = "overview" | "itinerary" | "flights" | "stays";
 
