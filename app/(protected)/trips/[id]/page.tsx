@@ -157,6 +157,10 @@ export default async function TripDetailPage({
                         type="date"
                       />
                     </div>
+                    <BrowserTimeZoneField
+                      label="Start date time zone"
+                      name="startDateTimeZone"
+                    />
                     <div className="field">
                       <label className="field-label" htmlFor="trip-endDate">
                         End date
@@ -169,6 +173,10 @@ export default async function TripDetailPage({
                         type="date"
                       />
                     </div>
+                    <BrowserTimeZoneField
+                      label="End date time zone"
+                      name="endDateTimeZone"
+                    />
                     <div className="field">
                       <label className="field-label" htmlFor="trip-cover">
                         Cover image URL
@@ -297,6 +305,10 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                   type="date"
                 />
               </div>
+              <BrowserTimeZoneField
+                label="Date time zone"
+                name="dateTimeZone"
+              />
               <div className="field">
                 <label className="field-label" htmlFor="day-number">
                   Day number
@@ -489,7 +501,6 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
         >
           <form action={createFlightAction} className="stack">
             <input name="tripId" type="hidden" value={detail.trip.id} />
-            <BrowserTimeZoneField />
             <div className="forms-grid">
               <LabeledInput
                 label="Airline"
@@ -521,11 +532,19 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
                 type="datetime-local"
                 required
               />
+              <BrowserTimeZoneField
+                label="Departure time zone"
+                name="departureAtTimeZone"
+              />
               <LabeledInput
                 label="Arrival time"
                 name="arrivalAt"
                 type="datetime-local"
                 required
+              />
+              <BrowserTimeZoneField
+                label="Arrival time zone"
+                name="arrivalAtTimeZone"
               />
               <LabeledInput
                 label="Aircraft"
@@ -593,11 +612,19 @@ function StaysTab({ detail }: { detail: TripDetail }) {
                 type="date"
                 required
               />
+              <BrowserTimeZoneField
+                label="Check-in date time zone"
+                name="checkInDateTimeZone"
+              />
               <LabeledInput
                 label="Check-out date"
                 name="checkOutDate"
                 type="date"
                 required
+              />
+              <BrowserTimeZoneField
+                label="Check-out date time zone"
+                name="checkOutDateTimeZone"
               />
               <LabeledInput label="Check-in time" name="checkInTime" type="time" />
               <LabeledInput label="Check-out time" name="checkOutTime" type="time" />

@@ -362,6 +362,9 @@ export async function createTrip(input: {
   endDate: string;
   cover: string;
   notes: string;
+}, timeZones?: {
+  startDate?: string | null;
+  endDate?: string | null;
 }) {
   const client = getClient();
 
@@ -370,8 +373,8 @@ export async function createTrip(input: {
     properties: {
       [TRIP_PROPS.title]: titleProperty(input.title),
       [TRIP_PROPS.destination]: richTextProperty(input.destination),
-      [TRIP_PROPS.startDate]: dateProperty(input.startDate),
-      [TRIP_PROPS.endDate]: dateProperty(input.endDate),
+      [TRIP_PROPS.startDate]: dateProperty(input.startDate, timeZones?.startDate),
+      [TRIP_PROPS.endDate]: dateProperty(input.endDate, timeZones?.endDate),
       [TRIP_PROPS.cover]: {
         url: input.cover || null,
       },
@@ -390,6 +393,10 @@ export async function updateTrip(
     cover: string;
     notes: string;
   },
+  timeZones?: {
+    startDate?: string | null;
+    endDate?: string | null;
+  },
 ) {
   const client = getClient();
 
@@ -398,8 +405,8 @@ export async function updateTrip(
     properties: {
       [TRIP_PROPS.title]: titleProperty(input.title),
       [TRIP_PROPS.destination]: richTextProperty(input.destination),
-      [TRIP_PROPS.startDate]: dateProperty(input.startDate),
-      [TRIP_PROPS.endDate]: dateProperty(input.endDate),
+      [TRIP_PROPS.startDate]: dateProperty(input.startDate, timeZones?.startDate),
+      [TRIP_PROPS.endDate]: dateProperty(input.endDate, timeZones?.endDate),
       [TRIP_PROPS.cover]: {
         url: input.cover || null,
       },
@@ -414,7 +421,7 @@ export async function createDay(input: {
   date: string;
   dayNumber: number;
   summary: string;
-}) {
+}, timeZone?: string | null) {
   const client = getClient();
 
   await client.pages.create({
@@ -422,7 +429,7 @@ export async function createDay(input: {
     properties: {
       [DAY_PROPS.title]: titleProperty(input.title),
       [DAY_PROPS.trip]: relationProperty(input.tripId),
-      [DAY_PROPS.date]: dateProperty(input.date),
+      [DAY_PROPS.date]: dateProperty(input.date, timeZone),
       [DAY_PROPS.dayNumber]: {
         number: input.dayNumber,
       },
@@ -510,7 +517,10 @@ export async function updateItem(
   } as any);
 }
 
-export async function createFlight(input: Omit<TripFlight, "id">, timeZone?: string | null) {
+export async function createFlight(input: Omit<TripFlight, "id">, timeZones?: {
+  departureAt?: string | null;
+  arrivalAt?: string | null;
+}) {
   const client = getClient();
 
   await client.pages.create({
@@ -522,8 +532,8 @@ export async function createFlight(input: Omit<TripFlight, "id">, timeZone?: str
       [FLIGHT_PROPS.flightNumber]: richTextProperty(input.flightNumber),
       [FLIGHT_PROPS.departureAirport]: richTextProperty(input.departureAirport),
       [FLIGHT_PROPS.arrivalAirport]: richTextProperty(input.arrivalAirport),
-      [FLIGHT_PROPS.departureAt]: dateProperty(input.departureAt, timeZone),
-      [FLIGHT_PROPS.arrivalAt]: dateProperty(input.arrivalAt, timeZone),
+      [FLIGHT_PROPS.departureAt]: dateProperty(input.departureAt, timeZones?.departureAt),
+      [FLIGHT_PROPS.arrivalAt]: dateProperty(input.arrivalAt, timeZones?.arrivalAt),
       [FLIGHT_PROPS.aircraft]: richTextProperty(input.aircraft),
       [FLIGHT_PROPS.baggageInfo]: richTextProperty(input.baggageInfo),
       [FLIGHT_PROPS.cost]: {
@@ -535,7 +545,14 @@ export async function createFlight(input: Omit<TripFlight, "id">, timeZone?: str
   } as CreatePageParameters);
 }
 
-export async function updateFlight(flightId: string, input: Omit<TripFlight, "id" | "tripId">, timeZone?: string | null) {
+export async function updateFlight(
+  flightId: string,
+  input: Omit<TripFlight, "id" | "tripId">,
+  timeZones?: {
+    departureAt?: string | null;
+    arrivalAt?: string | null;
+  },
+) {
   const client = getClient();
 
   await client.pages.update({
@@ -546,8 +563,8 @@ export async function updateFlight(flightId: string, input: Omit<TripFlight, "id
       [FLIGHT_PROPS.flightNumber]: richTextProperty(input.flightNumber),
       [FLIGHT_PROPS.departureAirport]: richTextProperty(input.departureAirport),
       [FLIGHT_PROPS.arrivalAirport]: richTextProperty(input.arrivalAirport),
-      [FLIGHT_PROPS.departureAt]: dateProperty(input.departureAt, timeZone),
-      [FLIGHT_PROPS.arrivalAt]: dateProperty(input.arrivalAt, timeZone),
+      [FLIGHT_PROPS.departureAt]: dateProperty(input.departureAt, timeZones?.departureAt),
+      [FLIGHT_PROPS.arrivalAt]: dateProperty(input.arrivalAt, timeZones?.arrivalAt),
       [FLIGHT_PROPS.aircraft]: richTextProperty(input.aircraft),
       [FLIGHT_PROPS.baggageInfo]: richTextProperty(input.baggageInfo),
       [FLIGHT_PROPS.cost]: {
@@ -559,7 +576,10 @@ export async function updateFlight(flightId: string, input: Omit<TripFlight, "id
   } as any);
 }
 
-export async function createStay(input: Omit<TripStay, "id">) {
+export async function createStay(input: Omit<TripStay, "id">, timeZones?: {
+  checkInDate?: string | null;
+  checkOutDate?: string | null;
+}) {
   const client = getClient();
   const dataSourceId = getRequiredEnv("NOTION_STAYS_DB_ID");
   const allowedPropertyNames = await getDataSourcePropertyNames(dataSourceId);
@@ -567,8 +587,8 @@ export async function createStay(input: Omit<TripStay, "id">) {
     {
       [STAY_PROPS.title]: titleProperty(input.title),
       [STAY_PROPS.trip]: relationProperty(input.tripId),
-      [STAY_PROPS.checkInDate]: dateProperty(input.checkInDate ?? ""),
-      [STAY_PROPS.checkOutDate]: dateProperty(input.checkOutDate ?? ""),
+      [STAY_PROPS.checkInDate]: dateProperty(input.checkInDate ?? "", timeZones?.checkInDate),
+      [STAY_PROPS.checkOutDate]: dateProperty(input.checkOutDate ?? "", timeZones?.checkOutDate),
       [STAY_PROPS.checkInTime]: richTextProperty(input.checkInTime),
       [STAY_PROPS.checkOutTime]: richTextProperty(input.checkOutTime),
       [STAY_PROPS.cost]: {
@@ -590,15 +610,22 @@ export async function createStay(input: Omit<TripStay, "id">) {
   } as CreatePageParameters);
 }
 
-export async function updateStay(stayId: string, input: Omit<TripStay, "id" | "tripId">) {
+export async function updateStay(
+  stayId: string,
+  input: Omit<TripStay, "id" | "tripId">,
+  timeZones?: {
+    checkInDate?: string | null;
+    checkOutDate?: string | null;
+  },
+) {
   const client = getClient();
   const dataSourceId = getRequiredEnv("NOTION_STAYS_DB_ID");
   const allowedPropertyNames = await getDataSourcePropertyNames(dataSourceId);
   const properties = filterPropertiesBySchema(
     {
       [STAY_PROPS.title]: titleProperty(input.title),
-      [STAY_PROPS.checkInDate]: dateProperty(input.checkInDate ?? ""),
-      [STAY_PROPS.checkOutDate]: dateProperty(input.checkOutDate ?? ""),
+      [STAY_PROPS.checkInDate]: dateProperty(input.checkInDate ?? "", timeZones?.checkInDate),
+      [STAY_PROPS.checkOutDate]: dateProperty(input.checkOutDate ?? "", timeZones?.checkOutDate),
       [STAY_PROPS.checkInTime]: richTextProperty(input.checkInTime),
       [STAY_PROPS.checkOutTime]: richTextProperty(input.checkOutTime),
       [STAY_PROPS.cost]: {

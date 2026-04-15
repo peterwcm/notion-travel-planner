@@ -205,7 +205,6 @@ export function FlightDetailCard({
           <form action={updateFlightAction} className="stack">
             <input name="tripId" type="hidden" value={tripId} />
             <input name="flightId" type="hidden" value={flight.id} />
-            <BrowserTimeZoneField />
             <div className="forms-grid">
               <LabeledInput
                 label="Airline"
@@ -238,12 +237,20 @@ export function FlightDetailCard({
                 defaultValue={toDateTimeInputValue(flight.departureAt)}
                 required
               />
+              <BrowserTimeZoneField
+                label="Departure time zone"
+                name="departureAtTimeZone"
+              />
               <LabeledInput
                 label="Arrival time"
                 name="arrivalAt"
                 type="datetime-local"
                 defaultValue={toDateTimeInputValue(flight.arrivalAt)}
                 required
+              />
+              <BrowserTimeZoneField
+                label="Arrival time zone"
+                name="arrivalAtTimeZone"
               />
               <LabeledInput
                 label="Aircraft"
@@ -404,12 +411,20 @@ export function StayDetailCard({
                 defaultValue={toDateInputValue(stay.checkInDate)}
                 required
               />
+              <BrowserTimeZoneField
+                label="Check-in date time zone"
+                name="checkInDateTimeZone"
+              />
               <LabeledInput
                 label="Check-out date"
                 name="checkOutDate"
                 type="date"
                 defaultValue={toDateInputValue(stay.checkOutDate)}
                 required
+              />
+              <BrowserTimeZoneField
+                label="Check-out date time zone"
+                name="checkOutDateTimeZone"
               />
               <LabeledInput
                 label="Check-in time"

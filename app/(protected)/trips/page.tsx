@@ -1,3 +1,4 @@
+import { BrowserTimeZoneField } from "@/components/browser-time-zone-field";
 import { TripCard } from "@/components/trip-card";
 import { FormDialog } from "@/components/form-dialog";
 import { SubmitButton } from "@/components/submit-button";
@@ -56,10 +57,18 @@ export default async function TripsPage() {
                   <label htmlFor="startDate">Start date</label>
                   <input className="input" id="startDate" name="startDate" type="date" />
                 </div>
+                <BrowserTimeZoneField
+                  label="Start date time zone"
+                  name="startDateTimeZone"
+                />
                 <div className="field">
                   <label htmlFor="endDate">End date</label>
                   <input className="input" id="endDate" name="endDate" type="date" />
                 </div>
+                <BrowserTimeZoneField
+                  label="End date time zone"
+                  name="endDateTimeZone"
+                />
                 <div className="field">
                   <label htmlFor="cover">Cover image URL</label>
                   <input className="input" id="cover" name="cover" placeholder="https://..." />
