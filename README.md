@@ -74,11 +74,9 @@ npm run build
 
 ### Trips
 
-- `Name` Title
-- `Destination` Rich text
+- `Destination` Title
 - `Start Date` Date
 - `End Date` Date
-- `Cover` URL
 - `Notes` Rich text
 
 ### Days

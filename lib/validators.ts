@@ -5,11 +5,9 @@ export const loginSchema = z.object({
 });
 
 export const tripSchema = z.object({
-  title: z.string().min(1, "Enter a trip name."),
   destination: z.string().min(1, "Enter a destination."),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
-  cover: z.string().optional(),
   notes: z.string().optional(),
 });
 

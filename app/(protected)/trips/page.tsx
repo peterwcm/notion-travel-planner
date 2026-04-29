@@ -46,21 +46,6 @@ export default async function TripsPage() {
                 <div className="field">
                   <label
                     className="field-label field-label--required"
-                    htmlFor="title"
-                  >
-                    Trip name
-                  </label>
-                  <input
-                    className="input"
-                    id="title"
-                    name="title"
-                    placeholder="Autumn walk in Tokyo"
-                    required
-                  />
-                </div>
-                <div className="field">
-                  <label
-                    className="field-label field-label--required"
                     htmlFor="destination"
                   >
                     Destination
@@ -89,15 +74,6 @@ export default async function TripsPage() {
                     id="endDate"
                     name="endDate"
                     type="date"
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor="cover">Cover image URL</label>
-                  <input
-                    className="input"
-                    id="cover"
-                    name="cover"
-                    placeholder="https://..."
                   />
                 </div>
               </div>

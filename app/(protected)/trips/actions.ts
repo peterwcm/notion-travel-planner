@@ -29,17 +29,14 @@ export async function createTripAction(formData: FormData) {
   assertConfigured();
 
   const parsed = tripSchema.parse({
-    title: formData.get("title"),
     destination: formData.get("destination"),
     startDate: formData.get("startDate"),
     endDate: formData.get("endDate"),
-    cover: formData.get("cover"),
     notes: formData.get("notes"),
   });
 
   await createTrip({
     ...parsed,
-    cover: parsed.cover ?? "",
     notes: parsed.notes ?? "",
     startDate: parsed.startDate ?? "",
     endDate: parsed.endDate ?? "",
@@ -53,17 +50,14 @@ export async function updateTripAction(formData: FormData) {
 
   const tripId = String(formData.get("tripId") ?? "");
   const parsed = tripSchema.parse({
-    title: formData.get("title"),
     destination: formData.get("destination"),
     startDate: formData.get("startDate"),
     endDate: formData.get("endDate"),
-    cover: formData.get("cover"),
     notes: formData.get("notes"),
   });
 
   await updateTrip(tripId, {
     ...parsed,
-    cover: parsed.cover ?? "",
     notes: parsed.notes ?? "",
     startDate: parsed.startDate ?? "",
     endDate: parsed.endDate ?? "",

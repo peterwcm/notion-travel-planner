@@ -99,10 +99,7 @@ export default async function TripDetailPage({
         <div className="stack summary-copy">
           <div className="header-actions">
             <div className="stack compact-headline">
-              <h2>
-                {detail.trip.title}{" "}
-                <div className="pill">{detail.trip.destination}</div>
-              </h2>
+              <h2>{detail.trip.destination}</h2>
               <p className="muted summary-destination">
                 <LocalDate value={detail.trip.startDate} /> -{" "}
                 <LocalDate value={detail.trip.endDate} />
@@ -110,7 +107,7 @@ export default async function TripDetailPage({
             </div>
             <div className="stats-inline">
               <FormDialog
-                description="Update the trip name, dates, and cover."
+                description="Update the destination, dates, and notes."
                 title="Edit trip"
                 triggerClassName="ghost-button"
                 triggerLabel="Edit trip"
@@ -118,21 +115,6 @@ export default async function TripDetailPage({
                 <form action={updateTripAction} className="stack">
                   <input name="tripId" type="hidden" value={detail.trip.id} />
                   <div className="forms-grid">
-                    <div className="field">
-                      <label
-                        className="field-label field-label--required"
-                        htmlFor="trip-title"
-                      >
-                        Trip name
-                      </label>
-                      <input
-                        className="input"
-                        defaultValue={detail.trip.title}
-                        id="trip-title"
-                        name="title"
-                        required
-                      />
-                    </div>
                     <div className="field">
                       <label
                         className="field-label field-label--required"
@@ -170,18 +152,6 @@ export default async function TripDetailPage({
                         id="trip-endDate"
                         name="endDate"
                         type="date"
-                      />
-                    </div>
-                    <div className="field">
-                      <label className="field-label" htmlFor="trip-cover">
-                        Cover image URL
-                      </label>
-                      <input
-                        className="input"
-                        defaultValue={detail.trip.cover}
-                        id="trip-cover"
-                        name="cover"
-                        placeholder="https://..."
                       />
                     </div>
                   </div>

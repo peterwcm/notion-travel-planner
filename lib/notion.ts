@@ -16,11 +16,9 @@ import type {
 import { sum } from "@/lib/utils";
 
 const TRIP_PROPS = {
-  title: "Name",
   destination: "Destination",
   startDate: "Start Date",
   endDate: "End Date",
-  cover: "Cover",
   notes: "Notes",
 } as const;
 
@@ -362,11 +360,9 @@ export async function getTripDetail(tripId: string): Promise<TripDetail | null> 
 }
 
 export async function createTrip(input: {
-  title: string;
   destination: string;
   startDate: string;
   endDate: string;
-  cover: string;
   notes: string;
 }) {
   const client = getClient();
@@ -374,13 +370,9 @@ export async function createTrip(input: {
   await client.pages.create({
     parent: { data_source_id: getRequiredEnv("NOTION_TRIPS_DB_ID") },
     properties: {
-      [TRIP_PROPS.title]: titleProperty(input.title),
-      [TRIP_PROPS.destination]: richTextProperty(input.destination),
+      [TRIP_PROPS.destination]: titleProperty(input.destination),
       [TRIP_PROPS.startDate]: dateProperty(input.startDate),
       [TRIP_PROPS.endDate]: dateProperty(input.endDate),
-      [TRIP_PROPS.cover]: {
-        url: input.cover || null,
-      },
       [TRIP_PROPS.notes]: richTextProperty(input.notes),
     },
   } as CreatePageParameters);
@@ -389,11 +381,9 @@ export async function createTrip(input: {
 export async function updateTrip(
   tripId: string,
   input: {
-    title: string;
     destination: string;
     startDate: string;
     endDate: string;
-    cover: string;
     notes: string;
   },
 ) {
@@ -402,13 +392,9 @@ export async function updateTrip(
   await client.pages.update({
     page_id: tripId,
     properties: {
-      [TRIP_PROPS.title]: titleProperty(input.title),
-      [TRIP_PROPS.destination]: richTextProperty(input.destination),
+      [TRIP_PROPS.destination]: titleProperty(input.destination),
       [TRIP_PROPS.startDate]: dateProperty(input.startDate),
       [TRIP_PROPS.endDate]: dateProperty(input.endDate),
-      [TRIP_PROPS.cover]: {
-        url: input.cover || null,
-      },
       [TRIP_PROPS.notes]: richTextProperty(input.notes),
     },
   } as any);
@@ -661,11 +647,9 @@ export function getTripStats(detail: TripDetail) {
 function mapTrip(properties: Record<string, any>, id: string): Trip {
   return {
     id,
-    title: getTitle(properties, TRIP_PROPS.title),
-    destination: getRichText(properties, TRIP_PROPS.destination),
+    destination: getTitle(properties, TRIP_PROPS.destination),
     startDate: getDate(properties, TRIP_PROPS.startDate),
     endDate: getDate(properties, TRIP_PROPS.endDate),
-    cover: getUrl(properties, TRIP_PROPS.cover),
     notes: getRichText(properties, TRIP_PROPS.notes),
   };
 }

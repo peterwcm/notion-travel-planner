@@ -11,11 +11,9 @@ export type TripSectionTab = "overview" | "itinerary" | "flights" | "stays";
 
 export interface Trip {
   id: string;
-  title: string;
   destination: string;
   startDate: string | null;
   endDate: string | null;
-  cover: string;
   notes: string;
 }
 
