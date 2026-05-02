@@ -715,7 +715,7 @@ function formatCostWithConversion(
   });
 
   if (typeof converted.amount === "number" && currencyCode !== baseCurrency) {
-    return `${formattedCost} (${currency(converted.amount, baseCurrency)})`;
+    return `${currency(converted.amount, baseCurrency)} (${formattedCost})`;
   }
 
   if (converted.missingCurrency) {
