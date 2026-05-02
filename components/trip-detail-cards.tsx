@@ -1,5 +1,6 @@
 import { FlightPassengersField } from "@/components/flight-passengers-field";
 import { CostCurrencyFields } from "@/components/currency-fields";
+import { ConfirmDeleteForm } from "@/components/confirm-delete-form";
 import { FormDialog } from "@/components/form-dialog";
 import {
   DollarIcon,
@@ -672,13 +673,15 @@ function DeleteForm({
   tripId,
   entityId,
   icon,
+  confirmMessage,
 }: {
   tripId: string;
   entityId: string;
   icon?: boolean;
+  confirmMessage?: string;
 }) {
   return (
-    <form action={deleteEntityAction}>
+    <ConfirmDeleteForm action={deleteEntityAction} confirmMessage={confirmMessage}>
       <input name="tripId" type="hidden" value={tripId} />
       <input name="entityId" type="hidden" value={entityId} />
       <button
@@ -688,7 +691,7 @@ function DeleteForm({
       >
         {icon ? <TrashIcon /> : "Delete"}
       </button>
-    </form>
+    </ConfirmDeleteForm>
   );
 }
 

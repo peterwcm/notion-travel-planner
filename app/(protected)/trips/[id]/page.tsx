@@ -7,6 +7,7 @@ import {
   CostCurrencyFields,
   getCurrencyOptions,
 } from "@/components/currency-fields";
+import { ConfirmDeleteForm } from "@/components/confirm-delete-form";
 import { FlightPassengersField } from "@/components/flight-passengers-field";
 import { FormDialog } from "@/components/form-dialog";
 import { EditIcon, TrashIcon } from "@/components/icons";
@@ -869,7 +870,10 @@ function CurrencyRateCard({
             <SubmitButton>Save</SubmitButton>
           </form>
         </FormDialog>
-        <form action={deleteEntityAction}>
+        <ConfirmDeleteForm
+          action={deleteEntityAction}
+          confirmMessage="Delete this currency rate?"
+        >
           <input name="tripId" type="hidden" value={tripId} />
           <input name="entityId" type="hidden" value={rate.id} />
           <button
@@ -879,7 +883,7 @@ function CurrencyRateCard({
           >
             <TrashIcon />
           </button>
-        </form>
+        </ConfirmDeleteForm>
       </div>
       <div>
         <h4>{rate.currency} exchange rate</h4>
