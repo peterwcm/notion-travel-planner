@@ -679,12 +679,32 @@ textarea {
 }
 
 .expense-card__top h4 {
-  margin-top: 0;
+  margin: 0;
 }
 
-.expense-card__total {
-  font-size: 0.98rem;
-  line-height: 1.45;
+.expense-card__heading {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.expense-card__heading small {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.expense-card__net {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.96),
+    rgba(247, 247, 247, 0.96)
+  );
+  border: 1px solid rgba(34, 34, 34, 0.06);
 }
 
 .stay-card__list {

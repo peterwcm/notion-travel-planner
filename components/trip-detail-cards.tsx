@@ -9,6 +9,7 @@ import {
   LinkIcon,
   LocationIcon,
   OtherIcon,
+  RefundIcon,
   ReminderIcon,
   ShoppingIcon,
   SightseeingIcon,
@@ -575,6 +576,27 @@ export function ExpenseDetailCard({
   return (
     <div className="detail-card expense-card card-with-actions">
       <div className="card-corner-actions">
+        {typeof expense.taxRefund === "number" && expense.taxRefund > 0 ? (
+          <>
+            <CostPopover
+              label={`Original cost: ${formatCostWithConversion(
+                expense.cost,
+                expense.currency,
+                trip.baseCurrency,
+                currencyRates,
+              )}`}
+            />
+            <CostPopover
+              icon={<RefundIcon />}
+              label={`Tax refund: ${formatCostWithConversion(
+                expense.taxRefund,
+                expense.currency,
+                trip.baseCurrency,
+                currencyRates,
+              )}`}
+            />
+          </>
+        ) : null}
         <FormDialog
           description="Update this expense."
           title={`Edit ${expense.title}`}
@@ -622,22 +644,25 @@ export function ExpenseDetailCard({
         <CardTag label="Expense">
           <DollarIcon />
         </CardTag>
-        <div>
-          <h4>
-            <LocalDate value={expense.date} />- {expense.title}
-          </h4>
+        <div className="expense-card__heading">
+          <h4>{expense.title}</h4>
+          <small>
+            <LocalDate value={expense.date} />
+          </small>
         </div>
       </div>
-      <div className="expense-card__total">
-        <strong>
-          {formatExpenseEquation(
-            expense.cost,
-            expense.taxRefund,
-            expense.currency,
-            trip.baseCurrency,
-            currencyRates,
-          )}
-        </strong>
+      <div className="expense-card__net">
+        <div className="stay-card__point">
+          <strong>
+            {formatNetCost(
+              expense.cost,
+              expense.taxRefund,
+              expense.currency,
+              trip.baseCurrency,
+              currencyRates,
+            )}
+          </strong>
+        </div>
       </div>
     </div>
   );
@@ -700,39 +725,19 @@ function formatCostWithConversion(
   return formattedCost;
 }
 
-function formatExpenseEquation(
+function formatNetCost(
   cost: number | null | undefined,
   taxRefund: number | null | undefined,
   currencyCode: string,
   baseCurrency: string,
   currencyRates: TripCurrencyRate[],
 ) {
-  const costLabel = formatCostWithConversion(
-    cost,
+  return formatCostWithConversion(
+    (cost ?? 0) - (taxRefund ?? 0),
     currencyCode,
     baseCurrency,
     currencyRates,
   );
-  const refundValue = taxRefund ?? 0;
-  const netValue = (cost ?? 0) - refundValue;
-  const netLabel = formatCostWithConversion(
-    netValue,
-    currencyCode,
-    baseCurrency,
-    currencyRates,
-  );
-
-  if (refundValue > 0) {
-    const refundLabel = formatCostWithConversion(
-      refundValue,
-      currencyCode,
-      baseCurrency,
-      currencyRates,
-    );
-    return `${costLabel} - ${refundLabel} = ${netLabel}`;
-  }
-
-  return costLabel;
 }
 
 function CostAction({

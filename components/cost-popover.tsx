@@ -4,7 +4,13 @@ import { useEffect, useRef, useState } from "react";
 
 import { DollarIcon } from "@/components/icons";
 
-export function CostPopover({ label }: { label: string }) {
+export function CostPopover({
+  icon,
+  label,
+}: {
+  icon?: React.ReactNode;
+  label: string;
+}) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
 
@@ -43,7 +49,7 @@ export function CostPopover({ label }: { label: string }) {
         onClick={() => setOpen((current) => !current)}
         type="button"
       >
-        <DollarIcon />
+        {icon ?? <DollarIcon />}
       </button>
       {open ? (
         <div className="cost-popover__content" role="tooltip">

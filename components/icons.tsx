@@ -148,3 +148,14 @@ export function DollarIcon(props: SVGProps<SVGSVGElement>) {
     </IconBase>
   );
 }
+
+export function RefundIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <path d="M4 7h12a4 4 0 0 1 0 8H8" />
+      <path d="M8 11l-4-4 4-4" />
+      <path d="M12 10v6" />
+      <path d="M15 12c0-1.1-1.34-2-3-2s-3 .9-3 2 1.34 2 3 2 3 .9 3 2-1.34 2-3 2-3-.9-3-2" />
+    </IconBase>
+  );
+}
