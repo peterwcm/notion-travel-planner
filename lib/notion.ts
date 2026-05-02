@@ -90,7 +90,6 @@ const EXPENSE_PROPS = {
 const CURRENCY_RATE_PROPS = {
   title: "Name",
   trip: "Trip",
-  currency: "Currency",
   rate: "Rate",
 } as const;
 
@@ -375,7 +374,7 @@ export async function getTripDetail(tripId: string): Promise<TripDetail | null> 
     getRequiredEnv("NOTION_CURRENCY_RATES_DB_ID"),
     tripId,
     CURRENCY_RATE_PROPS.trip,
-    [{ property: CURRENCY_RATE_PROPS.currency, direction: "ascending" }],
+    [{ property: CURRENCY_RATE_PROPS.title, direction: "ascending" }],
   );
   const currencyRates = currencyRateResults.map((page) =>
     mapCurrencyRate(page.properties, page.id),
@@ -730,14 +729,12 @@ export async function updateExpense(
 
 export async function createCurrencyRate(input: Omit<TripCurrencyRate, "id" | "title">) {
   const client = getClient();
-  const title = getCurrencyRateTitle(input.currency, input.rate);
 
   await client.pages.create({
     parent: { data_source_id: getRequiredEnv("NOTION_CURRENCY_RATES_DB_ID") },
     properties: {
-      [CURRENCY_RATE_PROPS.title]: titleProperty(title),
+      [CURRENCY_RATE_PROPS.title]: titleProperty(input.currency),
       [CURRENCY_RATE_PROPS.trip]: relationProperty(input.tripId),
-      [CURRENCY_RATE_PROPS.currency]: selectProperty(input.currency),
       [CURRENCY_RATE_PROPS.rate]: {
         number: input.rate,
       },
@@ -750,13 +747,11 @@ export async function updateCurrencyRate(
   input: Omit<TripCurrencyRate, "id" | "tripId" | "title">,
 ) {
   const client = getClient();
-  const title = getCurrencyRateTitle(input.currency, input.rate);
 
   await client.pages.update({
     page_id: currencyRateId,
     properties: {
-      [CURRENCY_RATE_PROPS.title]: titleProperty(title),
-      [CURRENCY_RATE_PROPS.currency]: selectProperty(input.currency),
+      [CURRENCY_RATE_PROPS.title]: titleProperty(input.currency),
       [CURRENCY_RATE_PROPS.rate]: {
         number: input.rate,
       },
@@ -973,16 +968,14 @@ function mapExpense(
 
 function mapCurrencyRate(properties: Record<string, any>, id: string): TripCurrencyRate {
   const [tripId] = getRelation(properties, CURRENCY_RATE_PROPS.trip);
-  const currency = normalizeCurrency(
-    getSelect(properties, CURRENCY_RATE_PROPS.currency),
-    "",
-  );
+  const title = getTitle(properties, CURRENCY_RATE_PROPS.title);
+  const currency = normalizeCurrency(title, "");
   const rate = getNumber(properties, CURRENCY_RATE_PROPS.rate);
 
   return {
     id,
     tripId: tripId ?? "",
-    title: getTitle(properties, CURRENCY_RATE_PROPS.title),
+    title,
     currency,
     rate,
   };
@@ -991,8 +984,4 @@ function mapCurrencyRate(properties: Record<string, any>, id: string): TripCurre
 function normalizeCurrency(value: string, fallback: string) {
   const normalized = value.trim().toUpperCase();
   return normalized || fallback;
-}
-
-function getCurrencyRateTitle(currency: string, rate: number | null) {
-  return rate ? `${currency} @ ${rate}` : currency;
 }

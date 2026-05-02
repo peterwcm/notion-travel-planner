@@ -12,7 +12,8 @@ export type TripSectionTab =
   | "itinerary"
   | "flights"
   | "stays"
-  | "expenses";
+  | "expenses"
+  | "currency-rates";
 
 export type CurrencyCode = string;
 

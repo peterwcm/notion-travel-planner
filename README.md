@@ -147,9 +147,8 @@ npm run build
 
 ### Currency Rates
 
-- `Name` Title
+- `Name` Title: 3-letter target currency code, such as `HKD`
 - `Trip` Relation -> Trips
-- `Currency` Select
 - `Rate` Number
 
 ## Project Structure

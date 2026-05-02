@@ -9,6 +9,7 @@ import {
 } from "@/components/currency-fields";
 import { FlightPassengersField } from "@/components/flight-passengers-field";
 import { FormDialog } from "@/components/form-dialog";
+import { EditIcon, TrashIcon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date-time";
 import { SubmitButton } from "@/components/submit-button";
 import {
@@ -40,6 +41,7 @@ const tabs: Array<{ id: TripSectionTab; label: string }> = [
   { id: "flights", label: "Flights" },
   { id: "stays", label: "Stays" },
   { id: "expenses", label: "Expenses" },
+  { id: "currency-rates", label: "Currency rates" },
 ];
 
 const ITEM_TYPE_OPTIONS = [
@@ -260,6 +262,9 @@ export default async function TripDetailPage({
       ) : null}
       {activeTab === "expenses" ? (
         <ExpensesTab detail={detail} currencyOptions={currencyOptions} />
+      ) : null}
+      {activeTab === "currency-rates" ? (
+        <CurrencyRatesTab detail={detail} />
       ) : null}
     </div>
   );
@@ -705,8 +710,7 @@ function ExpensesTab({
   currencyOptions: string[];
 }) {
   return (
-    <section className="section-block stack">
-      <CurrencyRatesPanel detail={detail} />
+    <section className="section-block">
       <div className="header-actions">
         <h3 className="section-title">Expenses</h3>
         <FormDialog
@@ -760,9 +764,9 @@ function ExpensesTab({
   );
 }
 
-function CurrencyRatesPanel({ detail }: { detail: TripDetail }) {
+function CurrencyRatesTab({ detail }: { detail: TripDetail }) {
   return (
-    <div className="panel stack">
+    <section className="section-block">
       <div className="header-actions">
         <div>
           <h3 className="section-title">Currency rates</h3>
@@ -775,7 +779,7 @@ function CurrencyRatesPanel({ detail }: { detail: TripDetail }) {
         <FormDialog
           description="Add a trip-specific exchange rate."
           title="New currency rate"
-          triggerLabel="New rate"
+          triggerLabel="New currency rate"
         >
           <form action={createCurrencyRateAction} className="stack">
             <input name="tripId" type="hidden" value={detail.trip.id} />
@@ -787,7 +791,7 @@ function CurrencyRatesPanel({ detail }: { detail: TripDetail }) {
                 required
               />
               <LabeledInput
-                label="Rate"
+                label={`Rate to ${detail.trip.baseCurrency}`}
                 name="rate"
                 min={0}
                 placeholder="4.04"
@@ -801,27 +805,27 @@ function CurrencyRatesPanel({ detail }: { detail: TripDetail }) {
         </FormDialog>
       </div>
       {detail.currencyRates.length > 0 ? (
-        <div className="list-table">
+        <section className="stack">
           {detail.currencyRates.map((entry) => (
-            <CurrencyRateRow
+            <CurrencyRateCard
               key={entry.id}
               rate={entry}
               tripId={detail.trip.id}
               baseCurrency={detail.trip.baseCurrency}
             />
           ))}
-        </div>
+        </section>
       ) : (
         <div className="empty">
           No additional currencies yet. Costs default to{" "}
           {detail.trip.baseCurrency}.
         </div>
       )}
-    </div>
+    </section>
   );
 }
 
-function CurrencyRateRow({
+function CurrencyRateCard({
   baseCurrency,
   rate,
   tripId,
@@ -831,15 +835,14 @@ function CurrencyRateRow({
   tripId: string;
 }) {
   return (
-    <div className="list-table__row">
-      <span>
-        1 {rate.currency} = {rate.rate ?? "Not set"} {baseCurrency}
-      </span>
-      <div className="card-actions">
+    <div className="detail-card card-with-actions">
+      <div className="card-corner-actions">
         <FormDialog
           description="Update this trip-specific exchange rate."
           title={`Edit ${rate.currency} rate`}
-          triggerClassName="ghost-button"
+          triggerAriaLabel="Edit rate"
+          triggerClassName="icon-button"
+          triggerContent={<EditIcon />}
           triggerLabel="Edit"
         >
           <form action={updateCurrencyRateAction} className="stack">
@@ -853,7 +856,7 @@ function CurrencyRateRow({
                 required
               />
               <LabeledInput
-                label="Rate"
+                label={`Rate to ${baseCurrency}`}
                 name="rate"
                 defaultValue={rate.rate ?? ""}
                 min={0}
@@ -868,10 +871,26 @@ function CurrencyRateRow({
         <form action={deleteEntityAction}>
           <input name="tripId" type="hidden" value={tripId} />
           <input name="entityId" type="hidden" value={rate.id} />
-          <button className="ghost-button" type="submit">
-            Delete
+          <button
+            aria-label="Delete rate"
+            className="icon-button icon-button--danger"
+            type="submit"
+          >
+            <TrashIcon />
           </button>
         </form>
+      </div>
+      <div>
+        <span className="tag">{rate.currency}</span>
+        <h4>{rate.currency} exchange rate</h4>
+      </div>
+      <div className="list-table">
+        <div className="list-table__row">
+          <span>Conversion</span>
+          <strong>
+            1 {rate.currency} = {rate.rate ?? "Not set"} {baseCurrency}
+          </strong>
+        </div>
       </div>
     </div>
   );
