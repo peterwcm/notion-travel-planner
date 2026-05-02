@@ -638,11 +638,25 @@ export function ExpenseDetailCard({
       <div className="list-table">
         <div className="list-table__row">
           <span>Cost</span>
-          <strong>{formatCost(expense.cost, expense.currency)}</strong>
+          <strong>
+            {formatCostWithConversion(
+              expense.cost,
+              expense.currency,
+              trip.baseCurrency,
+              currencyRates,
+            )}
+          </strong>
         </div>
         <div className="list-table__row">
           <span>Tax refund</span>
-          <strong>{formatCost(expense.taxRefund, expense.currency)}</strong>
+          <strong>
+            {formatCostWithConversion(
+              expense.taxRefund,
+              expense.currency,
+              trip.baseCurrency,
+              currencyRates,
+            )}
+          </strong>
         </div>
       </div>
     </div>
@@ -679,6 +693,33 @@ function formatCost(cost: number | null | undefined, currencyCode: string) {
     : "Not entered";
 }
 
+function formatCostWithConversion(
+  cost: number | null | undefined,
+  currencyCode: string,
+  baseCurrency: string,
+  currencyRates: TripCurrencyRate[],
+) {
+  if (typeof cost !== "number") {
+    return "Not entered";
+  }
+
+  const formattedCost = formatCost(cost, currencyCode);
+  const converted = convertToBaseCurrency(cost, currencyCode, {
+    trip: { baseCurrency },
+    currencyRates,
+  });
+
+  if (typeof converted.amount === "number" && currencyCode !== baseCurrency) {
+    return `${formattedCost} (${currency(converted.amount, baseCurrency)})`;
+  }
+
+  if (converted.missingCurrency) {
+    return `${formattedCost} (missing ${baseCurrency} rate)`;
+  }
+
+  return formattedCost;
+}
+
 function CostAction({
   baseCurrency,
   cost,
@@ -694,17 +735,12 @@ function CostAction({
     return null;
   }
 
-  const converted = convertToBaseCurrency(cost, currencyCode, {
-    trip: { baseCurrency },
+  const label = formatCostWithConversion(
+    cost,
+    currencyCode,
+    baseCurrency,
     currencyRates,
-  });
-  const formattedCost = formatCost(cost, currencyCode);
-  const label =
-    typeof converted.amount === "number" && currencyCode !== baseCurrency
-      ? `${formattedCost} (${currency(converted.amount, baseCurrency)})`
-      : converted.missingCurrency
-        ? `${formattedCost} (missing ${baseCurrency} rate)`
-      : formattedCost;
+  );
 
   return <CostPopover label={label} />;
 }
