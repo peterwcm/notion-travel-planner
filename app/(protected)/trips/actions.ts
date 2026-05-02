@@ -6,17 +6,26 @@ import { normalizeFlightPassengers } from "@/lib/flight-passengers";
 import {
   archivePage,
   createDay,
+  createExpense,
   createFlight,
   createItem,
   createStay,
   createTrip,
   getNotionStatus,
+  updateExpense,
   updateFlight,
   updateItem,
   updateStay,
   updateTrip,
 } from "@/lib/notion";
-import { daySchema, flightSchema, itemSchema, staySchema, tripSchema } from "@/lib/validators";
+import {
+  daySchema,
+  expenseSchema,
+  flightSchema,
+  itemSchema,
+  staySchema,
+  tripSchema,
+} from "@/lib/validators";
 
 function assertConfigured() {
   const status = getNotionStatus();
@@ -298,6 +307,52 @@ export async function updateStayAction(formData: FormData) {
     url: parsed.url ?? "",
     bookingReference: parsed.bookingReference ?? "",
     notes: parsed.notes ?? "",
+  });
+
+  revalidatePath(`/trips/${tripId}`);
+}
+
+export async function createExpenseAction(formData: FormData) {
+  assertConfigured();
+
+  const tripId = String(formData.get("tripId") ?? "");
+  const parsed = expenseSchema.parse({
+    tripId,
+    title: formData.get("title"),
+    date: formData.get("date"),
+    cost: formData.get("cost"),
+    taxRefund: formData.get("taxRefund"),
+  });
+
+  await createExpense({
+    tripId: parsed.tripId,
+    title: parsed.title,
+    date: parsed.date ?? null,
+    cost: parsed.cost,
+    taxRefund: parsed.taxRefund,
+  });
+
+  revalidatePath(`/trips/${tripId}`);
+}
+
+export async function updateExpenseAction(formData: FormData) {
+  assertConfigured();
+
+  const tripId = String(formData.get("tripId") ?? "");
+  const expenseId = String(formData.get("expenseId") ?? "");
+  const parsed = expenseSchema.parse({
+    tripId,
+    title: formData.get("title"),
+    date: formData.get("date"),
+    cost: formData.get("cost"),
+    taxRefund: formData.get("taxRefund"),
+  });
+
+  await updateExpense(expenseId, {
+    title: parsed.title,
+    date: parsed.date ?? null,
+    cost: parsed.cost,
+    taxRefund: parsed.taxRefund,
   });
 
   revalidatePath(`/trips/${tripId}`);

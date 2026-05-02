@@ -8,12 +8,14 @@ import { FormDialog } from "@/components/form-dialog";
 import { LocalDate } from "@/components/local-date-time";
 import { SubmitButton } from "@/components/submit-button";
 import {
+  ExpenseDetailCard,
   FlightDetailCard,
   ItineraryItemCard,
   StayDetailCard,
 } from "@/components/trip-detail-cards";
 import {
   createDayAction,
+  createExpenseAction,
   createFlightAction,
   createItemAction,
   createStayAction,
@@ -30,6 +32,7 @@ const tabs: Array<{ id: TripSectionTab; label: string }> = [
   { id: "itinerary", label: "Itinerary" },
   { id: "flights", label: "Flights" },
   { id: "stays", label: "Stays" },
+  { id: "expenses", label: "Expenses" },
 ];
 
 const ITEM_TYPE_OPTIONS = [
@@ -178,6 +181,16 @@ export default async function TripDetailPage({
               <span className="metric__label">Total cost</span>
               <strong>{currency(stats.totalCost)}</strong>
             </div>
+            <div className="metric">
+              <span className="metric__label">Total tax refund</span>
+              <strong>{currency(stats.totalTaxRefund)}</strong>
+            </div>
+            <div className="metric">
+              <span className="metric__label">Net cost</span>
+              <strong>
+                {currency(stats.totalCost - stats.totalTaxRefund)}
+              </strong>
+            </div>
           </div>
 
           {detail.trip.notes ? (
@@ -204,6 +217,7 @@ export default async function TripDetailPage({
       {activeTab === "itinerary" ? <ItineraryTab detail={detail} /> : null}
       {activeTab === "flights" ? <FlightsTab detail={detail} /> : null}
       {activeTab === "stays" ? <StaysTab detail={detail} /> : null}
+      {activeTab === "expenses" ? <ExpensesTab detail={detail} /> : null}
     </div>
   );
 }
@@ -615,6 +629,62 @@ function StaysTab({ detail }: { detail: TripDetail }) {
           ))
         ) : (
           <div className="empty">No stays yet.</div>
+        )}
+      </section>
+    </section>
+  );
+}
+
+function ExpensesTab({ detail }: { detail: TripDetail }) {
+  return (
+    <section className="section-block">
+      <div className="header-actions">
+        <h3 className="section-title">Expenses</h3>
+        <FormDialog
+          description="Add a trip-level expense."
+          title="New expense"
+          triggerLabel="New expense"
+        >
+          <form action={createExpenseAction} className="stack">
+            <input name="tripId" type="hidden" value={detail.trip.id} />
+            <div className="forms-grid">
+              <LabeledInput
+                label="Name"
+                name="title"
+                placeholder="Airport transfer"
+                required
+              />
+              <LabeledInput label="Date" name="date" type="date" required />
+              <LabeledInput
+                label="Cost"
+                name="cost"
+                type="number"
+                min={0}
+                placeholder="0"
+              />
+              <LabeledInput
+                label="Tax refund"
+                name="taxRefund"
+                type="number"
+                min={0}
+                placeholder="0"
+              />
+            </div>
+            <SubmitButton>Create expense</SubmitButton>
+          </form>
+        </FormDialog>
+      </div>
+      <section className="stack">
+        {detail.expenses.length > 0 ? (
+          detail.expenses.map((expense) => (
+            <ExpenseDetailCard
+              key={expense.id}
+              tripId={detail.trip.id}
+              expense={expense}
+            />
+          ))
+        ) : (
+          <div className="empty">No expenses yet.</div>
         )}
       </section>
     </section>

@@ -85,3 +85,17 @@ export const staySchema = z.object({
   bookingReference: z.string().optional(),
   notes: z.string().optional(),
 });
+
+export const expenseSchema = z.object({
+  tripId: z.string().min(1),
+  title: z.string().min(1, "Enter an expense name."),
+  date: z.string().min(1, "Enter an expense date."),
+  cost: z
+    .string()
+    .optional()
+    .transform((value) => (value ? Number(value) : null)),
+  taxRefund: z
+    .string()
+    .optional()
+    .transform((value) => (value ? Number(value) : null)),
+});

@@ -51,6 +51,7 @@ NOTION_DAYS_DB_ID=
 NOTION_ITEMS_DB_ID=
 NOTION_FLIGHTS_DB_ID=
 NOTION_STAYS_DB_ID=
+NOTION_EXPENSES_DB_ID=
 APP_PASSWORD=
 SESSION_SECRET=
 ```
@@ -129,6 +130,14 @@ npm run build
 - `Link` URL
 - `Booking Reference` Rich text
 - `Notes` Rich text
+
+### Expenses
+
+- `Name` Title
+- `Trip` Relation -> Trips
+- `Date` Date
+- `Cost` Number
+- `Tax Refund` Number
 
 ## Project Structure
 

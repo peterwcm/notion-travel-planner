@@ -9,6 +9,7 @@ import type {
   Trip,
   TripDay,
   TripDetail,
+  TripExpense,
   TripFlight,
   TripItem,
   TripStay,
@@ -69,6 +70,14 @@ const STAY_PROPS = {
   url: "Link",
   bookingReference: "Booking Reference",
   notes: "Notes",
+} as const;
+
+const EXPENSE_PROPS = {
+  title: "Name",
+  trip: "Trip",
+  date: "Date",
+  cost: "Cost",
+  taxRefund: "Tax Refund",
 } as const;
 
 function getClient() {
@@ -330,12 +339,15 @@ export async function getTripDetail(tripId: string): Promise<TripDetail | null> 
     });
   }
 
-  const [flightResults, stayResults] = await Promise.all([
+  const [flightResults, stayResults, expenseResults] = await Promise.all([
     queryTripScopedPages(getRequiredEnv("NOTION_FLIGHTS_DB_ID"), tripId, FLIGHT_PROPS.trip, [
       { property: FLIGHT_PROPS.departureAt, direction: "ascending" },
     ]),
     queryTripScopedPages(getRequiredEnv("NOTION_STAYS_DB_ID"), tripId, STAY_PROPS.trip, [
       { property: STAY_PROPS.checkInDate, direction: "ascending" },
+    ]),
+    queryTripScopedPages(getRequiredEnv("NOTION_EXPENSES_DB_ID"), tripId, EXPENSE_PROPS.trip, [
+      { property: EXPENSE_PROPS.date, direction: "ascending" },
     ]),
   ]);
 
@@ -356,6 +368,7 @@ export async function getTripDetail(tripId: string): Promise<TripDetail | null> 
     })),
     flights: flightResults.map((page) => mapFlight(page.properties, page.id)),
     stays: stayResults.map((page) => mapStay(page.properties, page.id)),
+    expenses: expenseResults.map((page) => mapExpense(page.properties, page.id)),
   };
 }
 
@@ -622,6 +635,46 @@ export async function updateStay(
   } as any);
 }
 
+export async function createExpense(input: Omit<TripExpense, "id">) {
+  const client = getClient();
+
+  await client.pages.create({
+    parent: { data_source_id: getRequiredEnv("NOTION_EXPENSES_DB_ID") },
+    properties: {
+      [EXPENSE_PROPS.title]: titleProperty(input.title),
+      [EXPENSE_PROPS.trip]: relationProperty(input.tripId),
+      [EXPENSE_PROPS.date]: dateProperty(input.date),
+      [EXPENSE_PROPS.cost]: {
+        number: input.cost,
+      },
+      [EXPENSE_PROPS.taxRefund]: {
+        number: input.taxRefund,
+      },
+    },
+  } as CreatePageParameters);
+}
+
+export async function updateExpense(
+  expenseId: string,
+  input: Omit<TripExpense, "id" | "tripId">,
+) {
+  const client = getClient();
+
+  await client.pages.update({
+    page_id: expenseId,
+    properties: {
+      [EXPENSE_PROPS.title]: titleProperty(input.title),
+      [EXPENSE_PROPS.date]: dateProperty(input.date),
+      [EXPENSE_PROPS.cost]: {
+        number: input.cost,
+      },
+      [EXPENSE_PROPS.taxRefund]: {
+        number: input.taxRefund,
+      },
+    },
+  } as any);
+}
+
 export async function archivePage(pageId: string) {
   const client = getClient();
   await client.pages.update({
@@ -640,7 +693,9 @@ export function getTripStats(detail: TripDetail) {
       ...detail.days.flatMap((day) => day.items.map((item) => item.cost)),
       ...detail.flights.map((flight) => flight.cost),
       ...detail.stays.map((stay) => stay.cost),
+      ...detail.expenses.map((expense) => expense.cost),
     ]),
+    totalTaxRefund: sum(detail.expenses.map((expense) => expense.taxRefund)),
   };
 }
 
@@ -743,5 +798,18 @@ function mapStay(properties: Record<string, any>, id: string): TripStay {
     url: getUrl(properties, STAY_PROPS.url),
     bookingReference: getRichText(properties, STAY_PROPS.bookingReference),
     notes: getRichText(properties, STAY_PROPS.notes),
+  };
+}
+
+function mapExpense(properties: Record<string, any>, id: string): TripExpense {
+  const [tripId] = getRelation(properties, EXPENSE_PROPS.trip);
+
+  return {
+    id,
+    tripId: tripId ?? "",
+    title: getTitle(properties, EXPENSE_PROPS.title),
+    date: getDate(properties, EXPENSE_PROPS.date),
+    cost: getNumber(properties, EXPENSE_PROPS.cost),
+    taxRefund: getNumber(properties, EXPENSE_PROPS.taxRefund),
   };
 }

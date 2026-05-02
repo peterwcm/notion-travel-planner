@@ -1,6 +1,7 @@
 import { FlightPassengersField } from "@/components/flight-passengers-field";
 import { FormDialog } from "@/components/form-dialog";
 import {
+  DollarIcon,
   EditIcon,
   FlightIcon,
   FoodIcon,
@@ -19,6 +20,7 @@ import { LocalDate, LocalDateTime } from "@/components/local-date-time";
 import { SubmitButton } from "@/components/submit-button";
 import {
   deleteEntityAction,
+  updateExpenseAction,
   updateFlightAction,
   updateItemAction,
   updateStayAction,
@@ -26,6 +28,7 @@ import {
 import { getFlightDisplayLabel } from "@/lib/flight-passengers";
 import type {
   ItemType,
+  TripExpense,
   TripFlight,
   TripFlightPassenger,
   TripItem,
@@ -524,6 +527,87 @@ export function StayDetailCard({
           <p className="muted">{stay.notes}</p>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+export function ExpenseDetailCard({
+  tripId,
+  expense,
+}: {
+  tripId: string;
+  expense: TripExpense;
+}) {
+  return (
+    <div className="detail-card expense-card card-with-actions">
+      <div className="card-corner-actions">
+        <CostAction cost={expense.cost} />
+        <FormDialog
+          description="Update this expense."
+          title={`Edit ${expense.title}`}
+          triggerAriaLabel="Edit expense"
+          triggerClassName="icon-button"
+          triggerContent={<EditIcon />}
+          triggerLabel="Edit"
+        >
+          <form action={updateExpenseAction} className="stack">
+            <input name="tripId" type="hidden" value={tripId} />
+            <input name="expenseId" type="hidden" value={expense.id} />
+            <div className="forms-grid">
+              <LabeledInput
+                label="Name"
+                name="title"
+                defaultValue={expense.title}
+                required
+              />
+              <LabeledInput
+                label="Date"
+                name="date"
+                type="date"
+                defaultValue={toDateInputValue(expense.date)}
+                required
+              />
+              <LabeledInput
+                label="Cost"
+                name="cost"
+                type="number"
+                min={0}
+                defaultValue={expense.cost ?? ""}
+              />
+              <LabeledInput
+                label="Tax refund"
+                name="taxRefund"
+                type="number"
+                min={0}
+                defaultValue={expense.taxRefund ?? ""}
+              />
+            </div>
+            <SubmitButton>Save</SubmitButton>
+          </form>
+        </FormDialog>
+        <DeleteForm icon tripId={tripId} entityId={expense.id} />
+      </div>
+      <div className="stay-card__top">
+        <CardTag label="Expense">
+          <DollarIcon />
+        </CardTag>
+        <h4>{expense.title}</h4>
+      </div>
+      <div className="detail-card__meta">
+        <span>
+          <LocalDate value={expense.date} />
+        </span>
+      </div>
+      <div className="list-table">
+        <div className="list-table__row">
+          <span>Cost</span>
+          <strong>{currency(expense.cost ?? 0)}</strong>
+        </div>
+        <div className="list-table__row">
+          <span>Tax refund</span>
+          <strong>{currency(expense.taxRefund ?? 0)}</strong>
+        </div>
+      </div>
     </div>
   );
 }

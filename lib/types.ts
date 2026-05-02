@@ -7,7 +7,12 @@ export type ItemType =
   | "Reminder"
   | "Other";
 
-export type TripSectionTab = "overview" | "itinerary" | "flights" | "stays";
+export type TripSectionTab =
+  | "overview"
+  | "itinerary"
+  | "flights"
+  | "stays"
+  | "expenses";
 
 export interface Trip {
   id: string;
@@ -77,6 +82,15 @@ export interface TripStay {
   notes: string;
 }
 
+export interface TripExpense {
+  id: string;
+  tripId: string;
+  title: string;
+  date: string | null;
+  cost: number | null;
+  taxRefund: number | null;
+}
+
 export interface TripDetail {
   trip: Trip;
   days: Array<
@@ -86,6 +100,7 @@ export interface TripDetail {
   >;
   flights: TripFlight[];
   stays: TripStay[];
+  expenses: TripExpense[];
 }
 
 export interface SetupStatus {
