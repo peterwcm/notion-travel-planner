@@ -123,6 +123,7 @@ export default async function TripDetailPage({
               <FormDialog
                 description="Update the destination, dates, and notes."
                 title="Edit trip"
+                resetKey={`${detail.trip.id}-${detail.trip.destination}-${detail.trip.baseCurrency}-${detail.trip.startDate ?? ""}-${detail.trip.endDate ?? ""}-${detail.trip.notes}`}
                 triggerClassName="ghost-button"
                 triggerLabel="Edit trip"
               >
@@ -302,6 +303,7 @@ function ItineraryTab({
         <FormDialog
           description="Add a new day section."
           title="New day"
+          resetKey={`new-day-${detail.days.length}`}
           triggerLabel="New day"
         >
           <form action={createDayAction} className="stack">
@@ -406,6 +408,7 @@ function ItineraryTab({
                     <FormDialog
                       description="Add a new plan for this day."
                       title={`New item for ${day.title}`}
+                      resetKey={`new-item-${day.id}-${day.items.length}`}
                       triggerLabel="New item"
                     >
                       <form action={createItemAction} className="stack">
@@ -526,6 +529,7 @@ function FlightsTab({
         <FormDialog
           description="Add an outbound or return flight."
           title="New flight"
+          resetKey={`new-flight-${detail.flights.length}`}
           triggerLabel="New flight"
         >
           <form action={createFlightAction} className="stack">
@@ -626,6 +630,7 @@ function StaysTab({
         <FormDialog
           description="Add a hotel, apartment, or rental."
           title="New stay"
+          resetKey={`new-stay-${detail.stays.length}`}
           triggerLabel="New stay"
         >
           <form action={createStayAction} className="stack">
@@ -718,6 +723,7 @@ function ExpensesTab({
         <FormDialog
           description="Add a trip-level expense."
           title="New expense"
+          resetKey={`new-expense-${detail.expenses.length}`}
           triggerLabel="New expense"
         >
           <form action={createExpenseAction} className="stack">
@@ -781,6 +787,7 @@ function CurrencyRatesTab({ detail }: { detail: TripDetail }) {
         <FormDialog
           description="Add a trip-specific exchange rate."
           title="New currency rate"
+          resetKey={`new-currency-rate-${detail.currencyRates.length}`}
           triggerLabel="New currency rate"
         >
           <form action={createCurrencyRateAction} className="stack">
@@ -842,6 +849,7 @@ function CurrencyRateCard({
         <FormDialog
           description="Update this trip-specific exchange rate."
           title={`Edit ${rate.currency} rate`}
+          resetKey={`${rate.id}-${rate.currency}-${rate.rate ?? ""}`}
           triggerAriaLabel="Edit rate"
           triggerClassName="icon-button"
           triggerContent={<EditIcon />}

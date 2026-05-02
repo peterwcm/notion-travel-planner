@@ -11,6 +11,7 @@ interface FormDialogProps {
   triggerClassName?: string;
   triggerContent?: ReactNode;
   triggerAriaLabel?: string;
+  resetKey?: string;
 }
 
 export function FormDialog({
@@ -21,6 +22,7 @@ export function FormDialog({
   triggerClassName = "button",
   triggerContent,
   triggerAriaLabel,
+  resetKey,
 }: FormDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -47,7 +49,7 @@ export function FormDialog({
       </button>
 
       <dialog aria-labelledby={titleId} className="form-dialog" onSubmit={handleSubmit} ref={dialogRef}>
-        <div className="form-dialog__surface">
+        <div className="form-dialog__surface" key={resetKey ?? titleId}>
           <div className="header-actions form-dialog__header">
             <div className="stack compact-headline">
               <span className="tag">New</span>

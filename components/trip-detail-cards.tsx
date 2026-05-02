@@ -79,6 +79,7 @@ export function ItineraryItemCard({
         <FormDialog
           description="Update this itinerary item."
           title={`Edit ${item.title}`}
+          resetKey={`${item.id}-${item.title}-${item.type}-${item.startTime}-${item.endTime}-${item.location}-${item.cost ?? ""}-${item.currency}-${item.url}-${item.notes}-${item.order}`}
           triggerAriaLabel="Edit item"
           triggerClassName="icon-button"
           triggerContent={<EditIcon />}
@@ -224,6 +225,9 @@ export function FlightDetailCard({
         <FormDialog
           description="Update the flight schedule and details."
           title={`Edit ${getFlightDisplayLabel(flight)}`}
+          resetKey={`${flight.id}-${flight.airline}-${flight.flightNumber}-${flight.departureAirport}-${flight.arrivalAirport}-${flight.departureAt ?? ""}-${flight.arrivalAt ?? ""}-${flight.aircraft}-${flight.baggageInfo}-${flight.cost ?? ""}-${flight.currency}-${flight.notes}-${flight.passengers
+            .map((passenger) => `${passenger.fullName}|${passenger.bookingReference}|${passenger.ticketNumber}`)
+            .join(";")}`}
           triggerAriaLabel="Edit flight"
           triggerClassName="icon-button"
           triggerContent={<EditIcon />}
@@ -420,6 +424,7 @@ export function StayDetailCard({
         <FormDialog
           description="Update stay dates and details."
           title={`Edit ${stay.title}`}
+          resetKey={`${stay.id}-${stay.title}-${stay.checkInDate ?? ""}-${stay.checkOutDate ?? ""}-${stay.checkInTime}-${stay.checkOutTime}-${stay.cost ?? ""}-${stay.currency}-${stay.address}-${stay.url}-${stay.bookingReference}-${stay.notes}`}
           triggerAriaLabel="Edit stay"
           triggerClassName="icon-button"
           triggerContent={<EditIcon />}
@@ -601,6 +606,7 @@ export function ExpenseDetailCard({
         <FormDialog
           description="Update this expense."
           title={`Edit ${expense.title}`}
+          resetKey={`${expense.id}-${expense.title}-${expense.date ?? ""}-${expense.cost ?? ""}-${expense.currency}-${expense.taxRefund ?? ""}`}
           triggerAriaLabel="Edit expense"
           triggerClassName="icon-button"
           triggerContent={<EditIcon />}

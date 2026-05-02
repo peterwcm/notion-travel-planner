@@ -39,6 +39,7 @@ export default async function TripsPage() {
           <FormDialog
             description="Create a new trip card."
             title="New trip"
+            resetKey={`new-trip-${trips.length}`}
             triggerLabel="New trip"
           >
             <form action={createTripAction} className="stack">
