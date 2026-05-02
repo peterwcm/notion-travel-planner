@@ -668,6 +668,25 @@ textarea {
   gap: 12px;
 }
 
+.expense-card {
+  gap: 8px;
+}
+
+.expense-card__top {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.expense-card__top h4 {
+  margin-top: 0;
+}
+
+.expense-card__total {
+  font-size: 0.98rem;
+  line-height: 1.45;
+}
+
 .stay-card__list {
   display: grid;
   gap: 4px;

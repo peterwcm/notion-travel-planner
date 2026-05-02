@@ -204,7 +204,9 @@ export default async function TripDetailPage({
           <div className="metrics metrics--summary">
             <div className="metric">
               <span className="metric__label">Total cost</span>
-              <strong>{currency(stats.totalCost, detail.trip.baseCurrency)}</strong>
+              <strong>
+                {currency(stats.totalCost, detail.trip.baseCurrency)}
+              </strong>
             </div>
             <div className="metric">
               <span className="metric__label">Total tax refund</span>
@@ -224,9 +226,8 @@ export default async function TripDetailPage({
           </div>
           {stats.missingRateCurrencies.length > 0 ? (
             <p className="muted">
-              Missing exchange rate for{" "}
-              {stats.missingRateCurrencies.join(", ")}. Those values are not
-              included in totals.
+              Missing exchange rate for {stats.missingRateCurrencies.join(", ")}
+              . Those values are not included in totals.
             </p>
           ) : null}
 
@@ -881,7 +882,6 @@ function CurrencyRateCard({
         </form>
       </div>
       <div>
-        <span className="tag">{rate.currency}</span>
         <h4>{rate.currency} exchange rate</h4>
       </div>
       <div className="list-table">

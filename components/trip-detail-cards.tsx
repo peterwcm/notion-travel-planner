@@ -575,12 +575,6 @@ export function ExpenseDetailCard({
   return (
     <div className="detail-card expense-card card-with-actions">
       <div className="card-corner-actions">
-        <CostAction
-          baseCurrency={trip.baseCurrency}
-          cost={expense.cost}
-          currency={expense.currency}
-          currencyRates={currencyRates}
-        />
         <FormDialog
           description="Update this expense."
           title={`Edit ${expense.title}`}
@@ -624,40 +618,26 @@ export function ExpenseDetailCard({
         </FormDialog>
         <DeleteForm icon tripId={tripId} entityId={expense.id} />
       </div>
-      <div className="stay-card__top">
+      <div className="expense-card__top">
         <CardTag label="Expense">
           <DollarIcon />
         </CardTag>
-        <h4>{expense.title}</h4>
-      </div>
-      <div className="detail-card__meta">
-        <span>
-          <LocalDate value={expense.date} />
-        </span>
-      </div>
-      <div className="list-table">
-        <div className="list-table__row">
-          <span>Cost</span>
-          <strong>
-            {formatCostWithConversion(
-              expense.cost,
-              expense.currency,
-              trip.baseCurrency,
-              currencyRates,
-            )}
-          </strong>
+        <div>
+          <h4>
+            <LocalDate value={expense.date} />- {expense.title}
+          </h4>
         </div>
-        <div className="list-table__row">
-          <span>Tax refund</span>
-          <strong>
-            {formatCostWithConversion(
-              expense.taxRefund,
-              expense.currency,
-              trip.baseCurrency,
-              currencyRates,
-            )}
-          </strong>
-        </div>
+      </div>
+      <div className="expense-card__total">
+        <strong>
+          {formatExpenseEquation(
+            expense.cost,
+            expense.taxRefund,
+            expense.currency,
+            trip.baseCurrency,
+            currencyRates,
+          )}
+        </strong>
       </div>
     </div>
   );
@@ -718,6 +698,41 @@ function formatCostWithConversion(
   }
 
   return formattedCost;
+}
+
+function formatExpenseEquation(
+  cost: number | null | undefined,
+  taxRefund: number | null | undefined,
+  currencyCode: string,
+  baseCurrency: string,
+  currencyRates: TripCurrencyRate[],
+) {
+  const costLabel = formatCostWithConversion(
+    cost,
+    currencyCode,
+    baseCurrency,
+    currencyRates,
+  );
+  const refundValue = taxRefund ?? 0;
+  const netValue = (cost ?? 0) - refundValue;
+  const netLabel = formatCostWithConversion(
+    netValue,
+    currencyCode,
+    baseCurrency,
+    currencyRates,
+  );
+
+  if (refundValue > 0) {
+    const refundLabel = formatCostWithConversion(
+      refundValue,
+      currencyCode,
+      baseCurrency,
+      currencyRates,
+    );
+    return `${costLabel} - ${refundLabel} = ${netLabel}`;
+  }
+
+  return costLabel;
 }
 
 function CostAction({
