@@ -52,6 +52,7 @@ NOTION_ITEMS_DB_ID=
 NOTION_FLIGHTS_DB_ID=
 NOTION_STAYS_DB_ID=
 NOTION_EXPENSES_DB_ID=
+NOTION_CURRENCY_RATES_DB_ID=
 APP_PASSWORD=
 SESSION_SECRET=
 ```
@@ -78,6 +79,7 @@ npm run build
 - `Destination` Title
 - `Start Date` Date
 - `End Date` Date
+- `Base Currency` Select
 - `Notes` Rich text
 
 ### Days
@@ -97,6 +99,7 @@ npm run build
 - `Item Type` Select: `Sightseeing`, `Transit`, `Stay`, `Food`, `Shopping`, `Reminder`, `Other`
 - `Location` Rich text
 - `Cost` Number
+- `Currency` Select
 - `Link` URL
 - `Notes` Rich text
 - `Order` Number
@@ -114,6 +117,7 @@ npm run build
 - `Aircraft` Rich text
 - `Baggage Info` Rich text
 - `Cost` Number
+- `Currency` Select
 - `Passengers` Rich text
 - `Notes` Rich text
 
@@ -126,6 +130,7 @@ npm run build
 - `Check-in Time` Rich text
 - `Check-out Time` Rich text
 - `Cost` Number
+- `Currency` Select
 - `Address` Rich text
 - `Link` URL
 - `Booking Reference` Rich text
@@ -137,7 +142,15 @@ npm run build
 - `Trip` Relation -> Trips
 - `Date` Date
 - `Cost` Number
+- `Currency` Select
 - `Tax Refund` Number
+
+### Currency Rates
+
+- `Name` Title
+- `Trip` Relation -> Trips
+- `Currency` Select
+- `Rate` Number
 
 ## Project Structure
 

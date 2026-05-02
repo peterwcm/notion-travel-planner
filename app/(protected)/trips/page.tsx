@@ -76,6 +76,18 @@ export default async function TripsPage() {
                     type="date"
                   />
                 </div>
+                <div className="field">
+                  <label className="field-label" htmlFor="baseCurrency">
+                    Base currency
+                  </label>
+                  <input
+                    className="input"
+                    defaultValue="TWD"
+                    id="baseCurrency"
+                    maxLength={3}
+                    name="baseCurrency"
+                  />
+                </div>
               </div>
               <div className="field">
                 <label className="field-label" htmlFor="notes">

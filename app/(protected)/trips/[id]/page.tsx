@@ -3,6 +3,10 @@ import type { ReactElement } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import {
+  CostCurrencyFields,
+  getCurrencyOptions,
+} from "@/components/currency-fields";
 import { FlightPassengersField } from "@/components/flight-passengers-field";
 import { FormDialog } from "@/components/form-dialog";
 import { LocalDate } from "@/components/local-date-time";
@@ -14,15 +18,18 @@ import {
   StayDetailCard,
 } from "@/components/trip-detail-cards";
 import {
+  createCurrencyRateAction,
   createDayAction,
   createExpenseAction,
   createFlightAction,
   createItemAction,
   createStayAction,
+  deleteEntityAction,
+  updateCurrencyRateAction,
   updateTripAction,
 } from "@/app/(protected)/trips/actions";
 import { getNotionStatus, getTripDetail, getTripStats } from "@/lib/notion";
-import type { TripDetail, TripSectionTab } from "@/lib/types";
+import type { TripCurrencyRate, TripDetail, TripSectionTab } from "@/lib/types";
 import { currency } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -91,6 +98,7 @@ export default async function TripDetailPage({
 
   const activeTab = getTab(searchParams?.tab);
   const stats = getTripStats(detail);
+  const currencyOptions = getDetailCurrencyOptions(detail);
 
   return (
     <div className="page">
@@ -157,6 +165,21 @@ export default async function TripDetailPage({
                         type="date"
                       />
                     </div>
+                    <div className="field">
+                      <label
+                        className="field-label"
+                        htmlFor="trip-baseCurrency"
+                      >
+                        Base currency
+                      </label>
+                      <input
+                        className="input"
+                        defaultValue={detail.trip.baseCurrency}
+                        id="trip-baseCurrency"
+                        maxLength={3}
+                        name="baseCurrency"
+                      />
+                    </div>
                   </div>
                   <div className="field">
                     <label className="field-label" htmlFor="trip-notes">
@@ -179,19 +202,31 @@ export default async function TripDetailPage({
           <div className="metrics metrics--summary">
             <div className="metric">
               <span className="metric__label">Total cost</span>
-              <strong>{currency(stats.totalCost)}</strong>
+              <strong>{currency(stats.totalCost, detail.trip.baseCurrency)}</strong>
             </div>
             <div className="metric">
               <span className="metric__label">Total tax refund</span>
-              <strong>{currency(stats.totalTaxRefund)}</strong>
+              <strong>
+                {currency(stats.totalTaxRefund, detail.trip.baseCurrency)}
+              </strong>
             </div>
             <div className="metric">
               <span className="metric__label">Net cost</span>
               <strong>
-                {currency(stats.totalCost - stats.totalTaxRefund)}
+                {currency(
+                  stats.totalCost - stats.totalTaxRefund,
+                  detail.trip.baseCurrency,
+                )}
               </strong>
             </div>
           </div>
+          {stats.missingRateCurrencies.length > 0 ? (
+            <p className="muted">
+              Missing exchange rate for{" "}
+              {stats.missingRateCurrencies.join(", ")}. Those values are not
+              included in totals.
+            </p>
+          ) : null}
 
           {detail.trip.notes ? (
             <p className="summary-notes">{detail.trip.notes}</p>
@@ -214,10 +249,18 @@ export default async function TripDetailPage({
       </nav>
 
       {activeTab === "overview" ? <OverviewTab detail={detail} /> : null}
-      {activeTab === "itinerary" ? <ItineraryTab detail={detail} /> : null}
-      {activeTab === "flights" ? <FlightsTab detail={detail} /> : null}
-      {activeTab === "stays" ? <StaysTab detail={detail} /> : null}
-      {activeTab === "expenses" ? <ExpensesTab detail={detail} /> : null}
+      {activeTab === "itinerary" ? (
+        <ItineraryTab detail={detail} currencyOptions={currencyOptions} />
+      ) : null}
+      {activeTab === "flights" ? (
+        <FlightsTab detail={detail} currencyOptions={currencyOptions} />
+      ) : null}
+      {activeTab === "stays" ? (
+        <StaysTab detail={detail} currencyOptions={currencyOptions} />
+      ) : null}
+      {activeTab === "expenses" ? (
+        <ExpensesTab detail={detail} currencyOptions={currencyOptions} />
+      ) : null}
     </div>
   );
 }
@@ -238,7 +281,13 @@ function OverviewTab({ detail }: { detail: TripDetail }) {
   );
 }
 
-function ItineraryTab({ detail }: { detail: TripDetail }) {
+function ItineraryTab({
+  detail,
+  currencyOptions,
+}: {
+  detail: TripDetail;
+  currencyOptions: string[];
+}) {
   return (
     <section className="page page--tight">
       <div className="header-actions">
@@ -332,6 +381,9 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                         tripId={detail.trip.id}
                         dayId={day.id}
                         item={item}
+                        trip={detail.trip}
+                        currencyRates={detail.currencyRates}
+                        currencyOptions={currencyOptions}
                       />
                     ))
                   ) : (
@@ -416,16 +468,10 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
                               type="number"
                             />
                           </div>
-                          <div className="field">
-                            <label className="field-label">Cost</label>
-                            <input
-                              className="input"
-                              min={0}
-                              name="cost"
-                              placeholder="0"
-                              type="number"
-                            />
-                          </div>
+                          <CostCurrencyFields
+                            currencyDefaultValue={detail.trip.baseCurrency}
+                            currencyOptions={currencyOptions}
+                          />
                           <div className="field">
                             <label className="field-label">Link</label>
                             <input
@@ -459,7 +505,13 @@ function ItineraryTab({ detail }: { detail: TripDetail }) {
   );
 }
 
-function FlightsTab({ detail }: { detail: TripDetail }) {
+function FlightsTab({
+  detail,
+  currencyOptions,
+}: {
+  detail: TripDetail;
+  currencyOptions: string[];
+}) {
   return (
     <section className="section-block">
       <div className="header-actions">
@@ -518,12 +570,9 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
                 name="baggageInfo"
                 placeholder="23kg x 2 + 7kg carry-on"
               />
-              <LabeledInput
-                label="Cost"
-                name="cost"
-                type="number"
-                min={0}
-                placeholder="0"
+              <CostCurrencyFields
+                currencyDefaultValue={detail.trip.baseCurrency}
+                currencyOptions={currencyOptions}
               />
             </div>
             <FlightPassengersField />
@@ -543,6 +592,9 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
               key={flight.id}
               tripId={detail.trip.id}
               flight={flight}
+              trip={detail.trip}
+              currencyRates={detail.currencyRates}
+              currencyOptions={currencyOptions}
             />
           ))
         ) : (
@@ -553,7 +605,13 @@ function FlightsTab({ detail }: { detail: TripDetail }) {
   );
 }
 
-function StaysTab({ detail }: { detail: TripDetail }) {
+function StaysTab({
+  detail,
+  currencyOptions,
+}: {
+  detail: TripDetail;
+  currencyOptions: string[];
+}) {
   return (
     <section className="section-block">
       <div className="header-actions">
@@ -594,12 +652,9 @@ function StaysTab({ detail }: { detail: TripDetail }) {
                 name="checkOutTime"
                 type="time"
               />
-              <LabeledInput
-                label="Cost"
-                name="cost"
-                type="number"
-                min={0}
-                placeholder="0"
+              <CostCurrencyFields
+                currencyDefaultValue={detail.trip.baseCurrency}
+                currencyOptions={currencyOptions}
               />
               <LabeledInput label="Link" name="url" placeholder="https://..." />
               <LabeledInput
@@ -625,7 +680,14 @@ function StaysTab({ detail }: { detail: TripDetail }) {
       <section className="stack">
         {detail.stays.length > 0 ? (
           detail.stays.map((stay) => (
-            <StayDetailCard key={stay.id} tripId={detail.trip.id} stay={stay} />
+            <StayDetailCard
+              key={stay.id}
+              tripId={detail.trip.id}
+              stay={stay}
+              trip={detail.trip}
+              currencyRates={detail.currencyRates}
+              currencyOptions={currencyOptions}
+            />
           ))
         ) : (
           <div className="empty">No stays yet.</div>
@@ -635,9 +697,16 @@ function StaysTab({ detail }: { detail: TripDetail }) {
   );
 }
 
-function ExpensesTab({ detail }: { detail: TripDetail }) {
+function ExpensesTab({
+  detail,
+  currencyOptions,
+}: {
+  detail: TripDetail;
+  currencyOptions: string[];
+}) {
   return (
-    <section className="section-block">
+    <section className="section-block stack">
+      <CurrencyRatesPanel detail={detail} />
       <div className="header-actions">
         <h3 className="section-title">Expenses</h3>
         <FormDialog
@@ -655,12 +724,9 @@ function ExpensesTab({ detail }: { detail: TripDetail }) {
                 required
               />
               <LabeledInput label="Date" name="date" type="date" required />
-              <LabeledInput
-                label="Cost"
-                name="cost"
-                type="number"
-                min={0}
-                placeholder="0"
+              <CostCurrencyFields
+                currencyDefaultValue={detail.trip.baseCurrency}
+                currencyOptions={currencyOptions}
               />
               <LabeledInput
                 label="Tax refund"
@@ -681,6 +747,9 @@ function ExpensesTab({ detail }: { detail: TripDetail }) {
               key={expense.id}
               tripId={detail.trip.id}
               expense={expense}
+              trip={detail.trip}
+              currencyRates={detail.currencyRates}
+              currencyOptions={currencyOptions}
             />
           ))
         ) : (
@@ -688,6 +757,123 @@ function ExpensesTab({ detail }: { detail: TripDetail }) {
         )}
       </section>
     </section>
+  );
+}
+
+function CurrencyRatesPanel({ detail }: { detail: TripDetail }) {
+  return (
+    <div className="panel stack">
+      <div className="header-actions">
+        <div>
+          <h3 className="section-title">Currency rates</h3>
+          <p className="muted">
+            Base currency: {detail.trip.baseCurrency}. Rates show how much{" "}
+            {detail.trip.baseCurrency} you get for 1 unit of the selected
+            currency.
+          </p>
+        </div>
+        <FormDialog
+          description="Add a trip-specific exchange rate."
+          title="New currency rate"
+          triggerLabel="New rate"
+        >
+          <form action={createCurrencyRateAction} className="stack">
+            <input name="tripId" type="hidden" value={detail.trip.id} />
+            <div className="forms-grid">
+              <LabeledInput
+                label="Currency"
+                name="currency"
+                placeholder="HKD"
+                required
+              />
+              <LabeledInput
+                label="Rate"
+                name="rate"
+                min={0}
+                placeholder="4.04"
+                type="number"
+                required
+                step="0.0001"
+              />
+            </div>
+            <SubmitButton>Create rate</SubmitButton>
+          </form>
+        </FormDialog>
+      </div>
+      {detail.currencyRates.length > 0 ? (
+        <div className="list-table">
+          {detail.currencyRates.map((entry) => (
+            <CurrencyRateRow
+              key={entry.id}
+              rate={entry}
+              tripId={detail.trip.id}
+              baseCurrency={detail.trip.baseCurrency}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="empty">
+          No additional currencies yet. Costs default to{" "}
+          {detail.trip.baseCurrency}.
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CurrencyRateRow({
+  baseCurrency,
+  rate,
+  tripId,
+}: {
+  baseCurrency: string;
+  rate: TripCurrencyRate;
+  tripId: string;
+}) {
+  return (
+    <div className="list-table__row">
+      <span>
+        1 {rate.currency} = {rate.rate ?? "Not set"} {baseCurrency}
+      </span>
+      <div className="card-actions">
+        <FormDialog
+          description="Update this trip-specific exchange rate."
+          title={`Edit ${rate.currency} rate`}
+          triggerClassName="ghost-button"
+          triggerLabel="Edit"
+        >
+          <form action={updateCurrencyRateAction} className="stack">
+            <input name="tripId" type="hidden" value={tripId} />
+            <input name="currencyRateId" type="hidden" value={rate.id} />
+            <div className="forms-grid">
+              <LabeledInput
+                label="Currency"
+                name="currency"
+                defaultValue={rate.currency}
+                required
+              />
+              <LabeledInput
+                label="Rate"
+                name="rate"
+                defaultValue={rate.rate ?? ""}
+                min={0}
+                step="0.0001"
+                type="number"
+                required
+              />
+            </div>
+            <SubmitButton>Save</SubmitButton>
+          </form>
+        </FormDialog>
+        <form action={deleteEntityAction}>
+          <input name="tripId" type="hidden" value={tripId} />
+          <input name="entityId" type="hidden" value={rate.id} />
+          <button className="ghost-button" type="submit">
+            Delete
+          </button>
+        </form>
+      </div>
+    </div>
   );
 }
 
@@ -707,6 +893,7 @@ function LabeledInput({
   defaultValue,
   required,
   min,
+  step,
 }: {
   label: string;
   name: string;
@@ -715,6 +902,7 @@ function LabeledInput({
   defaultValue?: string | number;
   required?: boolean;
   min?: number;
+  step?: string;
 }) {
   return (
     <div className="field">
@@ -732,6 +920,7 @@ function LabeledInput({
         name={name}
         placeholder={placeholder}
         required={required}
+        step={step}
         type={type}
       />
     </div>
@@ -777,6 +966,7 @@ type OverviewItem = {
 };
 
 function getOverviewItems(detail: TripDetail): OverviewItem[] {
+  const currencyOptions = getDetailCurrencyOptions(detail);
   const dayItems = detail.days.flatMap((day) =>
     day.items.map<OverviewItem>((item, index) => ({
       card: (
@@ -785,6 +975,9 @@ function getOverviewItems(detail: TripDetail): OverviewItem[] {
           tripId={detail.trip.id}
           dayId={day.id}
           item={item}
+          trip={detail.trip}
+          currencyRates={detail.currencyRates}
+          currencyOptions={currencyOptions}
         />
       ),
       sortValue: getDateAndTimeSortValue(day.date, item.startTime, index),
@@ -797,6 +990,9 @@ function getOverviewItems(detail: TripDetail): OverviewItem[] {
         key={`overview-flight-${flight.id}`}
         tripId={detail.trip.id}
         flight={flight}
+        trip={detail.trip}
+        currencyRates={detail.currencyRates}
+        currencyOptions={currencyOptions}
       />
     ),
     sortValue: getDateSortValue(flight.departureAt, index),
@@ -808,6 +1004,9 @@ function getOverviewItems(detail: TripDetail): OverviewItem[] {
         key={`overview-stay-${stay.id}`}
         tripId={detail.trip.id}
         stay={stay}
+        trip={detail.trip}
+        currencyRates={detail.currencyRates}
+        currencyOptions={currencyOptions}
       />
     ),
     sortValue: getDateAndTimeSortValue(
@@ -865,4 +1064,24 @@ function normalizeTime(value?: string | null) {
 
   const [, hours, minutes] = match;
   return `${hours.padStart(2, "0")}:${minutes}`;
+}
+
+function getDetailCurrencyOptions(detail: TripDetail) {
+  const recordCurrencies = [
+    ...detail.days.flatMap((day) => day.items.map((item) => item.currency)),
+    ...detail.flights.map((flight) => flight.currency),
+    ...detail.stays.map((stay) => stay.currency),
+    ...detail.expenses.map((expense) => expense.currency),
+  ];
+
+  return getCurrencyOptions(detail.trip.baseCurrency, [
+    ...detail.currencyRates,
+    ...recordCurrencies.map((currencyCode) => ({
+      id: currencyCode,
+      tripId: detail.trip.id,
+      title: currencyCode,
+      currency: currencyCode,
+      rate: null,
+    })),
+  ]);
 }

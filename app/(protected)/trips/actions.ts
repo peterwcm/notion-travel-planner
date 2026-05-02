@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { normalizeFlightPassengers } from "@/lib/flight-passengers";
 import {
   archivePage,
+  createCurrencyRate,
   createDay,
   createExpense,
   createFlight,
@@ -12,6 +13,7 @@ import {
   createStay,
   createTrip,
   getNotionStatus,
+  updateCurrencyRate,
   updateExpense,
   updateFlight,
   updateItem,
@@ -20,6 +22,7 @@ import {
 } from "@/lib/notion";
 import {
   daySchema,
+  currencyRateSchema,
   expenseSchema,
   flightSchema,
   itemSchema,
@@ -41,6 +44,7 @@ export async function createTripAction(formData: FormData) {
     destination: formData.get("destination"),
     startDate: formData.get("startDate"),
     endDate: formData.get("endDate"),
+    baseCurrency: formData.get("baseCurrency") ?? "TWD",
     notes: formData.get("notes"),
   });
 
@@ -49,6 +53,7 @@ export async function createTripAction(formData: FormData) {
     notes: parsed.notes ?? "",
     startDate: parsed.startDate ?? "",
     endDate: parsed.endDate ?? "",
+    baseCurrency: parsed.baseCurrency,
   });
 
   revalidatePath("/trips");
@@ -62,6 +67,7 @@ export async function updateTripAction(formData: FormData) {
     destination: formData.get("destination"),
     startDate: formData.get("startDate"),
     endDate: formData.get("endDate"),
+    baseCurrency: formData.get("baseCurrency") ?? "TWD",
     notes: formData.get("notes"),
   });
 
@@ -70,6 +76,7 @@ export async function updateTripAction(formData: FormData) {
     notes: parsed.notes ?? "",
     startDate: parsed.startDate ?? "",
     endDate: parsed.endDate ?? "",
+    baseCurrency: parsed.baseCurrency,
   });
 
   revalidatePath("/trips");
@@ -108,6 +115,7 @@ export async function createItemAction(formData: FormData) {
     endTime: formData.get("endTime"),
     location: formData.get("location"),
     cost: formData.get("cost"),
+    currency: formData.get("currency") ?? "TWD",
     url: formData.get("url"),
     notes: formData.get("notes"),
     order: formData.get("order"),
@@ -120,6 +128,7 @@ export async function createItemAction(formData: FormData) {
     location: parsed.location ?? "",
     url: parsed.url ?? "",
     notes: parsed.notes ?? "",
+    currency: parsed.currency,
   });
 
   revalidatePath(`/trips/${tripId}`);
@@ -138,6 +147,7 @@ export async function updateItemAction(formData: FormData) {
     endTime: formData.get("endTime"),
     location: formData.get("location"),
     cost: formData.get("cost"),
+    currency: formData.get("currency") ?? "TWD",
     url: formData.get("url"),
     notes: formData.get("notes"),
     order: formData.get("order"),
@@ -150,6 +160,7 @@ export async function updateItemAction(formData: FormData) {
     endTime: parsed.endTime ?? "",
     location: parsed.location ?? "",
     cost: parsed.cost,
+    currency: parsed.currency,
     url: parsed.url ?? "",
     notes: parsed.notes ?? "",
     order: parsed.order,
@@ -183,6 +194,7 @@ export async function createFlightAction(formData: FormData) {
     aircraft: formData.get("aircraft"),
     baggageInfo: formData.get("baggageInfo"),
     cost: formData.get("cost"),
+    currency: formData.get("currency") ?? "TWD",
     passengers: formData.get("passengers"),
     notes: formData.get("notes"),
   });
@@ -198,6 +210,7 @@ export async function createFlightAction(formData: FormData) {
     aircraft: parsed.aircraft ?? "",
     baggageInfo: parsed.baggageInfo ?? "",
     cost: parsed.cost,
+    currency: parsed.currency,
     passengers: normalizeFlightPassengers(parsed.passengers),
     notes: parsed.notes ?? "",
   });
@@ -221,6 +234,7 @@ export async function updateFlightAction(formData: FormData) {
     aircraft: formData.get("aircraft"),
     baggageInfo: formData.get("baggageInfo"),
     cost: formData.get("cost"),
+    currency: formData.get("currency") ?? "TWD",
     passengers: formData.get("passengers"),
     notes: formData.get("notes"),
   });
@@ -235,6 +249,7 @@ export async function updateFlightAction(formData: FormData) {
     aircraft: parsed.aircraft ?? "",
     baggageInfo: parsed.baggageInfo ?? "",
     cost: parsed.cost,
+    currency: parsed.currency,
     passengers: normalizeFlightPassengers(parsed.passengers),
     notes: parsed.notes ?? "",
   });
@@ -254,6 +269,7 @@ export async function createStayAction(formData: FormData) {
     checkInTime: formData.get("checkInTime"),
     checkOutTime: formData.get("checkOutTime"),
     cost: formData.get("cost"),
+    currency: formData.get("currency") ?? "TWD",
     address: formData.get("address"),
     url: formData.get("url"),
     bookingReference: formData.get("bookingReference"),
@@ -268,6 +284,7 @@ export async function createStayAction(formData: FormData) {
     checkInTime: parsed.checkInTime ?? "",
     checkOutTime: parsed.checkOutTime ?? "",
     cost: parsed.cost,
+    currency: parsed.currency,
     address: parsed.address ?? "",
     url: parsed.url ?? "",
     bookingReference: parsed.bookingReference ?? "",
@@ -290,6 +307,7 @@ export async function updateStayAction(formData: FormData) {
     checkInTime: formData.get("checkInTime"),
     checkOutTime: formData.get("checkOutTime"),
     cost: formData.get("cost"),
+    currency: formData.get("currency") ?? "TWD",
     address: formData.get("address"),
     url: formData.get("url"),
     bookingReference: formData.get("bookingReference"),
@@ -303,6 +321,7 @@ export async function updateStayAction(formData: FormData) {
     checkInTime: parsed.checkInTime ?? "",
     checkOutTime: parsed.checkOutTime ?? "",
     cost: parsed.cost,
+    currency: parsed.currency,
     address: parsed.address ?? "",
     url: parsed.url ?? "",
     bookingReference: parsed.bookingReference ?? "",
@@ -321,6 +340,7 @@ export async function createExpenseAction(formData: FormData) {
     title: formData.get("title"),
     date: formData.get("date"),
     cost: formData.get("cost"),
+    currency: formData.get("currency") ?? "TWD",
     taxRefund: formData.get("taxRefund"),
   });
 
@@ -329,6 +349,7 @@ export async function createExpenseAction(formData: FormData) {
     title: parsed.title,
     date: parsed.date ?? null,
     cost: parsed.cost,
+    currency: parsed.currency,
     taxRefund: parsed.taxRefund,
   });
 
@@ -345,6 +366,7 @@ export async function updateExpenseAction(formData: FormData) {
     title: formData.get("title"),
     date: formData.get("date"),
     cost: formData.get("cost"),
+    currency: formData.get("currency") ?? "TWD",
     taxRefund: formData.get("taxRefund"),
   });
 
@@ -352,7 +374,45 @@ export async function updateExpenseAction(formData: FormData) {
     title: parsed.title,
     date: parsed.date ?? null,
     cost: parsed.cost,
+    currency: parsed.currency,
     taxRefund: parsed.taxRefund,
+  });
+
+  revalidatePath(`/trips/${tripId}`);
+}
+
+export async function createCurrencyRateAction(formData: FormData) {
+  assertConfigured();
+
+  const parsed = currencyRateSchema.parse({
+    tripId: formData.get("tripId"),
+    currency: formData.get("currency"),
+    rate: formData.get("rate"),
+  });
+
+  await createCurrencyRate({
+    tripId: parsed.tripId,
+    currency: parsed.currency,
+    rate: parsed.rate,
+  });
+
+  revalidatePath(`/trips/${parsed.tripId}`);
+}
+
+export async function updateCurrencyRateAction(formData: FormData) {
+  assertConfigured();
+
+  const tripId = String(formData.get("tripId") ?? "");
+  const currencyRateId = String(formData.get("currencyRateId") ?? "");
+  const parsed = currencyRateSchema.parse({
+    tripId,
+    currency: formData.get("currency"),
+    rate: formData.get("rate"),
+  });
+
+  await updateCurrencyRate(currencyRateId, {
+    currency: parsed.currency,
+    rate: parsed.rate,
   });
 
   revalidatePath(`/trips/${tripId}`);

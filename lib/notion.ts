@@ -1,12 +1,14 @@
 import { Client } from "@notionhq/client";
 import type { CreatePageParameters } from "@notionhq/client/build/src/api-endpoints";
 
+import { convertToBaseCurrency } from "@/lib/currency";
 import { getRequiredEnv, getSetupStatus } from "@/lib/env";
 import { getFlightDisplayLabel, parseFlightPassengers, serializeFlightPassengers } from "@/lib/flight-passengers";
 import type {
   ItemType,
   SetupStatus,
   Trip,
+  TripCurrencyRate,
   TripDay,
   TripDetail,
   TripExpense,
@@ -20,6 +22,7 @@ const TRIP_PROPS = {
   destination: "Destination",
   startDate: "Start Date",
   endDate: "End Date",
+  baseCurrency: "Base Currency",
   notes: "Notes",
 } as const;
 
@@ -39,6 +42,7 @@ const ITEM_PROPS = {
   type: "Item Type",
   location: "Location",
   cost: "Cost",
+  currency: "Currency",
   url: "Link",
   notes: "Notes",
   order: "Order",
@@ -56,6 +60,7 @@ const FLIGHT_PROPS = {
   aircraft: "Aircraft",
   baggageInfo: "Baggage Info",
   cost: "Cost",
+  currency: "Currency",
   passengers: "Passengers",
   notes: "Notes",
 } as const;
@@ -66,6 +71,7 @@ const STAY_PROPS = {
   checkInDate: "Check-in Date",
   checkOutDate: "Check-out Date",
   cost: "Cost",
+  currency: "Currency",
   address: "Address",
   url: "Link",
   bookingReference: "Booking Reference",
@@ -77,8 +83,18 @@ const EXPENSE_PROPS = {
   trip: "Trip",
   date: "Date",
   cost: "Cost",
+  currency: "Currency",
   taxRefund: "Tax Refund",
 } as const;
+
+const CURRENCY_RATE_PROPS = {
+  title: "Name",
+  trip: "Trip",
+  currency: "Currency",
+  rate: "Rate",
+} as const;
+
+const DEFAULT_CURRENCY = "TWD";
 
 function getClient() {
   return new Client({ auth: getRequiredEnv("NOTION_TOKEN") });
@@ -94,6 +110,10 @@ function richTextProperty(content?: string) {
 
 function titleProperty(content: string) {
   return { title: richText(content) };
+}
+
+function selectProperty(value?: string | null) {
+  return value ? { select: { name: value } } : { select: null };
 }
 
 function dateProperty(value?: string | null) {
@@ -351,7 +371,19 @@ export async function getTripDetail(tripId: string): Promise<TripDetail | null> 
     ]),
   ]);
 
-  const items = itemResults.map((page) => mapItem(page.properties, page.id));
+  const currencyRateResults = await queryTripScopedPages(
+    getRequiredEnv("NOTION_CURRENCY_RATES_DB_ID"),
+    tripId,
+    CURRENCY_RATE_PROPS.trip,
+    [{ property: CURRENCY_RATE_PROPS.currency, direction: "ascending" }],
+  );
+  const currencyRates = currencyRateResults.map((page) =>
+    mapCurrencyRate(page.properties, page.id),
+  );
+
+  const items = itemResults.map((page) =>
+    mapItem(page.properties, page.id, trip.baseCurrency),
+  );
   const itemsByDay = new Map<string, TripItem[]>();
 
   for (const item of items) {
@@ -366,9 +398,16 @@ export async function getTripDetail(tripId: string): Promise<TripDetail | null> 
       ...day,
       items: itemsByDay.get(day.id) ?? [],
     })),
-    flights: flightResults.map((page) => mapFlight(page.properties, page.id)),
-    stays: stayResults.map((page) => mapStay(page.properties, page.id)),
-    expenses: expenseResults.map((page) => mapExpense(page.properties, page.id)),
+    flights: flightResults.map((page) =>
+      mapFlight(page.properties, page.id, trip.baseCurrency),
+    ),
+    stays: stayResults.map((page) =>
+      mapStay(page.properties, page.id, trip.baseCurrency),
+    ),
+    expenses: expenseResults.map((page) =>
+      mapExpense(page.properties, page.id, trip.baseCurrency),
+    ),
+    currencyRates,
   };
 }
 
@@ -376,6 +415,7 @@ export async function createTrip(input: {
   destination: string;
   startDate: string;
   endDate: string;
+  baseCurrency: string;
   notes: string;
 }) {
   const client = getClient();
@@ -386,6 +426,7 @@ export async function createTrip(input: {
       [TRIP_PROPS.destination]: titleProperty(input.destination),
       [TRIP_PROPS.startDate]: dateProperty(input.startDate),
       [TRIP_PROPS.endDate]: dateProperty(input.endDate),
+      [TRIP_PROPS.baseCurrency]: selectProperty(input.baseCurrency),
       [TRIP_PROPS.notes]: richTextProperty(input.notes),
     },
   } as CreatePageParameters);
@@ -397,6 +438,7 @@ export async function updateTrip(
     destination: string;
     startDate: string;
     endDate: string;
+    baseCurrency: string;
     notes: string;
   },
 ) {
@@ -408,6 +450,7 @@ export async function updateTrip(
       [TRIP_PROPS.destination]: titleProperty(input.destination),
       [TRIP_PROPS.startDate]: dateProperty(input.startDate),
       [TRIP_PROPS.endDate]: dateProperty(input.endDate),
+      [TRIP_PROPS.baseCurrency]: selectProperty(input.baseCurrency),
       [TRIP_PROPS.notes]: richTextProperty(input.notes),
     },
   } as any);
@@ -444,6 +487,7 @@ export async function createItem(input: {
   endTime: string;
   location: string;
   cost: number | null;
+  currency: string;
   url: string;
   notes: string;
   order: number;
@@ -464,6 +508,7 @@ export async function createItem(input: {
       [ITEM_PROPS.cost]: {
         number: input.cost,
       },
+      [ITEM_PROPS.currency]: selectProperty(input.currency),
       [ITEM_PROPS.url]: {
         url: input.url || null,
       },
@@ -484,6 +529,7 @@ export async function updateItem(
     endTime: string;
     location: string;
     cost: number | null;
+    currency: string;
     url: string;
     notes: string;
     order: number;
@@ -504,6 +550,7 @@ export async function updateItem(
       [ITEM_PROPS.cost]: {
         number: input.cost,
       },
+      [ITEM_PROPS.currency]: selectProperty(input.currency),
       [ITEM_PROPS.url]: {
         url: input.url || null,
       },
@@ -534,6 +581,7 @@ export async function createFlight(input: Omit<TripFlight, "id">) {
       [FLIGHT_PROPS.cost]: {
         number: input.cost,
       },
+      [FLIGHT_PROPS.currency]: selectProperty(input.currency),
       [FLIGHT_PROPS.passengers]: richTextProperty(serializeFlightPassengers(input.passengers)),
       [FLIGHT_PROPS.notes]: richTextProperty(input.notes),
     },
@@ -561,6 +609,7 @@ export async function updateFlight(
       [FLIGHT_PROPS.cost]: {
         number: input.cost,
       },
+      [FLIGHT_PROPS.currency]: selectProperty(input.currency),
       [FLIGHT_PROPS.passengers]: richTextProperty(serializeFlightPassengers(input.passengers)),
       [FLIGHT_PROPS.notes]: richTextProperty(input.notes),
     },
@@ -584,6 +633,7 @@ export async function createStay(input: Omit<TripStay, "id">) {
       [STAY_PROPS.cost]: {
         number: input.cost,
       },
+      [STAY_PROPS.currency]: selectProperty(input.currency),
       [STAY_PROPS.address]: richTextProperty(input.address),
       [STAY_PROPS.url]: {
         url: input.url || null,
@@ -619,6 +669,7 @@ export async function updateStay(
       [STAY_PROPS.cost]: {
         number: input.cost,
       },
+      [STAY_PROPS.currency]: selectProperty(input.currency),
       [STAY_PROPS.address]: richTextProperty(input.address),
       [STAY_PROPS.url]: {
         url: input.url || null,
@@ -647,6 +698,7 @@ export async function createExpense(input: Omit<TripExpense, "id">) {
       [EXPENSE_PROPS.cost]: {
         number: input.cost,
       },
+      [EXPENSE_PROPS.currency]: selectProperty(input.currency),
       [EXPENSE_PROPS.taxRefund]: {
         number: input.taxRefund,
       },
@@ -668,8 +720,45 @@ export async function updateExpense(
       [EXPENSE_PROPS.cost]: {
         number: input.cost,
       },
+      [EXPENSE_PROPS.currency]: selectProperty(input.currency),
       [EXPENSE_PROPS.taxRefund]: {
         number: input.taxRefund,
+      },
+    },
+  } as any);
+}
+
+export async function createCurrencyRate(input: Omit<TripCurrencyRate, "id" | "title">) {
+  const client = getClient();
+  const title = getCurrencyRateTitle(input.currency, input.rate);
+
+  await client.pages.create({
+    parent: { data_source_id: getRequiredEnv("NOTION_CURRENCY_RATES_DB_ID") },
+    properties: {
+      [CURRENCY_RATE_PROPS.title]: titleProperty(title),
+      [CURRENCY_RATE_PROPS.trip]: relationProperty(input.tripId),
+      [CURRENCY_RATE_PROPS.currency]: selectProperty(input.currency),
+      [CURRENCY_RATE_PROPS.rate]: {
+        number: input.rate,
+      },
+    },
+  } as CreatePageParameters);
+}
+
+export async function updateCurrencyRate(
+  currencyRateId: string,
+  input: Omit<TripCurrencyRate, "id" | "tripId" | "title">,
+) {
+  const client = getClient();
+  const title = getCurrencyRateTitle(input.currency, input.rate);
+
+  await client.pages.update({
+    page_id: currencyRateId,
+    properties: {
+      [CURRENCY_RATE_PROPS.title]: titleProperty(title),
+      [CURRENCY_RATE_PROPS.currency]: selectProperty(input.currency),
+      [CURRENCY_RATE_PROPS.rate]: {
+        number: input.rate,
       },
     },
   } as any);
@@ -684,18 +773,50 @@ export async function archivePage(pageId: string) {
 }
 
 export function getTripStats(detail: TripDetail) {
+  const convertedItemCosts = detail.days.flatMap((day) =>
+    day.items.map((item) =>
+      convertToBaseCurrency(item.cost, item.currency, detail),
+    ),
+  );
+  const convertedFlightCosts = detail.flights.map((flight) =>
+    convertToBaseCurrency(flight.cost, flight.currency, detail),
+  );
+  const convertedStayCosts = detail.stays.map((stay) =>
+    convertToBaseCurrency(stay.cost, stay.currency, detail),
+  );
+  const convertedExpenseCosts = detail.expenses.map((expense) =>
+    convertToBaseCurrency(expense.cost, expense.currency, detail),
+  );
+  const convertedTaxRefunds = detail.expenses.map((expense) =>
+    convertToBaseCurrency(expense.taxRefund, expense.currency, detail),
+  );
+  const convertedAmounts = [
+    ...convertedItemCosts,
+    ...convertedFlightCosts,
+    ...convertedStayCosts,
+    ...convertedExpenseCosts,
+    ...convertedTaxRefunds,
+  ];
+
   return {
     days: detail.days.length,
     items: detail.days.flatMap((day) => day.items).length,
     flights: detail.flights.length,
     stays: detail.stays.length,
     totalCost: sum([
-      ...detail.days.flatMap((day) => day.items.map((item) => item.cost)),
-      ...detail.flights.map((flight) => flight.cost),
-      ...detail.stays.map((stay) => stay.cost),
-      ...detail.expenses.map((expense) => expense.cost),
+      ...convertedItemCosts.map((entry) => entry.amount),
+      ...convertedFlightCosts.map((entry) => entry.amount),
+      ...convertedStayCosts.map((entry) => entry.amount),
+      ...convertedExpenseCosts.map((entry) => entry.amount),
     ]),
-    totalTaxRefund: sum(detail.expenses.map((expense) => expense.taxRefund)),
+    totalTaxRefund: sum(convertedTaxRefunds.map((entry) => entry.amount)),
+    missingRateCurrencies: Array.from(
+      new Set(
+        convertedAmounts
+          .map((entry) => entry.missingCurrency)
+          .filter((currency): currency is string => Boolean(currency)),
+      ),
+    ).sort(),
   };
 }
 
@@ -705,6 +826,10 @@ function mapTrip(properties: Record<string, any>, id: string): Trip {
     destination: getTitle(properties, TRIP_PROPS.destination),
     startDate: getDate(properties, TRIP_PROPS.startDate),
     endDate: getDate(properties, TRIP_PROPS.endDate),
+    baseCurrency: normalizeCurrency(
+      getSelect(properties, TRIP_PROPS.baseCurrency),
+      DEFAULT_CURRENCY,
+    ),
     notes: getRichText(properties, TRIP_PROPS.notes),
   };
 }
@@ -722,7 +847,11 @@ function mapDay(properties: Record<string, any>, id: string): TripDay {
   };
 }
 
-function mapItem(properties: Record<string, any>, id: string): TripItem {
+function mapItem(
+  properties: Record<string, any>,
+  id: string,
+  fallbackCurrency: string,
+): TripItem {
   const [dayId] = getRelation(properties, ITEM_PROPS.day);
 
   return {
@@ -734,6 +863,10 @@ function mapItem(properties: Record<string, any>, id: string): TripItem {
     endTime: getRichText(properties, ITEM_PROPS.endTime),
     location: getRichText(properties, ITEM_PROPS.location),
     cost: getNumber(properties, ITEM_PROPS.cost),
+    currency: normalizeCurrency(
+      getSelect(properties, ITEM_PROPS.currency),
+      fallbackCurrency,
+    ),
     url: getUrl(properties, ITEM_PROPS.url),
     notes: getRichText(properties, ITEM_PROPS.notes),
     order: getNumber(properties, ITEM_PROPS.order) ?? 0,
@@ -760,7 +893,11 @@ function normalizeItemType(value: string): ItemType {
   }
 }
 
-function mapFlight(properties: Record<string, any>, id: string): TripFlight {
+function mapFlight(
+  properties: Record<string, any>,
+  id: string,
+  fallbackCurrency: string,
+): TripFlight {
   const [tripId] = getRelation(properties, FLIGHT_PROPS.trip);
 
   return {
@@ -775,12 +912,20 @@ function mapFlight(properties: Record<string, any>, id: string): TripFlight {
     aircraft: getRichText(properties, FLIGHT_PROPS.aircraft),
     baggageInfo: getRichText(properties, FLIGHT_PROPS.baggageInfo),
     cost: getNumber(properties, FLIGHT_PROPS.cost),
+    currency: normalizeCurrency(
+      getSelect(properties, FLIGHT_PROPS.currency),
+      fallbackCurrency,
+    ),
     passengers: parseFlightPassengers(getRichText(properties, FLIGHT_PROPS.passengers)),
     notes: getRichText(properties, FLIGHT_PROPS.notes),
   };
 }
 
-function mapStay(properties: Record<string, any>, id: string): TripStay {
+function mapStay(
+  properties: Record<string, any>,
+  id: string,
+  fallbackCurrency: string,
+): TripStay {
   const [tripId] = getRelation(properties, STAY_PROPS.trip);
   const checkInAt = getDate(properties, STAY_PROPS.checkInDate);
   const checkOutAt = getDate(properties, STAY_PROPS.checkOutDate);
@@ -794,6 +939,10 @@ function mapStay(properties: Record<string, any>, id: string): TripStay {
     checkInTime: getTimePart(checkInAt),
     checkOutTime: getTimePart(checkOutAt),
     cost: getNumber(properties, STAY_PROPS.cost),
+    currency: normalizeCurrency(
+      getSelect(properties, STAY_PROPS.currency),
+      fallbackCurrency,
+    ),
     address: getRichText(properties, STAY_PROPS.address),
     url: getUrl(properties, STAY_PROPS.url),
     bookingReference: getRichText(properties, STAY_PROPS.bookingReference),
@@ -801,7 +950,11 @@ function mapStay(properties: Record<string, any>, id: string): TripStay {
   };
 }
 
-function mapExpense(properties: Record<string, any>, id: string): TripExpense {
+function mapExpense(
+  properties: Record<string, any>,
+  id: string,
+  fallbackCurrency: string,
+): TripExpense {
   const [tripId] = getRelation(properties, EXPENSE_PROPS.trip);
 
   return {
@@ -810,6 +963,36 @@ function mapExpense(properties: Record<string, any>, id: string): TripExpense {
     title: getTitle(properties, EXPENSE_PROPS.title),
     date: getDate(properties, EXPENSE_PROPS.date),
     cost: getNumber(properties, EXPENSE_PROPS.cost),
+    currency: normalizeCurrency(
+      getSelect(properties, EXPENSE_PROPS.currency),
+      fallbackCurrency,
+    ),
     taxRefund: getNumber(properties, EXPENSE_PROPS.taxRefund),
   };
+}
+
+function mapCurrencyRate(properties: Record<string, any>, id: string): TripCurrencyRate {
+  const [tripId] = getRelation(properties, CURRENCY_RATE_PROPS.trip);
+  const currency = normalizeCurrency(
+    getSelect(properties, CURRENCY_RATE_PROPS.currency),
+    "",
+  );
+  const rate = getNumber(properties, CURRENCY_RATE_PROPS.rate);
+
+  return {
+    id,
+    tripId: tripId ?? "",
+    title: getTitle(properties, CURRENCY_RATE_PROPS.title),
+    currency,
+    rate,
+  };
+}
+
+function normalizeCurrency(value: string, fallback: string) {
+  const normalized = value.trim().toUpperCase();
+  return normalized || fallback;
+}
+
+function getCurrencyRateTitle(currency: string, rate: number | null) {
+  return rate ? `${currency} @ ${rate}` : currency;
 }

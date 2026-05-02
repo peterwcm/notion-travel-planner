@@ -32,18 +32,29 @@ export function formatDateTime(value?: string | null) {
   }).format(new Date(value));
 }
 
-export function currency(value?: number | null) {
+export function currency(value?: number | null, currencyCode = "TWD") {
   if (typeof value !== "number" || Number.isNaN(value)) {
     return "Not entered";
   }
 
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "TWD",
-    maximumFractionDigits: 0,
+    currency: currencyCode,
+    maximumFractionDigits: getCurrencyFractionDigits(currencyCode),
   }).format(value);
 }
 
 export function sum(values: Array<number | null | undefined>) {
   return values.reduce<number>((total, value) => total + (value ?? 0), 0);
+}
+
+function getCurrencyFractionDigits(currencyCode: string) {
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currencyCode,
+    }).resolvedOptions().maximumFractionDigits;
+  } catch {
+    return 2;
+  }
 }

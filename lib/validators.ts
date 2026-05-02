@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+const currencySchema = z
+  .string()
+  .trim()
+  .transform((value) => value.toUpperCase())
+  .pipe(z.string().regex(/^[A-Z]{3}$/, "Enter a 3-letter currency code."));
+
 export const loginSchema = z.object({
   password: z.string().min(1, "Enter the password."),
 });
@@ -8,6 +14,7 @@ export const tripSchema = z.object({
   destination: z.string().min(1, "Enter a destination."),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
+  baseCurrency: currencySchema.default("TWD"),
   notes: z.string().optional(),
 });
 
@@ -30,6 +37,7 @@ export const itemSchema = z.object({
     .string()
     .optional()
     .transform((value) => (value ? Number(value) : null)),
+  currency: currencySchema.default("TWD"),
   url: z.string().optional(),
   notes: z.string().optional(),
   order: z.coerce.number().int().min(0),
@@ -55,6 +63,7 @@ export const flightSchema = z.object({
     .string()
     .optional()
     .transform((value) => (value ? Number(value) : null)),
+  currency: currencySchema.default("TWD"),
   passengers: z
     .string()
     .optional()
@@ -80,6 +89,7 @@ export const staySchema = z.object({
     .string()
     .optional()
     .transform((value) => (value ? Number(value) : null)),
+  currency: currencySchema.default("TWD"),
   address: z.string().optional(),
   url: z.string().optional(),
   bookingReference: z.string().optional(),
@@ -94,8 +104,15 @@ export const expenseSchema = z.object({
     .string()
     .optional()
     .transform((value) => (value ? Number(value) : null)),
+  currency: currencySchema.default("TWD"),
   taxRefund: z
     .string()
     .optional()
     .transform((value) => (value ? Number(value) : null)),
+});
+
+export const currencyRateSchema = z.object({
+  tripId: z.string().min(1),
+  currency: currencySchema,
+  rate: z.coerce.number().positive("Enter an exchange rate greater than 0."),
 });

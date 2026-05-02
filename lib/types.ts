@@ -14,11 +14,14 @@ export type TripSectionTab =
   | "stays"
   | "expenses";
 
+export type CurrencyCode = string;
+
 export interface Trip {
   id: string;
   destination: string;
   startDate: string | null;
   endDate: string | null;
+  baseCurrency: CurrencyCode;
   notes: string;
 }
 
@@ -40,6 +43,7 @@ export interface TripItem {
   endTime: string;
   location: string;
   cost: number | null;
+  currency: CurrencyCode;
   url: string;
   notes: string;
   order: number;
@@ -63,6 +67,7 @@ export interface TripFlight {
   aircraft: string;
   baggageInfo: string;
   cost: number | null;
+  currency: CurrencyCode;
   passengers: TripFlightPassenger[];
   notes: string;
 }
@@ -76,6 +81,7 @@ export interface TripStay {
   checkInTime: string;
   checkOutTime: string;
   cost: number | null;
+  currency: CurrencyCode;
   address: string;
   url: string;
   bookingReference: string;
@@ -88,7 +94,16 @@ export interface TripExpense {
   title: string;
   date: string | null;
   cost: number | null;
+  currency: CurrencyCode;
   taxRefund: number | null;
+}
+
+export interface TripCurrencyRate {
+  id: string;
+  tripId: string;
+  title: string;
+  currency: CurrencyCode;
+  rate: number | null;
 }
 
 export interface TripDetail {
@@ -101,6 +116,7 @@ export interface TripDetail {
   flights: TripFlight[];
   stays: TripStay[];
   expenses: TripExpense[];
+  currencyRates: TripCurrencyRate[];
 }
 
 export interface SetupStatus {

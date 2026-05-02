@@ -1,4 +1,5 @@
 import { FlightPassengersField } from "@/components/flight-passengers-field";
+import { CostCurrencyFields } from "@/components/currency-fields";
 import { FormDialog } from "@/components/form-dialog";
 import {
   DollarIcon,
@@ -26,8 +27,11 @@ import {
   updateStayAction,
 } from "@/app/(protected)/trips/actions";
 import { getFlightDisplayLabel } from "@/lib/flight-passengers";
+import { convertToBaseCurrency } from "@/lib/currency";
 import type {
   ItemType,
+  Trip,
+  TripCurrencyRate,
   TripExpense,
   TripFlight,
   TripFlightPassenger,
@@ -47,18 +51,29 @@ const ITEM_TYPE_OPTIONS: ItemType[] = [
 ];
 
 export function ItineraryItemCard({
+  currencyOptions,
+  currencyRates,
   tripId,
+  trip,
   dayId,
   item,
 }: {
+  currencyOptions: string[];
+  currencyRates: TripCurrencyRate[];
   tripId: string;
+  trip: Trip;
   dayId: string;
   item: TripItem;
 }) {
   return (
     <div className="item-card detail-card card-with-actions">
       <div className="card-corner-actions">
-        <CostAction cost={item.cost} />
+        <CostAction
+          baseCurrency={trip.baseCurrency}
+          cost={item.cost}
+          currency={item.currency}
+          currencyRates={currencyRates}
+        />
         <FormDialog
           description="Update this itinerary item."
           title={`Edit ${item.title}`}
@@ -129,16 +144,11 @@ export function ItineraryItemCard({
                   type="number"
                 />
               </div>
-              <div className="field">
-                <label className="field-label">Cost</label>
-                <input
-                  className="input"
-                  defaultValue={item.cost ?? ""}
-                  min={0}
-                  name="cost"
-                  type="number"
-                />
-              </div>
+              <CostCurrencyFields
+                costDefaultValue={item.cost ?? ""}
+                currencyDefaultValue={item.currency}
+                currencyOptions={currencyOptions}
+              />
               <div className="field">
                 <label className="field-label">Link</label>
                 <input className="input" defaultValue={item.url} name="url" />
@@ -188,16 +198,27 @@ export function ItineraryItemCard({
 }
 
 export function FlightDetailCard({
+  currencyOptions,
+  currencyRates,
   tripId,
+  trip,
   flight,
 }: {
+  currencyOptions: string[];
+  currencyRates: TripCurrencyRate[];
   tripId: string;
+  trip: Trip;
   flight: TripFlight;
 }) {
   return (
     <div className="detail-card flight-card card-with-actions">
       <div className="card-corner-actions">
-        <CostAction cost={flight.cost} />
+        <CostAction
+          baseCurrency={trip.baseCurrency}
+          cost={flight.cost}
+          currency={flight.currency}
+          currencyRates={currencyRates}
+        />
         <FormDialog
           description="Update the flight schedule and details."
           title={`Edit ${getFlightDisplayLabel(flight)}`}
@@ -258,12 +279,10 @@ export function FlightDetailCard({
                 name="baggageInfo"
                 defaultValue={flight.baggageInfo}
               />
-              <LabeledInput
-                label="Cost"
-                name="cost"
-                type="number"
-                min={0}
-                defaultValue={flight.cost ?? ""}
+              <CostCurrencyFields
+                costDefaultValue={flight.cost ?? ""}
+                currencyDefaultValue={flight.currency}
+                currencyOptions={currencyOptions}
               />
             </div>
             <FlightPassengersField defaultValue={flight.passengers} />
@@ -375,16 +394,27 @@ export function FlightDetailCard({
 }
 
 export function StayDetailCard({
+  currencyOptions,
+  currencyRates,
   tripId,
+  trip,
   stay,
 }: {
+  currencyOptions: string[];
+  currencyRates: TripCurrencyRate[];
   tripId: string;
+  trip: Trip;
   stay: TripStay;
 }) {
   return (
     <div className="detail-card stay-card card-with-actions">
       <div className="card-corner-actions">
-        <CostAction cost={stay.cost} />
+        <CostAction
+          baseCurrency={trip.baseCurrency}
+          cost={stay.cost}
+          currency={stay.currency}
+          currencyRates={currencyRates}
+        />
         <FormDialog
           description="Update stay dates and details."
           title={`Edit ${stay.title}`}
@@ -429,12 +459,10 @@ export function StayDetailCard({
                 type="time"
                 defaultValue={stay.checkOutTime}
               />
-              <LabeledInput
-                label="Cost"
-                name="cost"
-                type="number"
-                min={0}
-                defaultValue={stay.cost ?? ""}
+              <CostCurrencyFields
+                costDefaultValue={stay.cost ?? ""}
+                currencyDefaultValue={stay.currency}
+                currencyOptions={currencyOptions}
               />
               <LabeledInput
                 label="Link"
@@ -532,16 +560,27 @@ export function StayDetailCard({
 }
 
 export function ExpenseDetailCard({
+  currencyOptions,
+  currencyRates,
   tripId,
+  trip,
   expense,
 }: {
+  currencyOptions: string[];
+  currencyRates: TripCurrencyRate[];
   tripId: string;
+  trip: Trip;
   expense: TripExpense;
 }) {
   return (
     <div className="detail-card expense-card card-with-actions">
       <div className="card-corner-actions">
-        <CostAction cost={expense.cost} />
+        <CostAction
+          baseCurrency={trip.baseCurrency}
+          cost={expense.cost}
+          currency={expense.currency}
+          currencyRates={currencyRates}
+        />
         <FormDialog
           description="Update this expense."
           title={`Edit ${expense.title}`}
@@ -567,12 +606,10 @@ export function ExpenseDetailCard({
                 defaultValue={toDateInputValue(expense.date)}
                 required
               />
-              <LabeledInput
-                label="Cost"
-                name="cost"
-                type="number"
-                min={0}
-                defaultValue={expense.cost ?? ""}
+              <CostCurrencyFields
+                costDefaultValue={expense.cost ?? ""}
+                currencyDefaultValue={expense.currency}
+                currencyOptions={currencyOptions}
               />
               <LabeledInput
                 label="Tax refund"
@@ -601,11 +638,11 @@ export function ExpenseDetailCard({
       <div className="list-table">
         <div className="list-table__row">
           <span>Cost</span>
-          <strong>{currency(expense.cost ?? 0)}</strong>
+          <strong>{formatCost(expense.cost, expense.currency)}</strong>
         </div>
         <div className="list-table__row">
           <span>Tax refund</span>
-          <strong>{currency(expense.taxRefund ?? 0)}</strong>
+          <strong>{formatCost(expense.taxRefund, expense.currency)}</strong>
         </div>
       </div>
     </div>
@@ -636,14 +673,40 @@ function DeleteForm({
   );
 }
 
-function CostAction({ cost }: { cost?: number | null }) {
+function formatCost(cost: number | null | undefined, currencyCode: string) {
+  return typeof cost === "number"
+    ? currency(cost, currencyCode)
+    : "Not entered";
+}
+
+function CostAction({
+  baseCurrency,
+  cost,
+  currency: currencyCode,
+  currencyRates,
+}: {
+  baseCurrency: string;
+  cost?: number | null;
+  currency: string;
+  currencyRates: TripCurrencyRate[];
+}) {
   if (typeof cost !== "number") {
     return null;
   }
 
-  const formattedCost = currency(cost);
+  const converted = convertToBaseCurrency(cost, currencyCode, {
+    trip: { baseCurrency },
+    currencyRates,
+  });
+  const formattedCost = formatCost(cost, currencyCode);
+  const label =
+    typeof converted.amount === "number" && currencyCode !== baseCurrency
+      ? `${formattedCost} (${currency(converted.amount, baseCurrency)})`
+      : converted.missingCurrency
+        ? `${formattedCost} (missing ${baseCurrency} rate)`
+      : formattedCost;
 
-  return <CostPopover label={formattedCost} />;
+  return <CostPopover label={label} />;
 }
 
 function CardTag({
