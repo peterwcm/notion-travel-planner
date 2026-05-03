@@ -33,6 +33,10 @@ export function CostCurrencyFields({
 }) {
   return (
     <>
+      <CurrencySelect
+        defaultValue={currencyDefaultValue}
+        options={currencyOptions}
+      />
       <div className="field">
         <label className="field-label">Cost</label>
         <input
@@ -45,10 +49,6 @@ export function CostCurrencyFields({
           type="number"
         />
       </div>
-      <CurrencySelect
-        defaultValue={currencyDefaultValue}
-        options={currencyOptions}
-      />
     </>
   );
 }

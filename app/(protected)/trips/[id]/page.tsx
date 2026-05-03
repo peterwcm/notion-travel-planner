@@ -13,6 +13,7 @@ import { FormDialog } from "@/components/form-dialog";
 import { EditIcon, TrashIcon } from "@/components/icons";
 import { LocalDate } from "@/components/local-date-time";
 import { SubmitButton } from "@/components/submit-button";
+import { TripCostSummary } from "@/components/trip-cost-summary";
 import {
   ExpenseDetailCard,
   FlightDetailCard,
@@ -32,7 +33,6 @@ import {
 } from "@/app/(protected)/trips/actions";
 import { getNotionStatus, getTripDetail, getTripStats } from "@/lib/notion";
 import type { TripCurrencyRate, TripDetail, TripSectionTab } from "@/lib/types";
-import { currency } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -203,35 +203,31 @@ export default async function TripDetailPage({
             </div>
           </div>
 
-          <div className="metrics metrics--summary">
-            <div className="metric">
-              <span className="metric__label">Total cost</span>
-              <strong>
-                {currency(stats.totalCost, detail.trip.baseCurrency)}
-              </strong>
-            </div>
-            <div className="metric">
-              <span className="metric__label">Total tax refund</span>
-              <strong>
-                {currency(stats.totalTaxRefund, detail.trip.baseCurrency)}
-              </strong>
-            </div>
-            <div className="metric">
-              <span className="metric__label">Net cost</span>
-              <strong>
-                {currency(
-                  stats.totalCost - stats.totalTaxRefund,
-                  detail.trip.baseCurrency,
-                )}
-              </strong>
-            </div>
-          </div>
-          {stats.missingRateCurrencies.length > 0 ? (
-            <p className="muted">
-              Missing exchange rate for {stats.missingRateCurrencies.join(", ")}
-              . Those values are not included in totals.
-            </p>
-          ) : null}
+          <TripCostSummary
+            baseCurrency={detail.trip.baseCurrency}
+            sections={[
+              {
+                id: "itinerary",
+                label: "Itinerary",
+                ...stats.sectionTotals.itinerary,
+              },
+              {
+                id: "flights",
+                label: "Flights",
+                ...stats.sectionTotals.flights,
+              },
+              {
+                id: "stays",
+                label: "Stays",
+                ...stats.sectionTotals.stays,
+              },
+              {
+                id: "expenses",
+                label: "Expenses",
+                ...stats.sectionTotals.expenses,
+              },
+            ]}
+          />
 
           {detail.trip.notes ? (
             <p className="summary-notes">{detail.trip.notes}</p>

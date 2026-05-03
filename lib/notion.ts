@@ -793,18 +793,62 @@ export function getTripStats(detail: TripDetail) {
     ...convertedTaxRefunds,
   ];
 
+  const itineraryCost = sum(convertedItemCosts.map((entry) => entry.amount));
+  const flightCost = sum(convertedFlightCosts.map((entry) => entry.amount));
+  const stayCost = sum(convertedStayCosts.map((entry) => entry.amount));
+  const expenseCost = sum(convertedExpenseCosts.map((entry) => entry.amount));
+  const expenseTaxRefund = sum(convertedTaxRefunds.map((entry) => entry.amount));
+
   return {
     days: detail.days.length,
     items: detail.days.flatMap((day) => day.items).length,
     flights: detail.flights.length,
     stays: detail.stays.length,
-    totalCost: sum([
-      ...convertedItemCosts.map((entry) => entry.amount),
-      ...convertedFlightCosts.map((entry) => entry.amount),
-      ...convertedStayCosts.map((entry) => entry.amount),
-      ...convertedExpenseCosts.map((entry) => entry.amount),
-    ]),
-    totalTaxRefund: sum(convertedTaxRefunds.map((entry) => entry.amount)),
+    totalCost: itineraryCost + flightCost + stayCost + expenseCost,
+    totalTaxRefund: expenseTaxRefund,
+    sectionTotals: {
+      itinerary: {
+        cost: itineraryCost,
+        taxRefund: 0,
+        missingRateCurrencies: Array.from(
+          new Set(convertedItemCosts.map((entry) => entry.missingCurrency).filter(
+            (currency): currency is string => Boolean(currency),
+          )),
+        ).sort(),
+      },
+      flights: {
+        cost: flightCost,
+        taxRefund: 0,
+        missingRateCurrencies: Array.from(
+          new Set(convertedFlightCosts.map((entry) => entry.missingCurrency).filter(
+            (currency): currency is string => Boolean(currency),
+          )),
+        ).sort(),
+      },
+      stays: {
+        cost: stayCost,
+        taxRefund: 0,
+        missingRateCurrencies: Array.from(
+          new Set(convertedStayCosts.map((entry) => entry.missingCurrency).filter(
+            (currency): currency is string => Boolean(currency),
+          )),
+        ).sort(),
+      },
+      expenses: {
+        cost: expenseCost,
+        taxRefund: expenseTaxRefund,
+        missingRateCurrencies: Array.from(
+          new Set(
+            [
+              ...convertedExpenseCosts,
+              ...convertedTaxRefunds,
+            ]
+              .map((entry) => entry.missingCurrency)
+              .filter((currency): currency is string => Boolean(currency)),
+          ),
+        ).sort(),
+      },
+    },
     missingRateCurrencies: Array.from(
       new Set(
         convertedAmounts
