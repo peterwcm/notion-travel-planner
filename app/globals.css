@@ -706,6 +706,7 @@ textarea {
 .stay-card__top {
   display: flex;
   gap: 12px;
+  align-items: center;
 }
 
 .expense-card {
@@ -714,24 +715,37 @@ textarea {
 
 .expense-card__top {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
-}
-
-.expense-card__top h4 {
-  margin: 0;
-}
-
-.expense-card__heading {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
   flex-wrap: wrap;
 }
 
-.expense-card__heading small {
+.card-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.card-title .tag {
+  flex: none;
+}
+
+.card-title__meta {
   color: var(--muted);
   font-size: 0.84rem;
+  line-height: 1.1;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.card-title__text {
+  margin: 0;
+  line-height: 1.15;
+}
+
+.detail-card .card-title__text {
+  margin: 0;
 }
 
 .expense-card__net {

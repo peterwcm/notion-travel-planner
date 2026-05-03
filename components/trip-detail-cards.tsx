@@ -19,7 +19,11 @@ import {
   TrashIcon,
 } from "@/components/icons";
 import { CostPopover } from "@/components/cost-popover";
-import { LocalDate, LocalDateTime } from "@/components/local-date-time";
+import {
+  CompactDate,
+  LocalDate,
+  LocalDateTime,
+} from "@/components/local-date-time";
 import { SubmitButton } from "@/components/submit-button";
 import {
   deleteEntityAction,
@@ -58,6 +62,7 @@ export function ItineraryItemCard({
   tripId,
   trip,
   dayId,
+  dayDate,
   item,
 }: {
   currencyOptions: string[];
@@ -65,6 +70,7 @@ export function ItineraryItemCard({
   tripId: string;
   trip: Trip;
   dayId: string;
+  dayDate: string | null;
   item: TripItem;
 }) {
   return (
@@ -171,10 +177,13 @@ export function ItineraryItemCard({
         <DeleteForm icon tripId={tripId} entityId={item.id} />
       </div>
       <div className="item-meta">
-        <div className="stack item-meta__title">
-          <ItemTypeTag type={item.type} />
-          <h4>{item.title}</h4>
-        </div>
+        <CardTitle
+          icon={<ItemTypeIcon type={item.type} />}
+          label={item.type}
+          meta={<CompactDate value={dayDate} />}
+        >
+          {item.title}
+        </CardTitle>
         {getItemTimeLabel(item.startTime, item.endTime) ? (
           <div className="item-time">
             {getItemTimeLabel(item.startTime, item.endTime)}
@@ -303,14 +312,13 @@ export function FlightDetailCard({
         <DeleteForm icon tripId={tripId} entityId={flight.id} />
       </div>
       <div className="flight-card__top">
-        <div className="flight-card__headline">
-          <CardTag label="Flight">
-            <FlightIcon />
-          </CardTag>
-          <h4>
-            {flight.departureAirport} → {flight.arrivalAirport}
-          </h4>
-        </div>
+        <CardTitle
+          icon={<FlightIcon />}
+          label="Flight"
+          meta={<CompactDate value={flight.departureAt} />}
+        >
+          {flight.departureAirport} → {flight.arrivalAirport}
+        </CardTitle>
 
         <div className="flight-card__route">
           <div className="flight-card__stop">
@@ -501,10 +509,13 @@ export function StayDetailCard({
         <DeleteForm icon tripId={tripId} entityId={stay.id} />
       </div>
       <div className="stay-card__top">
-        <CardTag label="Stay">
-          <StayIcon />
-        </CardTag>
-        <h4>{stay.title}</h4>
+        <CardTitle
+          icon={<StayIcon />}
+          label="Stay"
+          meta={<CompactDate value={stay.checkInDate} />}
+        >
+          {stay.title}
+        </CardTitle>
       </div>
 
       {hasText(stay.address) || stay.url ? (
@@ -650,15 +661,13 @@ export function ExpenseDetailCard({
         <DeleteForm icon tripId={tripId} entityId={expense.id} />
       </div>
       <div className="expense-card__top">
-        <CardTag label="Expense">
-          <DollarIcon />
-        </CardTag>
-        <div className="expense-card__heading">
-          <h4>{expense.title}</h4>
-          <small>
-            <LocalDate value={expense.date} />
-          </small>
-        </div>
+        <CardTitle
+          icon={<DollarIcon />}
+          label="Expense"
+          meta={<CompactDate value={expense.date} />}
+        >
+          {expense.title}
+        </CardTitle>
       </div>
       <div className="expense-card__net">
         <div className="stay-card__point">
@@ -790,51 +799,43 @@ function CardTag({
   );
 }
 
-function ItemTypeTag({ type }: { type: ItemType }) {
+function CardTitle({
+  icon,
+  meta,
+  label,
+  children,
+}: {
+  icon: React.ReactNode;
+  meta?: React.ReactNode;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="card-title">
+      <CardTag label={label}>{icon}</CardTag>
+      {meta ? <small className="card-title__meta">{meta}</small> : null}
+      <h4 className="card-title__text">{children}</h4>
+    </div>
+  );
+}
+
+function ItemTypeIcon({ type }: { type: ItemType }) {
   switch (type) {
     case "Sightseeing":
-      return (
-        <CardTag label={type}>
-          <SightseeingIcon />
-        </CardTag>
-      );
+      return <SightseeingIcon />;
     case "Transit":
-      return (
-        <CardTag label={type}>
-          <TransitIcon />
-        </CardTag>
-      );
+      return <TransitIcon />;
     case "Stay":
-      return (
-        <CardTag label={type}>
-          <StayIcon />
-        </CardTag>
-      );
+      return <StayIcon />;
     case "Food":
-      return (
-        <CardTag label={type}>
-          <FoodIcon />
-        </CardTag>
-      );
+      return <FoodIcon />;
     case "Shopping":
-      return (
-        <CardTag label={type}>
-          <ShoppingIcon />
-        </CardTag>
-      );
+      return <ShoppingIcon />;
     case "Reminder":
-      return (
-        <CardTag label={type}>
-          <ReminderIcon />
-        </CardTag>
-      );
+      return <ReminderIcon />;
     case "Other":
     default:
-      return (
-        <CardTag label={type}>
-          <OtherIcon />
-        </CardTag>
-      );
+      return <OtherIcon />;
   }
 }
 

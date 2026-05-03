@@ -385,6 +385,7 @@ function ItineraryTab({
                         key={item.id}
                         tripId={detail.trip.id}
                         dayId={day.id}
+                        dayDate={day.date}
                         item={item}
                         trip={detail.trip}
                         currencyRates={detail.currencyRates}
@@ -1001,6 +1002,7 @@ function getOverviewItems(detail: TripDetail): OverviewItem[] {
           key={`overview-item-${item.id}`}
           tripId={detail.trip.id}
           dayId={day.id}
+          dayDate={day.date}
           item={item}
           trip={detail.trip}
           currencyRates={detail.currencyRates}
