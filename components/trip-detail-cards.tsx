@@ -361,10 +361,12 @@ export function FlightDetailCard({
                     className="flight-passenger-card"
                     key={getPassengerKey(passenger, index)}
                   >
-                    <div className="header-actions">
+                    <div className="flight-passenger-card__header">
                       <span className="tag">Passenger {index + 1}</span>
                       {hasText(passenger.fullName) ? (
-                        <strong>{passenger.fullName}</strong>
+                        <strong className="flight-passenger-card__name">
+                          {passenger.fullName}
+                        </strong>
                       ) : null}
                     </div>
                     <div className="flight-passenger-card__grid">

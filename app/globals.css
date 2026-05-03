@@ -659,13 +659,19 @@ textarea {
   border: 1px solid rgba(34, 34, 34, 0.05);
 }
 
-.flight-passenger-card .tag {
-  align-self: start;
+.flight-passenger-card__header {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.flight-passenger-card__name {
+  line-height: 1.35;
 }
 
 .flight-passenger-card__grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 10px;
 }
 
