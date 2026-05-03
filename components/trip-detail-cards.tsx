@@ -1,4 +1,5 @@
 import { FlightPassengersField } from "@/components/flight-passengers-field";
+import { ExpenseCategorySelect } from "@/components/expense-category-field";
 import { CostCurrencyFields } from "@/components/currency-fields";
 import { ConfirmDeleteForm } from "@/components/confirm-delete-form";
 import { FormDialog } from "@/components/form-dialog";
@@ -581,12 +582,14 @@ export function StayDetailCard({
 
 export function ExpenseDetailCard({
   currencyOptions,
+  expenseCategories,
   currencyRates,
   tripId,
   trip,
   expense,
 }: {
   currencyOptions: string[];
+  expenseCategories: string[];
   currencyRates: TripCurrencyRate[];
   tripId: string;
   trip: Trip;
@@ -641,6 +644,10 @@ export function ExpenseDetailCard({
                 type="date"
                 defaultValue={toDateInputValue(expense.date)}
                 required
+              />
+              <ExpenseCategorySelect
+                categories={expenseCategories}
+                defaultValue={expense.category}
               />
               <CostCurrencyFields
                 costDefaultValue={expense.cost ?? ""}

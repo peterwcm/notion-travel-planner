@@ -1,14 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { currency } from "@/lib/utils";
 
 type SummaryCategory = "itinerary" | "flights" | "stays" | "expenses";
 
 interface SummarySection {
-  id: SummaryCategory;
-  label: string;
+  id: Exclude<SummaryCategory, "expenses">;
+  cost: number;
+  taxRefund: number;
+  missingRateCurrencies: string[];
+}
+
+interface ExpenseCategorySummary {
+  category: string;
   cost: number;
   taxRefund: number;
   missingRateCurrencies: string[];
@@ -17,6 +23,7 @@ interface SummarySection {
 interface TripCostSummaryProps {
   baseCurrency: string;
   sections: SummarySection[];
+  expenseCategories: ExpenseCategorySummary[];
 }
 
 const CATEGORY_ORDER: SummaryCategory[] = [
@@ -36,6 +43,7 @@ const CATEGORY_LABELS: Record<SummaryCategory, string> = {
 export function TripCostSummary({
   baseCurrency,
   sections,
+  expenseCategories,
 }: TripCostSummaryProps) {
   const [selectedCategories, setSelectedCategories] = useState<
     Record<SummaryCategory, boolean>
@@ -44,24 +52,49 @@ export function TripCostSummary({
       CATEGORY_ORDER.map((category) => [category, true]),
     ) as Record<SummaryCategory, boolean>,
   );
+  const [selectedExpenseCategories, setSelectedExpenseCategories] = useState<
+    Record<string, boolean>
+  >({});
+
+  useEffect(() => {
+    setSelectedExpenseCategories((current) => {
+      const next = Object.fromEntries(
+        expenseCategories.map((entry) => [
+          entry.category,
+          current[entry.category] ?? true,
+        ]),
+      ) as Record<string, boolean>;
+
+      return next;
+    });
+  }, [expenseCategories]);
 
   const summary = useMemo(() => {
     const selectedSections = sections.filter(
       (section) => selectedCategories[section.id],
     );
+    const selectedExpenseEntries = selectedCategories.expenses
+      ? expenseCategories.filter(
+          (entry) => selectedExpenseCategories[entry.category] ?? true,
+        )
+      : [];
 
-    const totalCost = selectedSections.reduce(
-      (total, section) => total + section.cost,
-      0,
-    );
-    const totalTaxRefund = selectedSections.reduce(
-      (total, section) => total + section.taxRefund,
-      0,
-    );
+    const totalCost =
+      selectedSections.reduce((total, section) => total + section.cost, 0) +
+      selectedExpenseEntries.reduce((total, entry) => total + entry.cost, 0);
+    const totalTaxRefund =
+      selectedSections.reduce((total, section) => total + section.taxRefund, 0) +
+      selectedExpenseEntries.reduce(
+        (total, entry) => total + entry.taxRefund,
+        0,
+      );
     const missingRateCurrencies = Array.from(
-      new Set(
-        selectedSections.flatMap((section) => section.missingRateCurrencies),
-      ),
+      new Set([
+        ...selectedSections.flatMap((section) => section.missingRateCurrencies),
+        ...selectedExpenseEntries.flatMap(
+          (entry) => entry.missingRateCurrencies,
+        ),
+      ]),
     ).sort();
 
     return {
@@ -69,7 +102,7 @@ export function TripCostSummary({
       totalTaxRefund,
       missingRateCurrencies,
     };
-  }, [sections, selectedCategories]);
+  }, [expenseCategories, sections, selectedCategories, selectedExpenseCategories]);
 
   return (
     <>
@@ -108,6 +141,27 @@ export function TripCostSummary({
             </label>
           ))}
         </div>
+        {selectedCategories.expenses && expenseCategories.length > 0 ? (
+          <div className="summary-filters__nested">
+            <div className="summary-filters__grid">
+              {expenseCategories.map((entry) => (
+                <label className="summary-filter" key={entry.category}>
+                  <input
+                    checked={selectedExpenseCategories[entry.category] ?? true}
+                    onChange={(event) =>
+                      setSelectedExpenseCategories((current) => ({
+                        ...current,
+                        [entry.category]: event.target.checked,
+                      }))
+                    }
+                    type="checkbox"
+                  />
+                  <span>{entry.category}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </fieldset>
       {summary.missingRateCurrencies.length > 0 ? (
         <p className="muted">

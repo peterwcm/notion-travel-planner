@@ -21,7 +21,12 @@ export function TopNavigation({
     setIsOpen(false);
   }, [pathname]);
 
-  const navLinks = isLoggedIn ? [{ href: "/trips", label: "Trips" }] : [];
+  const navLinks = isLoggedIn
+    ? [
+        { href: "/trips", label: "Trips" },
+        { href: "/settings", label: "Settings" },
+      ]
+    : [];
 
   return (
     <header className="topbar">

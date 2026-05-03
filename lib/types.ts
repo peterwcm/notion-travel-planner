@@ -94,6 +94,7 @@ export interface TripExpense {
   tripId: string;
   title: string;
   date: string | null;
+  category: string;
   cost: number | null;
   currency: CurrencyCode;
   taxRefund: number | null;

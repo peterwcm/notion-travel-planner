@@ -100,6 +100,7 @@ export const expenseSchema = z.object({
   tripId: z.string().min(1),
   title: z.string().min(1, "Enter an expense name."),
   date: z.string().min(1, "Enter an expense date."),
+  category: z.string().min(1, "Choose a category."),
   cost: z
     .string()
     .optional()

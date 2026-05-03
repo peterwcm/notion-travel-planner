@@ -2,6 +2,12 @@ import { Client } from "@notionhq/client";
 import type { CreatePageParameters } from "@notionhq/client/build/src/api-endpoints";
 
 import { convertToBaseCurrency } from "@/lib/currency";
+import {
+  DEFAULT_EXPENSE_CATEGORY,
+  DEFAULT_EXPENSE_CATEGORIES,
+  normalizeExpenseCategory,
+  uniqueExpenseCategories,
+} from "@/lib/expense-categories";
 import { getRequiredEnv, getSetupStatus } from "@/lib/env";
 import { getFlightDisplayLabel, parseFlightPassengers, serializeFlightPassengers } from "@/lib/flight-passengers";
 import type {
@@ -82,6 +88,7 @@ const EXPENSE_PROPS = {
   title: "Name",
   trip: "Trip",
   date: "Date",
+  category: "Category",
   cost: "Cost",
   currency: "Currency",
   taxRefund: "Tax Refund",
@@ -92,6 +99,8 @@ const CURRENCY_RATE_PROPS = {
   trip: "Trip",
   rate: "Rate",
 } as const;
+
+const SETTINGS_PAGE_ID = "NOTION_SETTINGS_PAGE_ID";
 
 const DEFAULT_CURRENCY = "TWD";
 
@@ -304,8 +313,113 @@ async function queryTripScopedPages(dataSourceId: string, tripId: string, relati
   });
 }
 
+async function listAllBlockChildren(blockId: string) {
+  const client = getClient();
+  const blocks: any[] = [];
+  let cursor: string | undefined;
+
+  do {
+    const response = await client.blocks.children.list({
+      block_id: blockId,
+      start_cursor: cursor,
+    } as any);
+    blocks.push(...response.results);
+    cursor = response.has_more ? response.next_cursor ?? undefined : undefined;
+  } while (cursor);
+
+  return blocks;
+}
+
+function getRichTextContent(richText: Array<{ plain_text?: string }> | undefined) {
+  return (richText ?? []).map((entry) => entry.plain_text ?? "").join("");
+}
+
+function getExpenseCategoryBlocks(blocks: any[]) {
+  return blocks
+    .filter((block) => block.type === "bulleted_list_item")
+    .map((block) => getRichTextContent(block.bulleted_list_item?.rich_text))
+    .map((value) => normalizeExpenseCategory(value, ""))
+    .filter(Boolean);
+}
+
+async function syncExpenseCategorySelect(categories: string[]) {
+  const client = getClient();
+  const dataSourceId = getRequiredEnv("NOTION_EXPENSES_DB_ID");
+  const current = await client.dataSources.retrieve({
+    data_source_id: dataSourceId,
+  } as any);
+  const properties = (current as any).properties ?? {};
+  const existing = properties[EXPENSE_PROPS.category];
+  const options = uniqueExpenseCategories([
+    ...DEFAULT_EXPENSE_CATEGORIES,
+    ...categories,
+  ]).map((name) => ({ name }));
+
+  if (
+    existing?.type === "select" &&
+    JSON.stringify(existing.select?.options?.map((option: any) => option.name) ?? []) ===
+      JSON.stringify(options.map((option) => option.name))
+  ) {
+    return;
+  }
+
+  await client.dataSources.update({
+    data_source_id: dataSourceId,
+    properties: {
+      [EXPENSE_PROPS.category]: {
+        name: EXPENSE_PROPS.category,
+        type: "select",
+        select: {
+          options,
+        },
+      },
+    },
+  } as any);
+}
+
 export function getNotionStatus(): SetupStatus {
   return getSetupStatus();
+}
+
+export async function getExpenseCategories() {
+  const status = getNotionStatus();
+  if (!status.configured) {
+    return Array.from(DEFAULT_EXPENSE_CATEGORIES);
+  }
+
+  const blocks = await listAllBlockChildren(getRequiredEnv(SETTINGS_PAGE_ID));
+  const categories = uniqueExpenseCategories(getExpenseCategoryBlocks(blocks));
+  const result = categories.length > 0 ? categories : Array.from(DEFAULT_EXPENSE_CATEGORIES);
+
+  await syncExpenseCategorySelect(result);
+
+  return result;
+}
+
+export async function addExpenseCategory(name: string) {
+  const category = normalizeExpenseCategory(name, "");
+  if (!category) {
+    return;
+  }
+
+  const currentCategories = await getExpenseCategories();
+  if (currentCategories.some((entry) => entry.toLowerCase() === category.toLowerCase())) {
+    return;
+  }
+
+  const client = getClient();
+  await client.blocks.children.append({
+    block_id: getRequiredEnv(SETTINGS_PAGE_ID),
+    children: [
+      {
+        bulleted_list_item: {
+          rich_text: richText(category),
+        },
+      },
+    ],
+  } as any);
+
+  await syncExpenseCategorySelect([...currentCategories, category]);
 }
 
 export async function listTrips() {
@@ -687,13 +801,16 @@ export async function updateStay(
 
 export async function createExpense(input: Omit<TripExpense, "id">) {
   const client = getClient();
-
-  await client.pages.create({
-    parent: { data_source_id: getRequiredEnv("NOTION_EXPENSES_DB_ID") },
-    properties: {
+  const dataSourceId = getRequiredEnv("NOTION_EXPENSES_DB_ID");
+  const allowedPropertyNames = await getDataSourcePropertyNames(dataSourceId);
+  const properties = filterPropertiesBySchema(
+    {
       [EXPENSE_PROPS.title]: titleProperty(input.title),
       [EXPENSE_PROPS.trip]: relationProperty(input.tripId),
       [EXPENSE_PROPS.date]: dateProperty(input.date),
+      [EXPENSE_PROPS.category]: selectProperty(
+        normalizeExpenseCategory(input.category, DEFAULT_EXPENSE_CATEGORY),
+      ),
       [EXPENSE_PROPS.cost]: {
         number: input.cost,
       },
@@ -702,6 +819,12 @@ export async function createExpense(input: Omit<TripExpense, "id">) {
         number: input.taxRefund,
       },
     },
+    allowedPropertyNames,
+  );
+
+  await client.pages.create({
+    parent: { data_source_id: dataSourceId },
+    properties,
   } as CreatePageParameters);
 }
 
@@ -710,12 +833,15 @@ export async function updateExpense(
   input: Omit<TripExpense, "id" | "tripId">,
 ) {
   const client = getClient();
-
-  await client.pages.update({
-    page_id: expenseId,
-    properties: {
+  const dataSourceId = getRequiredEnv("NOTION_EXPENSES_DB_ID");
+  const allowedPropertyNames = await getDataSourcePropertyNames(dataSourceId);
+  const properties = filterPropertiesBySchema(
+    {
       [EXPENSE_PROPS.title]: titleProperty(input.title),
       [EXPENSE_PROPS.date]: dateProperty(input.date),
+      [EXPENSE_PROPS.category]: selectProperty(
+        normalizeExpenseCategory(input.category, DEFAULT_EXPENSE_CATEGORY),
+      ),
       [EXPENSE_PROPS.cost]: {
         number: input.cost,
       },
@@ -724,6 +850,12 @@ export async function updateExpense(
         number: input.taxRefund,
       },
     },
+    allowedPropertyNames,
+  );
+
+  await client.pages.update({
+    page_id: expenseId,
+    properties,
   } as any);
 }
 
@@ -798,6 +930,43 @@ export function getTripStats(detail: TripDetail) {
   const stayCost = sum(convertedStayCosts.map((entry) => entry.amount));
   const expenseCost = sum(convertedExpenseCosts.map((entry) => entry.amount));
   const expenseTaxRefund = sum(convertedTaxRefunds.map((entry) => entry.amount));
+  const expenseCategoryTotals = new Map<
+    string,
+    {
+      category: string;
+      cost: number;
+      taxRefund: number;
+      missingRateCurrencies: Set<string>;
+    }
+  >();
+
+  detail.expenses.forEach((expense, index) => {
+    const category = normalizeExpenseCategory(
+      expense.category,
+      DEFAULT_EXPENSE_CATEGORY,
+    );
+    const current =
+      expenseCategoryTotals.get(category) ??
+      {
+        category,
+        cost: 0,
+        taxRefund: 0,
+        missingRateCurrencies: new Set<string>(),
+      };
+    const convertedCost = convertedExpenseCosts[index];
+    const convertedRefund = convertedTaxRefunds[index];
+
+    current.cost += convertedCost?.amount ?? 0;
+    current.taxRefund += convertedRefund?.amount ?? 0;
+    if (convertedCost?.missingCurrency) {
+      current.missingRateCurrencies.add(convertedCost.missingCurrency);
+    }
+    if (convertedRefund?.missingCurrency) {
+      current.missingRateCurrencies.add(convertedRefund.missingCurrency);
+    }
+
+    expenseCategoryTotals.set(category, current);
+  });
 
   return {
     days: detail.days.length,
@@ -806,6 +975,14 @@ export function getTripStats(detail: TripDetail) {
     stays: detail.stays.length,
     totalCost: itineraryCost + flightCost + stayCost + expenseCost,
     totalTaxRefund: expenseTaxRefund,
+    expenseCategoryTotals: Array.from(expenseCategoryTotals.values()).map(
+      (entry) => ({
+        category: entry.category,
+        cost: entry.cost,
+        taxRefund: entry.taxRefund,
+        missingRateCurrencies: Array.from(entry.missingRateCurrencies).sort(),
+      }),
+    ),
     sectionTotals: {
       itinerary: {
         cost: itineraryCost,
@@ -1001,6 +1178,10 @@ function mapExpense(
     tripId: tripId ?? "",
     title: getTitle(properties, EXPENSE_PROPS.title),
     date: getDate(properties, EXPENSE_PROPS.date),
+    category: normalizeExpenseCategory(
+      getSelect(properties, EXPENSE_PROPS.category),
+      DEFAULT_EXPENSE_CATEGORY,
+    ),
     cost: getNumber(properties, EXPENSE_PROPS.cost),
     currency: normalizeCurrency(
       getSelect(properties, EXPENSE_PROPS.currency),

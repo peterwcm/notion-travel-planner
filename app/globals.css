@@ -278,6 +278,11 @@ textarea {
   gap: 10px 16px;
 }
 
+.summary-filters__nested {
+  margin-top: 12px;
+  padding-left: 18px;
+}
+
 .summary-filter {
   align-items: center;
   color: var(--text);
@@ -289,6 +294,22 @@ textarea {
 
 .summary-filter input {
   accent-color: var(--accent);
+  margin: 0;
+}
+
+.settings-category-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.settings-category-card {
+  display: grid;
+  align-items: center;
+  min-height: 72px;
+}
+
+.settings-category-card h4 {
   margin: 0;
 }
 

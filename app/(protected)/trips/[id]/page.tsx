@@ -7,6 +7,7 @@ import {
   CostCurrencyFields,
   getCurrencyOptions,
 } from "@/components/currency-fields";
+import { ExpenseCategorySelect } from "@/components/expense-category-field";
 import { ConfirmDeleteForm } from "@/components/confirm-delete-form";
 import { FlightPassengersField } from "@/components/flight-passengers-field";
 import { FormDialog } from "@/components/form-dialog";
@@ -31,7 +32,7 @@ import {
   updateCurrencyRateAction,
   updateTripAction,
 } from "@/app/(protected)/trips/actions";
-import { getNotionStatus, getTripDetail, getTripStats } from "@/lib/notion";
+import { getExpenseCategories, getNotionStatus, getTripDetail, getTripStats } from "@/lib/notion";
 import type { TripCurrencyRate, TripDetail, TripSectionTab } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -102,6 +103,7 @@ export default async function TripDetailPage({
   const activeTab = getTab(searchParams?.tab);
   const stats = getTripStats(detail);
   const currencyOptions = getDetailCurrencyOptions(detail);
+  const expenseCategories = await getExpenseCategories();
 
   return (
     <div className="page">
@@ -208,25 +210,18 @@ export default async function TripDetailPage({
             sections={[
               {
                 id: "itinerary",
-                label: "Itinerary",
                 ...stats.sectionTotals.itinerary,
               },
               {
                 id: "flights",
-                label: "Flights",
                 ...stats.sectionTotals.flights,
               },
               {
                 id: "stays",
-                label: "Stays",
                 ...stats.sectionTotals.stays,
               },
-              {
-                id: "expenses",
-                label: "Expenses",
-                ...stats.sectionTotals.expenses,
-              },
             ]}
+            expenseCategories={stats.expenseCategoryTotals}
           />
 
           {detail.trip.notes ? (
@@ -260,7 +255,11 @@ export default async function TripDetailPage({
         <StaysTab detail={detail} currencyOptions={currencyOptions} />
       ) : null}
       {activeTab === "expenses" ? (
-        <ExpensesTab detail={detail} currencyOptions={currencyOptions} />
+        <ExpensesTab
+          detail={detail}
+          currencyOptions={currencyOptions}
+          expenseCategories={expenseCategories}
+        />
       ) : null}
       {activeTab === "currency-rates" ? (
         <CurrencyRatesTab detail={detail} />
@@ -709,9 +708,11 @@ function StaysTab({
 function ExpensesTab({
   detail,
   currencyOptions,
+  expenseCategories,
 }: {
   detail: TripDetail;
   currencyOptions: string[];
+  expenseCategories: string[];
 }) {
   return (
     <section className="section-block">
@@ -733,6 +734,7 @@ function ExpensesTab({
                 required
               />
               <LabeledInput label="Date" name="date" type="date" required />
+              <ExpenseCategorySelect categories={expenseCategories} />
               <CostCurrencyFields
                 currencyDefaultValue={detail.trip.baseCurrency}
                 currencyOptions={currencyOptions}
@@ -759,6 +761,7 @@ function ExpensesTab({
               trip={detail.trip}
               currencyRates={detail.currencyRates}
               currencyOptions={currencyOptions}
+              expenseCategories={expenseCategories}
             />
           ))
         ) : (
