@@ -40,7 +40,9 @@ export function FormDialog({
   return (
     <>
       <button
-        aria-label={triggerContent ? (triggerAriaLabel ?? triggerLabel) : undefined}
+        aria-label={
+          triggerContent ? (triggerAriaLabel ?? triggerLabel) : undefined
+        }
         className={triggerClassName}
         onClick={() => dialogRef.current?.showModal()}
         type="button"
@@ -48,11 +50,15 @@ export function FormDialog({
         {triggerContent ?? triggerLabel}
       </button>
 
-      <dialog aria-labelledby={titleId} className="form-dialog" onSubmit={handleSubmit} ref={dialogRef}>
+      <dialog
+        aria-labelledby={titleId}
+        className="form-dialog"
+        onSubmit={handleSubmit}
+        ref={dialogRef}
+      >
         <div className="form-dialog__surface" key={resetKey ?? titleId}>
           <div className="header-actions form-dialog__header">
             <div className="stack compact-headline">
-              <span className="tag">New</span>
               <h3 id={titleId}>{title}</h3>
               {description ? <p className="muted">{description}</p> : null}
             </div>
