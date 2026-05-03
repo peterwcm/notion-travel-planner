@@ -15,6 +15,7 @@ interface SummarySection {
 
 interface ExpenseCategorySummary {
   category: string;
+  label?: string;
   cost: number;
   taxRefund: number;
   missingRateCurrencies: string[];
@@ -156,7 +157,7 @@ export function TripCostSummary({
                     }
                     type="checkbox"
                   />
-                  <span>{entry.category}</span>
+                  <span>{entry.label ?? (entry.category || "Other")}</span>
                 </label>
               ))}
             </div>

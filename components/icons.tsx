@@ -38,6 +38,19 @@ export function TrashIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function GripIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <path d="M8 7h.01" />
+      <path d="M8 12h.01" />
+      <path d="M8 17h.01" />
+      <path d="M16 7h.01" />
+      <path d="M16 12h.01" />
+      <path d="M16 17h.01" />
+    </IconBase>
+  );
+}
+
 export function FlightIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <IconBase {...props}>

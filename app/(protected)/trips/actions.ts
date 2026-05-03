@@ -20,7 +20,6 @@ import {
   updateStay,
   updateTrip,
 } from "@/lib/notion";
-import { DEFAULT_EXPENSE_CATEGORY } from "@/lib/expense-categories";
 import {
   daySchema,
   currencyRateSchema,
@@ -340,7 +339,7 @@ export async function createExpenseAction(formData: FormData) {
     tripId,
     title: formData.get("title"),
     date: formData.get("date"),
-    category: formData.get("category") ?? DEFAULT_EXPENSE_CATEGORY,
+    category: formData.get("category"),
     cost: formData.get("cost"),
     currency: formData.get("currency") ?? "TWD",
     taxRefund: formData.get("taxRefund"),
@@ -368,7 +367,7 @@ export async function updateExpenseAction(formData: FormData) {
     tripId,
     title: formData.get("title"),
     date: formData.get("date"),
-    category: formData.get("category") ?? DEFAULT_EXPENSE_CATEGORY,
+    category: formData.get("category"),
     cost: formData.get("cost"),
     currency: formData.get("currency") ?? "TWD",
     taxRefund: formData.get("taxRefund"),

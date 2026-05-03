@@ -595,6 +595,7 @@ export function ExpenseDetailCard({
   trip: Trip;
   expense: TripExpense;
 }) {
+  const categoryLabel = expense.category || "Other";
   return (
     <div className="detail-card expense-card card-with-actions">
       <div className="card-corner-actions">
@@ -673,7 +674,12 @@ export function ExpenseDetailCard({
           label="Expense"
           meta={<CompactDate value={expense.date} />}
         >
-          {expense.title}
+          <span className="expense-card__title-row">
+            <span>{expense.title}</span>
+            <span className="tag expense-card__category-tag">
+              {categoryLabel}
+            </span>
+          </span>
         </CardTitle>
       </div>
       <div className="expense-card__net">

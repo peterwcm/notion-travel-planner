@@ -125,3 +125,8 @@ export interface SetupStatus {
   configured: boolean;
   missing: string[];
 }
+
+export interface ExpenseCategoryEntry {
+  id: string;
+  name: string;
+}

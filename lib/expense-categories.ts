@@ -12,7 +12,7 @@ export const DEFAULT_EXPENSE_CATEGORY =
 
 export function normalizeExpenseCategory(
   value?: string | null,
-  fallback: string = DEFAULT_EXPENSE_CATEGORY,
+  fallback: string = "",
 ) {
   const trimmed = value?.trim() ?? "";
   return trimmed || fallback;

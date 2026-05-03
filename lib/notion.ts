@@ -3,7 +3,6 @@ import type { CreatePageParameters } from "@notionhq/client/build/src/api-endpoi
 
 import { convertToBaseCurrency } from "@/lib/currency";
 import {
-  DEFAULT_EXPENSE_CATEGORY,
   DEFAULT_EXPENSE_CATEGORIES,
   normalizeExpenseCategory,
   uniqueExpenseCategories,
@@ -12,6 +11,7 @@ import { getRequiredEnv, getSetupStatus } from "@/lib/env";
 import { getFlightDisplayLabel, parseFlightPassengers, serializeFlightPassengers } from "@/lib/flight-passengers";
 import type {
   ItemType,
+  ExpenseCategoryEntry,
   SetupStatus,
   Trip,
   TripCurrencyRate,
@@ -337,9 +337,14 @@ function getRichTextContent(richText: Array<{ plain_text?: string }> | undefined
 function getExpenseCategoryBlocks(blocks: any[]) {
   return blocks
     .filter((block) => block.type === "bulleted_list_item")
-    .map((block) => getRichTextContent(block.bulleted_list_item?.rich_text))
-    .map((value) => normalizeExpenseCategory(value, ""))
-    .filter(Boolean);
+    .map((block) => ({
+      id: block.id,
+      name: normalizeExpenseCategory(
+        getRichTextContent(block.bulleted_list_item?.rich_text),
+        "",
+      ),
+    }))
+    .filter((entry): entry is ExpenseCategoryEntry => Boolean(entry.name));
 }
 
 async function syncExpenseCategorySelect(categories: string[]) {
@@ -350,10 +355,7 @@ async function syncExpenseCategorySelect(categories: string[]) {
   } as any);
   const properties = (current as any).properties ?? {};
   const existing = properties[EXPENSE_PROPS.category];
-  const options = uniqueExpenseCategories([
-    ...DEFAULT_EXPENSE_CATEGORIES,
-    ...categories,
-  ]).map((name) => ({ name }));
+  const options = uniqueExpenseCategories(categories).map((name) => ({ name }));
 
   if (
     existing?.type === "select" &&
@@ -381,15 +383,22 @@ export function getNotionStatus(): SetupStatus {
   return getSetupStatus();
 }
 
-export async function getExpenseCategories() {
+export async function getExpenseCategoryEntries() {
   const status = getNotionStatus();
   if (!status.configured) {
-    return Array.from(DEFAULT_EXPENSE_CATEGORIES);
+    return [];
   }
 
   const blocks = await listAllBlockChildren(getRequiredEnv(SETTINGS_PAGE_ID));
-  const categories = uniqueExpenseCategories(getExpenseCategoryBlocks(blocks));
-  const result = categories.length > 0 ? categories : Array.from(DEFAULT_EXPENSE_CATEGORIES);
+  return getExpenseCategoryBlocks(blocks);
+}
+
+export async function getExpenseCategories() {
+  const entries = await getExpenseCategoryEntries();
+  const categories = uniqueExpenseCategories(entries.map((entry) => entry.name));
+  const result = categories.length > 0
+    ? categories
+    : Array.from(DEFAULT_EXPENSE_CATEGORIES);
 
   await syncExpenseCategorySelect(result);
 
@@ -402,14 +411,26 @@ export async function addExpenseCategory(name: string) {
     return;
   }
 
-  const currentCategories = await getExpenseCategories();
+  const currentEntries = await getExpenseCategoryEntries();
+  const currentCategories = currentEntries.map((entry) => entry.name);
   if (currentCategories.some((entry) => entry.toLowerCase() === category.toLowerCase())) {
     return;
   }
 
   const client = getClient();
+  const lastCategory = currentEntries[currentEntries.length - 1];
   await client.blocks.children.append({
     block_id: getRequiredEnv(SETTINGS_PAGE_ID),
+    position: lastCategory
+      ? {
+          type: "after_block",
+          after_block: {
+            id: lastCategory.id,
+          },
+        }
+      : {
+          type: "start",
+        },
     children: [
       {
         bulleted_list_item: {
@@ -420,6 +441,204 @@ export async function addExpenseCategory(name: string) {
   } as any);
 
   await syncExpenseCategorySelect([...currentCategories, category]);
+}
+
+export async function updateExpenseCategory(categoryId: string, name: string) {
+  const nextName = normalizeExpenseCategory(name, "");
+  if (!nextName) {
+    return;
+  }
+
+  const entries = await getExpenseCategoryEntries();
+  const currentEntry = entries.find((entry) => entry.id === categoryId);
+  if (!currentEntry) {
+    return;
+  }
+
+  const currentCategories = entries.map((entry) => entry.name);
+  const deduped = uniqueExpenseCategories(currentCategories.map((entry) => (entry === currentEntry.name ? nextName : entry)));
+  const client = getClient();
+
+  if (currentEntry.id !== currentEntry.name) {
+    await client.blocks.update({
+      block_id: categoryId,
+      bulleted_list_item: {
+        rich_text: richText(nextName),
+      },
+    } as any);
+  }
+
+  if (currentEntry.name !== nextName) {
+    const expenseResults = await queryAllDataSourcePages({
+      data_source_id: getRequiredEnv("NOTION_EXPENSES_DB_ID"),
+      filter: {
+        property: EXPENSE_PROPS.category,
+        select: {
+          equals: currentEntry.name,
+        },
+      },
+    });
+
+    await Promise.all(
+      expenseResults.map((page: any) =>
+        client.pages.update({
+          page_id: page.id,
+          properties: {
+            [EXPENSE_PROPS.category]: selectProperty(nextName),
+          },
+        } as any),
+      ),
+    );
+  }
+
+  await syncExpenseCategorySelect(deduped);
+}
+
+export async function deleteExpenseCategory(categoryId: string) {
+  const entries = await getExpenseCategoryEntries();
+  const currentEntry = entries.find((entry) => entry.id === categoryId);
+  if (!currentEntry) {
+    return;
+  }
+
+  const remaining = entries
+    .filter((entry) => entry.id !== categoryId)
+    .map((entry) => entry.name);
+  const client = getClient();
+
+  if (currentEntry.id !== currentEntry.name) {
+    await client.blocks.delete({
+      block_id: categoryId,
+    } as any);
+  }
+
+  const expenseResults = await queryAllDataSourcePages({
+    data_source_id: getRequiredEnv("NOTION_EXPENSES_DB_ID"),
+    filter: {
+      property: EXPENSE_PROPS.category,
+      select: {
+        equals: currentEntry.name,
+      },
+    },
+  });
+
+  await Promise.all(
+    expenseResults.map((page: any) =>
+      client.pages.update({
+        page_id: page.id,
+        properties: {
+          [EXPENSE_PROPS.category]: selectProperty(""),
+        },
+      } as any),
+    ),
+  );
+
+  await syncExpenseCategorySelect(
+    remaining.length > 0 ? remaining : Array.from(DEFAULT_EXPENSE_CATEGORIES),
+  );
+}
+
+export async function reorderExpenseCategories(orderedCategoryIds: string[]) {
+  const entries = await getExpenseCategoryEntries();
+  const entryById = new Map(entries.map((entry) => [entry.id, entry]));
+  const orderedEntries: ExpenseCategoryEntry[] = [];
+  const seen = new Set<string>();
+
+  for (const categoryId of orderedCategoryIds) {
+    const entry = entryById.get(categoryId);
+    if (!entry || seen.has(entry.id)) {
+      continue;
+    }
+
+    orderedEntries.push(entry);
+    seen.add(entry.id);
+  }
+
+  for (const entry of entries) {
+    if (seen.has(entry.id)) {
+      continue;
+    }
+
+    orderedEntries.push(entry);
+  }
+
+  const currentOrder = entries.map((entry) => entry.id);
+  const nextOrder = orderedEntries.map((entry) => entry.id);
+  if (JSON.stringify(currentOrder) === JSON.stringify(nextOrder)) {
+    return;
+  }
+
+  const client = getClient();
+  const pageId = getRequiredEnv(SETTINGS_PAGE_ID);
+  const blocks = await listAllBlockChildren(pageId);
+  const currentIds = new Set(entries.map((entry) => entry.id));
+  const firstCategoryIndex = blocks.findIndex((block) => currentIds.has(block.id));
+  const anchorId = firstCategoryIndex > 0 ? blocks[firstCategoryIndex - 1].id : null;
+
+  await Promise.all(
+    entries.map((entry) =>
+      client.blocks.delete({
+        block_id: entry.id,
+      } as any),
+    ),
+  );
+
+  let previousBlockId = anchorId;
+  for (const entry of orderedEntries) {
+    const response = await client.blocks.children.append({
+      block_id: pageId,
+      position: previousBlockId
+        ? {
+            type: "after_block",
+            after_block: {
+              id: previousBlockId,
+            },
+          }
+        : {
+            type: "start",
+          },
+      children: [
+        {
+          bulleted_list_item: {
+            rich_text: richText(entry.name),
+          },
+        },
+      ],
+    } as any);
+
+    previousBlockId = (response as any).results?.[0]?.id ?? previousBlockId;
+  }
+
+  await syncExpenseCategorySelect(orderedEntries.map((entry) => entry.name));
+}
+
+export async function backfillExpensesWithoutCategory(category = "Shopping") {
+  const expenses = await queryAllDataSourcePages({
+    data_source_id: getRequiredEnv("NOTION_EXPENSES_DB_ID"),
+  });
+  const client = getClient();
+  const normalizedCategory = normalizeExpenseCategory(category, "");
+
+  if (!normalizedCategory) {
+    return 0;
+  }
+
+  const emptyExpenses = expenses.filter(
+    (page: any) => !getSelect(page.properties ?? {}, EXPENSE_PROPS.category),
+  );
+
+  await Promise.all(
+    emptyExpenses.map((page: any) =>
+      client.pages.update({
+        page_id: page.id,
+        properties: {
+          [EXPENSE_PROPS.category]: selectProperty(normalizedCategory),
+        },
+      } as any),
+    ),
+  );
+
+  return emptyExpenses.length;
 }
 
 export async function listTrips() {
@@ -809,7 +1028,7 @@ export async function createExpense(input: Omit<TripExpense, "id">) {
       [EXPENSE_PROPS.trip]: relationProperty(input.tripId),
       [EXPENSE_PROPS.date]: dateProperty(input.date),
       [EXPENSE_PROPS.category]: selectProperty(
-        normalizeExpenseCategory(input.category, DEFAULT_EXPENSE_CATEGORY),
+        normalizeExpenseCategory(input.category, ""),
       ),
       [EXPENSE_PROPS.cost]: {
         number: input.cost,
@@ -840,7 +1059,7 @@ export async function updateExpense(
       [EXPENSE_PROPS.title]: titleProperty(input.title),
       [EXPENSE_PROPS.date]: dateProperty(input.date),
       [EXPENSE_PROPS.category]: selectProperty(
-        normalizeExpenseCategory(input.category, DEFAULT_EXPENSE_CATEGORY),
+        normalizeExpenseCategory(input.category, ""),
       ),
       [EXPENSE_PROPS.cost]: {
         number: input.cost,
@@ -943,7 +1162,7 @@ export function getTripStats(detail: TripDetail) {
   detail.expenses.forEach((expense, index) => {
     const category = normalizeExpenseCategory(
       expense.category,
-      DEFAULT_EXPENSE_CATEGORY,
+      "",
     );
     const current =
       expenseCategoryTotals.get(category) ??
@@ -1180,7 +1399,7 @@ function mapExpense(
     date: getDate(properties, EXPENSE_PROPS.date),
     category: normalizeExpenseCategory(
       getSelect(properties, EXPENSE_PROPS.category),
-      DEFAULT_EXPENSE_CATEGORY,
+      "",
     ),
     cost: getNumber(properties, EXPENSE_PROPS.cost),
     currency: normalizeCurrency(

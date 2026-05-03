@@ -62,6 +62,7 @@ interface TripDetailPageProps {
   };
   searchParams?: {
     tab?: string;
+    expenseCategory?: string | string[];
   };
 }
 
@@ -69,6 +70,158 @@ function getTab(tab?: string): TripSectionTab {
   return tabs.some((item) => item.id === tab)
     ? (tab as TripSectionTab)
     : "overview";
+}
+
+const EXPENSE_CATEGORY_OTHER = "__uncategorized__";
+
+function getExpenseCategoryKey(category: string) {
+  return category.trim() || EXPENSE_CATEGORY_OTHER;
+}
+
+function getExpenseCategoryLabel(category: string) {
+  return category.trim() || "Other";
+}
+
+function buildTripTabHref(
+  tripId: string,
+  tab: TripSectionTab,
+  searchParams?: TripDetailPageProps["searchParams"],
+) {
+  const query = new URLSearchParams();
+  query.set("tab", tab);
+
+  if (typeof searchParams?.expenseCategory === "string") {
+    query.set("expenseCategory", searchParams.expenseCategory);
+  } else if (Array.isArray(searchParams?.expenseCategory)) {
+    const firstValue = searchParams.expenseCategory.find(Boolean);
+    if (firstValue) {
+      query.set("expenseCategory", firstValue);
+    }
+  }
+
+  return `/trips/${tripId}?${query.toString()}`;
+}
+
+function buildExpenseCategoryTabs(
+  expenses: Array<{ category: string }>,
+) {
+  const tabs: Array<{ key: string; label: string }> = [];
+  const seen = new Set<string>();
+
+  for (const expense of expenses) {
+    const category = expense.category.trim();
+    if (!category) {
+      continue;
+    }
+
+    const key = getExpenseCategoryKey(category);
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    tabs.push({
+      key,
+      label: getExpenseCategoryLabel(category),
+    });
+  }
+
+  if (expenses.some((expense) => !expense.category.trim())) {
+    tabs.push({
+      key: EXPENSE_CATEGORY_OTHER,
+      label: "Other",
+    });
+  }
+
+  return tabs;
+}
+
+function getSelectedExpenseCategoryKey(
+  searchParamValue: string | string[] | undefined,
+  availableCategoryKeys: string[],
+) {
+  const validKeys = new Set(availableCategoryKeys);
+  const values =
+    typeof searchParamValue === "string"
+      ? [searchParamValue]
+      : searchParamValue ?? [];
+
+  for (const value of values) {
+    if (validKeys.has(value)) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
+function buildExpenseCategoryHref(tripId: string, targetKey: string) {
+  const query = new URLSearchParams();
+  query.set("tab", "expenses");
+
+  if (targetKey !== "all") {
+    query.set("expenseCategory", targetKey);
+  }
+
+  return `/trips/${tripId}?${query.toString()}`;
+}
+
+function buildExpenseCategorySummaries(
+  orderedCategories: string[],
+  totals: Array<{
+    category: string;
+    cost: number;
+    taxRefund: number;
+    missingRateCurrencies: string[];
+  }>,
+) {
+  const totalsByCategory = new Map(
+    totals.map((entry) => [entry.category, entry] as const),
+  );
+  const seen = new Set<string>();
+  const result: Array<{
+    category: string;
+    label?: string;
+    cost: number;
+    taxRefund: number;
+    missingRateCurrencies: string[];
+  }> = [];
+
+  for (const category of orderedCategories) {
+    const entry = totalsByCategory.get(category);
+    if (!entry) {
+      continue;
+    }
+
+    result.push(entry);
+    seen.add(category);
+  }
+
+  const uncategorized = totalsByCategory.get("");
+  if (uncategorized) {
+    result.push({
+      ...uncategorized,
+      label: "Other",
+    });
+    seen.add("");
+  }
+
+  for (const entry of totals) {
+    if (seen.has(entry.category)) {
+      continue;
+    }
+
+    result.push(entry);
+  }
+
+  return result.map((entry) =>
+    entry.category === ""
+      ? {
+          ...entry,
+          label: entry.label ?? "Other",
+        }
+      : entry,
+  );
 }
 
 export default async function TripDetailPage({
@@ -103,7 +256,16 @@ export default async function TripDetailPage({
   const activeTab = getTab(searchParams?.tab);
   const stats = getTripStats(detail);
   const currencyOptions = getDetailCurrencyOptions(detail);
-  const expenseCategories = await getExpenseCategories();
+  const expenseCategoryNames = await getExpenseCategories();
+  const expenseCategories = buildExpenseCategorySummaries(
+    expenseCategoryNames,
+    stats.expenseCategoryTotals,
+  );
+  const availableExpenseCategoryTabs = buildExpenseCategoryTabs(detail.expenses);
+  const selectedExpenseCategoryKey = getSelectedExpenseCategoryKey(
+    searchParams?.expenseCategory,
+    availableExpenseCategoryTabs.map((category) => category.key),
+  );
 
   return (
     <div className="page">
@@ -221,7 +383,7 @@ export default async function TripDetailPage({
                 ...stats.sectionTotals.stays,
               },
             ]}
-            expenseCategories={stats.expenseCategoryTotals}
+            expenseCategories={expenseCategories}
           />
 
           {detail.trip.notes ? (
@@ -232,12 +394,12 @@ export default async function TripDetailPage({
 
       <nav className="tab-nav" aria-label="Trip detail sections">
         {tabs.map((tab) => (
-          <Link
+        <Link
             key={tab.id}
             className={
               tab.id === activeTab ? "tab-link tab-link--active" : "tab-link"
             }
-            href={`/trips/${detail.trip.id}?tab=${tab.id}`}
+            href={buildTripTabHref(detail.trip.id, tab.id, searchParams)}
           >
             {tab.label}
           </Link>
@@ -258,7 +420,8 @@ export default async function TripDetailPage({
         <ExpensesTab
           detail={detail}
           currencyOptions={currencyOptions}
-          expenseCategories={expenseCategories}
+          expenseCategoryNames={expenseCategoryNames}
+          selectedExpenseCategoryKey={selectedExpenseCategoryKey}
         />
       ) : null}
       {activeTab === "currency-rates" ? (
@@ -708,12 +871,23 @@ function StaysTab({
 function ExpensesTab({
   detail,
   currencyOptions,
-  expenseCategories,
+  expenseCategoryNames,
+  selectedExpenseCategoryKey,
 }: {
   detail: TripDetail;
   currencyOptions: string[];
-  expenseCategories: string[];
+  expenseCategoryNames: string[];
+  selectedExpenseCategoryKey: string | null;
 }) {
+  const visibleExpenses = selectedExpenseCategoryKey
+    ? detail.expenses.filter(
+        (expense) =>
+          getExpenseCategoryKey(expense.category) ===
+          selectedExpenseCategoryKey,
+      )
+    : detail.expenses;
+  const expenseCategoryTabs = buildExpenseCategoryTabs(visibleExpenses);
+
   return (
     <section className="section-block">
       <div className="header-actions">
@@ -734,7 +908,7 @@ function ExpensesTab({
                 required
               />
               <LabeledInput label="Date" name="date" type="date" required />
-              <ExpenseCategorySelect categories={expenseCategories} />
+              <ExpenseCategorySelect categories={expenseCategoryNames} />
               <CostCurrencyFields
                 currencyDefaultValue={detail.trip.baseCurrency}
                 currencyOptions={currencyOptions}
@@ -751,9 +925,35 @@ function ExpensesTab({
           </form>
         </FormDialog>
       </div>
+      <div className="expense-category-tabs">
+        <Link
+          className={
+            selectedExpenseCategoryKey === null
+              ? "tab-link tab-link--active"
+              : "tab-link"
+          }
+          href={buildExpenseCategoryHref(detail.trip.id, "all")}
+        >
+          All
+        </Link>
+        {expenseCategoryTabs.map((category) => {
+          const isActive = selectedExpenseCategoryKey === category.key;
+          return (
+            <Link
+              className={
+                isActive ? "tab-link tab-link--active" : "tab-link"
+              }
+              href={buildExpenseCategoryHref(detail.trip.id, category.key)}
+              key={category.key}
+            >
+              {category.label}
+            </Link>
+          );
+        })}
+      </div>
       <section className="stack">
-        {detail.expenses.length > 0 ? (
-          detail.expenses.map((expense) => (
+        {visibleExpenses.length > 0 ? (
+          visibleExpenses.map((expense) => (
             <ExpenseDetailCard
               key={expense.id}
               tripId={detail.trip.id}
@@ -761,11 +961,15 @@ function ExpensesTab({
               trip={detail.trip}
               currencyRates={detail.currencyRates}
               currencyOptions={currencyOptions}
-              expenseCategories={expenseCategories}
+              expenseCategories={expenseCategoryNames}
             />
           ))
         ) : (
-          <div className="empty">No expenses yet.</div>
+          <div className="empty">
+            {detail.expenses.length > 0
+              ? "No expenses match the selected categories."
+              : "No expenses yet."}
+          </div>
         )}
       </section>
     </section>
